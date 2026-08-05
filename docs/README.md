@@ -31,6 +31,8 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 03: bookmark CRUD execution plan](../.tracks/03-bookmark-crud/PLAN.md)
 - [Track 04: search and statistics specification](../.tracks/04-search-stats/SPEC.md)
 - [Track 04: search and statistics execution plan](../.tracks/04-search-stats/PLAN.md)
+- [Track 05: mandatory quality-gate specification](../.tracks/05-mandatory-quality-gate/SPEC.md)
+- [Track 05: mandatory quality-gate execution plan](../.tracks/05-mandatory-quality-gate/PLAN.md)
 
 Detailed downstream artifacts may be planned sequentially after upstream plan review;
 their presence does not make implementation ready until each stated dependency closes

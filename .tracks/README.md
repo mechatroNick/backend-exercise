@@ -53,7 +53,7 @@ flowchart LR
 | 02 | Error contract, registration, login, and JWT authentication | 01 | Planned (implementation-gated) |
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Planned (implementation-gated) |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
-| 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Pending |
+| 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Pending |
 | 07 | Weekly developing points and append-only correction revisions | 06 | Pending |
 | 08 | Final regression, README, deployment design, seed data, and optional bonuses | 01-07 | Pending |
@@ -76,3 +76,6 @@ implementation.
 - [Track 04 specification](04-search-stats/SPEC.md)
 - [Track 04 execution plan](04-search-stats/PLAN.md)
 - [Track 04 history](04-search-stats/HISTORY.md)
+- [Track 05 specification](05-mandatory-quality-gate/SPEC.md)
+- [Track 05 execution plan](05-mandatory-quality-gate/PLAN.md)
+- [Track 05 history](05-mandatory-quality-gate/HISTORY.md)
