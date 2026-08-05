@@ -1,6 +1,6 @@
 # Track 08 history
 
-## 2026-08-06 — Final verification-gate planning clarified
+## 2026-08-05 — Final verification-gate planning clarified
 
 - Added planning for `scripts/verify-track-08.sh` as the final disposable-clean-clone
   automation/orchestrator. It will run the documentation verifier and Track 01–07
