@@ -1,6 +1,7 @@
 # Track 06 plan: event-driven current statistics, durable recovery, and operations
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
+- Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Status: Planned (implementation-gated)
 - Active item: None; Track 05 core gate has not closed
 
@@ -9,7 +10,7 @@
 Before any implementation, the primary engineering thread verifies Track 05 is
 **Complete**, its `TEST-REPORT.md` records passing mandatory core evidence, and no
 critical/high defect remains. Re-read delivered Track 03 publisher/transaction seams,
-Track 04 canonical reader/body, Track 05 contract evidence, ADR-001/004/005, and this
+Track 04 canonical reader/body, Track 05 contract evidence, ADR-001/004/005/006, and this
 SPEC's staged Track07 marker-completion boundary. Stop for an upstream mismatch; do
 not adapt a public or durable-state contract silently.
 
@@ -20,14 +21,15 @@ not adapt a public or durable-state contract silently.
 | T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | Pending | Create/material scalar/tag/delete ordering and safe-field tests; reads/no-op/rollback absence; delete-window proof. |
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | Pending | Overflow preserves request/marker; duplicate/reordered/lost events harmless; atomic readers and snapshot/live parity proof. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Pending | One non-daemon instance, manual-cycle/fake-clock, own session/non-overlap, restart, retry, post-commit-crash, concurrent-increment, and join-timeout evidence. |
-| T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; parsed JSON Lines enforce ADR-004 service/event/thread/process/instance fields plus applicable correlation/duration/count fields and exact-once owning-boundary unexpected exceptions. |
-| T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; barrier/fault-injection proof for generation and concurrency; full ledger, SQL/live fallback parity, migration lifecycle, contracts, hygiene, and actual `bash scripts/verify-track-06.sh` receipt. |
-| T06-08 | Primary closure, risk review, Track07 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; actual deterministic and process-harness results, verified cleanup, and staged marker contract recorded. |
+| T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; parsed JSON Lines enforce complete base fields, ADR-004 instance/applicable duration/count/generation fields, safe correlation, redaction, no raw indexed exception text, and exact-once final-owning-boundary causal exception evidence. |
+| T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; barrier/fault-injection proof for generation and concurrency; full ledger, SQL/live fallback parity, migration lifecycle, contracts, ephemeral response/token assertion handling, hygiene, and actual `bash scripts/verify-track-06.sh` receipt. |
+| T06-08 | Primary closure, risk review, Track07 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; truthful actual deterministic and process-harness results, verified cleanup, safe debug-artifact disposition, and staged marker contract recorded. |
 
 ## Shared completion gate
 
 The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-applies without changing Track 06's status, task IDs/dependencies, marker-generation
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
+without changing Track 06's status, task IDs/dependencies, marker-generation
 rules, transaction/publication ordering, current-stats fallback contract, one-worker
 topology, ADR-004 log fields, or the Track 07 staged handoff. Planned, Ready, or
 Blocked is not done. T06-08 may mark Track 06 Complete only after recorded passing
@@ -109,14 +111,17 @@ never wait for a real ten-second cadence.
 - Validate Settings reject multiple application workers when the service is enabled;
   disabled refresh has no process-local-service readiness requirement and `stats`
   stays correct via live SQL.
-- Parse captured JSON Lines and enforce ADR-004's exact `service`, `event`,
-  `thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger
-  fields. Assert correlation identifiers where a request/asynchronous flow has one,
-  and applicable duration, queue/count, generation/count, affected-user, interval, and
-  failure-count fields. Capture startup, cycle, retry, overflow, readiness, shutdown,
-  and join outcomes. Deliberately seed safe credential/content/ID sentinels and assert
-  their absence; unexpected exceptions log exactly once at the owning boundary under
-  the shared guideline. Do not duplicate or weaken ADR-004.
+- Parse captured JSON Lines and enforce `source`, service/component, event, level, UTC
+  timestamp, logger, `process_id`, execution/thread identity including `thread_name`,
+  and ADR-004 `service_instance_id`, plus applicable safe duration, queue/count,
+  generation/count, affected-user, interval, and failure-count fields. Correlation is
+  supplied/generated only, never token/user ID/request body/content derived. Capture
+  startup, cycle, retry, overflow, readiness, shutdown, and join outcomes. Deliberately
+  seed safe credential/content/ID sentinels and assert their absence. At the final
+  owning request/task/thread/process boundary, unexpected exceptions log once with
+  redacted structured type, safe message, ordered frames, cause/context, no locals,
+  and no raw exception text indexed; intermediates add safe context and re-raise
+  without duplicate logs. Do not duplicate or weaken ADR-004.
 
 ### T06-07 — deterministic and real-process evidence
 
@@ -133,7 +138,14 @@ never wait for a real ten-second cadence.
 - Exercise real mutation, current-stats, source-header, `/health/live`, and
   `/health/ready` flows. Parse the actual process JSON Lines; prove snapshot/live
   parity, queue/dirty recovery through observable state or the disposable database,
-  clean shutdown, and trap cleanup. No real ten-second sleep is a valid assertion.
+  clean shutdown, and trap cleanup. Own-user stats bodies, `X-Stats-*` headers, and
+  safe health bodies are ephemeral in-memory assertions; JWTs are parsed/used in memory
+  only without echo/persistence. Own-user values/tokens/IDs/content sentinels and all
+  cross-user data are absent from logs, indexed fields, command/diagnostic output,
+  assertion failures, unsafe debug bundles, and retained artifacts. Health remains
+  bounded/redacted with no SQL/content/credentials/paths/raw exceptions. Remove
+  disposable response/token/debug state unless explicit safe debug mode applies. No
+  real ten-second sleep is a valid assertion.
 
 ### T06-08 — closure and Track 07 handoff
 

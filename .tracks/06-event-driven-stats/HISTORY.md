@@ -27,7 +27,7 @@ weekly event-time semantics and prevents unbounded inert markers before Track 07
 
 ## Current state
 
-- Specification: Planned, version 1.0
+- Specification: Planned, version 1.1
 - Plan: Planned; T06-01 Blocked on Track 05 closure
 - Implementation: Not started; dependency-gated
 - Material product questions: None known
@@ -56,3 +56,15 @@ confirm the staged completion handoff remains traceable before writing product c
   rather than proves those claims, and no real ten-second sleep is planned.
 - No Track 06 test, application process, migration, harness, runtime validation, or
   `TEST-REPORT.md` receipt was executed or created by this planning-only change.
+
+## 2026-08-06 — Incremental verification-governance planning correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 to the
+  governing evidence/closure records; Track 06 remains Planned (implementation-gated)
+  and T06-01 remains Blocked on Track 05 Complete.
+- Completed inherited and ADR-004 JSON Lines evidence, safe-correlation, redaction,
+  causal exactly-once owning-boundary exception, health, and safe assertion-output
+  rules without changing current-stats raw-SQL authority, marker/generation/event
+  ordering, worker/health routes, or the Track 07 staged handoff.
+- This correction is planning only: no Track 06 test, process, migration, harness,
+  runtime validation, artifact, or `TEST-REPORT.md` receipt was created or executed.

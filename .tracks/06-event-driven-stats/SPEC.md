@@ -1,11 +1,11 @@
 # Track 06 specification: event-driven current statistics, durable recovery, and operations
 
 - Status: Planned (implementation-gated)
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 05 **Complete**, including its core quality-gate receipts and no known critical/high defect
-- Governing ADRs: ADR-001, ADR-004, ADR-005
+- Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Assessment requirements: EVT-01, EVT-02, EVT-03, WIN-03, OPS-01; preserves SQL-01 and SQL-02
 
 ## 1. Intent anchor
@@ -171,28 +171,40 @@ thresholds. It records queue depth/overflow and sanitized error code without IDs
 content, SQL, paths, secrets, or exception text. Disabled refresh remains ready based
 on database/lifecycle policy and `/stats` live fallback remains correct.
 
-All lifecycle and worker logs use the established structured schema with service
-attribution (`bootstrap`, `api`, `database`, `bookmark_stats_refresher`) and only
-low-cardinality fields such as duration, queue depth, generation count, affected-user
-count, interval, and failure count. They never log user IDs, resource IDs, tag/content
-data, credentials, tokens, URLs, SQL, or secrets. Emit distinct events for startup,
-cycle success/failure, retry, overflow, readiness transition, shutdown, and join
-timeout.
+All lifecycle and worker logs use the established structured schema with `source`,
+service/component attribution (`bootstrap`, `api`, `database`,
+`bookmark_stats_refresher`), event, level, UTC timestamp, logger, `process_id`, and
+execution/thread identity where applicable, including `thread_name`. ADR-004 adds
+`service_instance_id` and applicable safe duration/count/generation fields. Correlation
+is supplied/generated only and is never derived from a token, user ID, request body,
+or content. Logs use redaction and only low-cardinality fields such as duration, queue
+depth, generation count, affected-user count, interval, and failure count. They never
+log user IDs, resource IDs, tag/content data, credentials, tokens, URLs, SQL, or
+secrets. Emit distinct events for startup, cycle success/failure, retry, overflow,
+readiness transition, shutdown, and join timeout.
 
 The Track 06 test and process-harness log audit parses every captured application log
-as JSON Lines and enforces the ADR-004 fields exactly: `service`, `event`,
-`thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger.
-It also checks correlation identifiers when a request or asynchronous flow has one,
-and checks duration, queue/count, generation/count, affected-user count, interval,
-and failure-count fields when the selected event makes them applicable. It captures
-the expected startup, cycle, retry, overflow, readiness, shutdown, and join outcomes.
-It deliberately seeds safe credential, submitted-content, and identifier sentinels
-and proves that none appear in logs, HTTP output, or retained artifacts. The shared
-[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-governs unexpected-exception evidence: the owning request, task, thread, or process
-boundary logs it exactly once with safe structured exception evidence; intermediate
-layers add safe context and re-raise. This supplements, and neither duplicates nor
-weakens, ADR-004's logging contract.
+as JSON Lines and enforces `source`, service/component, event, level, UTC timestamp,
+logger, `process_id`, execution/thread identity including `thread_name`, and ADR-004
+`service_instance_id` exactly. It also checks supplied/generated safe correlation
+identifiers when a request or asynchronous flow has one (never token, user ID, request
+body, or content derived), and checks applicable safe duration, queue/count,
+generation/count, affected-user count, interval, and failure-count fields.
+It captures the expected startup, cycle, retry, overflow, readiness, shutdown, and
+join outcomes. Own-user stats bodies, `X-Stats-*` headers, and safe health bodies are
+ephemeral in-memory assertion inputs; returned JWTs are parsed/used in memory only and
+never echoed or persisted. Own-user values/tokens/IDs/content sentinels and all
+cross-user data are absent from application logs, indexed fields, command or diagnostic
+output, assertion failures, unsafe debug bundles, and retained artifacts. Health stays
+bounded and redacted, with no SQL, content, credentials, paths, or raw exceptions.
+Cleanup removes disposable response/token/debug state unless an explicit safe debug
+mode retains an approved artifact. The shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) govern
+unexpected-exception evidence: the final owning request, task, thread, or process
+boundary logs it exactly once with redacted structured type, safe message, ordered
+frames, cause/context, and no locals; intermediates add safe context and re-raise
+without duplicate logging; raw exception text is not an indexed field. This supplements,
+and neither duplicates nor weakens, ADR-004's logging contract.
 
 ## 7. Requirements and acceptance evidence
 
@@ -238,9 +250,9 @@ remain.
 | Snapshot concurrency | Barrier concurrent readers against build/swap; no partial/mixed generation; injected SQL/publication failure retains old immutable snapshot and pending work. |
 | Worker ownership | Fake clock/manual cycle proves one instance, exact non-daemon name, own sessions, no overlap, interruptible cadence, restart isolation, disabled mode, and bounded shutdown/join timeout. |
 | Health | Dead, stuck, never-successful, repeatedly failed, stale, startup-timeout, and backlog-threshold worker states fail readiness while liveness remains independent. |
-| Observability | Parse JSON Lines and enforce ADR-004 service/event/thread/process/instance fields plus applicable correlation, duration, and count fields for startup/cycle/retry/overflow/readiness/shutdown/join outcomes; seed safe credential/content/ID sentinels must not appear, and unexpected exceptions appear exactly once at their owning boundary. |
+| Observability | Parse JSON Lines for `source`, service/component, event, level, UTC timestamp, logger, `process_id`, execution/thread identity including `thread_name`, ADR-004 `service_instance_id`, and applicable safe duration/count/generation fields; correlation is supplied/generated only and not token/user/body/content derived. Redact sentinels; raw exception text is not indexed; final owning boundaries log exactly one structured type/safe-message/ordered-frame/cause-context/no-locals exception while intermediates re-raise without duplicate logs. |
 | Migration/recovery | Empty/existing upgrade, constraints/FK/cascade/indexes, atomic upsert, rollback, downgrade/re-upgrade, and restart reconciliation pass on disposable migrated SQLite. |
-| Process closure | Planned `scripts/verify-track-06.sh` extends the delivered Track 05 bootstrap with a disposable migrated database, dynamic isolated port, actual API process and named non-daemon worker, real HTTP mutation/current-stats/header/live-ready flows, bounded completion/degradation/recovery observation, snapshot/live parity, queue/dirty recovery, clean shutdown, and cleanup. |
+| Process closure | Planned `scripts/verify-track-06.sh` extends the delivered Track 05 bootstrap with a disposable migrated database, dynamic isolated port, actual API process and named non-daemon worker, real HTTP mutation/current-stats/header/live-ready flows, bounded completion/degradation/recovery observation, snapshot/live parity, queue/dirty recovery, clean shutdown, and cleanup. Own-user stats/header/health bodies and JWTs are ephemeral assertions only; cross-user data and sentinels never enter unsafe receipt surfaces. |
 
 ## 9. Risks, limits, and follow-up ownership
 
