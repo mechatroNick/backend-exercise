@@ -2,14 +2,15 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006
-- Status: Planned
-- Active item: None; implementation is dependency-gated on Track 01 closure
+- Status: Ready
+- Active item: T02-02 and T02-03 design/implementation handoff after dependency
+  selection from current primary documentation
 
 ## Execution plan
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T02-01 | Verify the Track 01 closure receipt and inspect delivered composition, Settings, clock, session, users schema, migrations, and tests before auth changes. | Smith / implementation | Track 01 closure | Blocked | Written compatibility checkpoint; no auth work starts if the required seams are absent or contradictory. |
+| T02-01 | Verify the Track 01 closure receipt and inspect delivered composition, Settings, clock, session, users schema, migrations, and tests before auth changes. | Primary engineering thread | Track 01 closure | Complete | Track 01 merge `8fa39b0` and its passing `TEST-REPORT.md` provide every required seam; no contradiction or schema change is required. |
 | T02-02 | Define application-owned expected errors, stable error DTOs/codes, and the one centralized FastAPI HTTP translation boundary. | Smith / implementation | T02-01 | Pending | Error matrix tests prove envelope/status behavior for validation, auth, conflict, not-found, and redacted unexpected failures. |
 | T02-03 | Add identity/password normalization, Argon2 hashing, and injected-clock access-only JWT security primitives. | Smith / implementation | T02-01 | Pending | Deterministic unit tests prove username/email policy, NFC handling, Argon2 verify, required claims, expiry, and secret-safe behavior. |
 | T02-04 | Add auth repository/service operations for register, generic login failure, canonical user lookup, and race-safe uniqueness translation with transaction rollback. | Smith / implementation | T02-02, T02-03 | Pending | Integration tests prove canonical duplicate conflicts, no user enumeration, rollback, and public/persistence separation. |

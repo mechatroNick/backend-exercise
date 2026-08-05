@@ -16,16 +16,16 @@
 
 ## Current state
 
-- Specification: Planned
-- Plan: Planned
-- Implementation: Dependency-gated; not started
+- Specification: Ready
+- Plan: Ready
+- Implementation: Authorized; T02-01 compatibility gate complete
 - Material product questions: None known
 
 ## Next action
 
-After Track 01 closes with actual validation evidence, execute T02-01: verify the
-delivered composition and persistence seams against this plan before selecting auth
-dependencies or writing product code.
+Complete the current primary-source dependency check, then execute T02-02 and T02-03
+without changing the accepted routes, envelope, normalization, Argon2, or HS256
+contracts.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -55,3 +55,20 @@ dependencies or writing product code.
   identity values and no public correlation-header contract is added.
 - This correction is planning only: no Track 02 test, process, migration, harness,
   runtime validation, credential, or artifact was created or executed.
+
+## 2026-08-06 — Track 01 compatibility gate passed
+
+- Verified Track 01's closure receipt and merge commit `8fa39b0`: 127 deterministic
+  tests, 100% application statement/branch coverage, a complete disposable Alembic
+  lifecycle, and the real Uvicorn process harness all passed before this branch was
+  created.
+- Inspected the delivered integration seams. `Settings` supplies a secret-bearing
+  JWT key and bounded token TTL; `Clock` supplies aware UTC time; the synchronous
+  session factory creates caller-owned sessions; the `users` table has canonical
+  unique identity columns and 255-character non-empty hash storage; the app factory
+  is injectable and lifecycle-owned; and tests build databases only through Alembic.
+- Confirmed the Track 01 unexpected-exception/logging boundary can be evolved by the
+  centralized Track 02 HTTP translation registration without introducing route-local
+  mappings or duplicate exception records.
+- No schema migration, compatibility workaround, ADR change, or Track 03 behavior is
+  required. T02-01 is Complete and Track 02 is Ready for implementation.
