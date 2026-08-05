@@ -6,23 +6,23 @@
 
 ## Execution plan
 
-| ID | Work item | Status | Exit evidence |
-| --- | --- | --- | --- |
-| T01-01 | Establish the Python 3.12 project and locked toolchain. | Pending | `.python-version`, `pyproject.toml`, lockfile, dependency groups, Ruff/mypy/pytest configuration, and clean environment sync. |
-| T01-02 | Implement typed configuration, UTC clock, and structured logging foundations. | Pending | Settings safety/cross-environment tests, aware UTC clock tests, and attributed startup-log test. |
-| T01-03 | Implement feature-owned core SQLModel tables and UTC persistence type. | Pending | Metadata review shows the four required tables, relationships, named constraints, and indexes; unit tests cover the UTC adapter. |
-| T01-04 | Implement the synchronous engine/session boundary and SQLite connection policy. | Pending | Separate connections report FK enforcement and finite busy timeout; sessions are short-lived and injectable. |
-| T01-05 | Configure Alembic and author the reviewed core-schema revision. | Pending | Empty upgrade, schema inspection, downgrade-to-base, and re-upgrade pass on disposable file databases. |
-| T01-06 | Implement the FastAPI factory/lifespan foundation and local operator commands. | Pending | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented and one-worker startup is explicit. |
-| T01-07 | Add real-database constraint/index/cascade integration tests. | Pending | Required, unique, length, FK, association, deletion, index, and UTC round-trip evidence passes. |
-| T01-08 | Run the complete foundation closure gate and review the diff. | Pending | Format, lint, mypy, tests, migration rehearsal, repository hygiene, and primary diff review pass; HISTORY/TEST-REPORT updated. |
+| ID | Work item | Owner | Depends on | Status | Exit evidence |
+| --- | --- | --- | --- | --- | --- |
+| T01-01 | Establish the Python 3.12 project and locked toolchain. | Smith / implementation | None | Pending | `.python-version`, `pyproject.toml`, lockfile, dependency groups, Ruff/mypy/pytest configuration, and clean environment sync. |
+| T01-02 | Implement typed configuration, UTC clock, and structured logging foundations. | Smith / implementation | T01-01 | Pending | Settings safety/cross-environment tests, aware UTC clock tests, and attributed startup-log test. |
+| T01-03 | Implement feature-owned core SQLModel tables and UTC persistence type. | Smith / implementation | T01-01, T01-02 | Pending | Metadata review shows the four required tables, relationships, named constraints, and indexes; unit tests cover the UTC adapter. |
+| T01-04 | Implement the synchronous engine/session boundary and SQLite connection policy. | Smith / implementation | T01-01, T01-02 | Pending | Separate connections report FK enforcement and finite busy timeout; sessions are short-lived and injectable. |
+| T01-05 | Configure Alembic and author the reviewed core-schema revision. | Smith / implementation | T01-03, T01-04 | Pending | Empty upgrade, schema inspection, downgrade-to-base, and re-upgrade pass on disposable file databases. |
+| T01-06 | Implement the FastAPI factory/lifespan foundation and local operator commands. | Smith / implementation | T01-02, T01-04, T01-05 | Pending | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented and one-worker startup is explicit. |
+| T01-07 | Add real-database constraint/index/cascade integration tests. | Smith / implementation | T01-03, T01-05 | Pending | Required, unique, length, FK, association, deletion, index, and UTC round-trip evidence passes. |
+| T01-08 | Run the complete foundation closure gate and review the diff. | Primary engineering thread | T01-01, T01-02, T01-03, T01-04, T01-05, T01-06, T01-07 | Pending | Format, lint, mypy, tests, migration rehearsal, repository hygiene, and primary diff review pass; HISTORY/TEST-REPORT updated. |
 
 ## Work-wave detail
 
 ### T01-01 — Toolchain
 
 - Select compatible current versions from primary project documentation at implementation time.
-- Use the installed `uv` workflow for environment/lock management, pin Python 3.12, and avoid relying on the shell's Python 3.14 default.
+- Use the installed `uv` workflow for environment/lock management, pin Python 3.12, and do not rely on the ambient `PATH`: current evidence resolves `python3` to `/usr/bin/python3` 3.9.6 while Homebrew's unversioned Python is 3.14.2; 3.13.5 and 3.14.2 are installed, and no accepted 3.12 runtime is presently evidenced.
 - Add only foundation runtime dependencies initially: FastAPI, Uvicorn, SQLModel, Alembic, and Pydantic Settings. Add auth/statistics/contract packages in their owning tracks.
 - Add pytest/httpx/coverage, Ruff, and mypy as development dependencies.
 - Preserve the existing `.gitignore`; make only narrow additions proven necessary by generated artifacts.
@@ -52,8 +52,8 @@
 
 ### T01-06 — Lifecycle and commands
 
-- `create_app(settings=...)` owns app construction and a no-op/extensible lifespan.
-- `app.main:app` remains a convenient Uvicorn target without starting extra services at import.
+- `create_app(settings: Settings | None = None)` owns app construction and a no-op/extensible lifespan; tests inject Settings and the Uvicorn factory call resolves them only when invoked.
+- Invoke Uvicorn as `app.main:create_app --factory`; do not expose a module-level instantiated app. Importing the module must not read the environment, create an engine, migrate, or start a service.
 - Provide a bootstrap target that visibly runs Alembic then starts Uvicorn with one worker; provide separate migrate and run targets for development/debugging.
 - No Track 06 thread is started yet.
 

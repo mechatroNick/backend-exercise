@@ -16,8 +16,12 @@ Track 01 must prove database behavior rather than merely declare models. It stop
 
 ## 2. Must-preserve behavior
 
-- Python 3.12 is the declared project runtime even though the current shell default is Python 3.14.
-- FastAPI uses a `create_app()` factory and lifespan; infrastructure must not start at module import time.
+- Python 3.12 is the declared project runtime and must be selected by the locked
+  environment workflow; ambient `PATH` is not runtime authority.
+- FastAPI uses `create_app(settings: Settings | None = None)` and lifespan; Uvicorn
+  invokes `app.main:create_app --factory`. No module-level application instance,
+  environment read, engine creation, migration, or service start occurs at import
+  time.
 - Synchronous SQLModel sessions are short-lived and never shared between threads.
 - Alembic revisions are the only schema-creation mechanism in application and test code. No code path calls `SQLModel.metadata.create_all()`, and application startup never silently migrates.
 - Every application, migration, test, and later worker connection enables SQLite foreign-key enforcement.
@@ -171,7 +175,7 @@ Settings tests instantiate the model directly and never depend on the developer'
 | --- | --- |
 | T01-REQ-01 | Declare Python 3.12, use a reproducible lockfile workflow, and separate runtime from development dependencies. |
 | T01-REQ-02 | Provide injectable Settings for every accepted baseline value, including token, top-tag, and ADR-004 worker settings, with range/cross-field validation and no usable production secret default. |
-| T01-REQ-03 | Provide an application factory and lifespan foundation with no import-time services, schema creation, or migration side effect. |
+| T01-REQ-03 | Provide `create_app(settings: Settings | None = None)` and a lifespan foundation invoked by Uvicorn as `app.main:create_app --factory`, with no module-level application instance, import-time environment read, engine creation, service start, schema creation, or migration side effect. |
 | T01-REQ-04 | Provide synchronous engine/session factories and enable `foreign_keys=ON` on every SQLite connection; configure and test a finite busy timeout. |
 | T01-REQ-05 | Model User, Bookmark, Tag, and the many-to-many link table with deterministic naming, required relationships, and deletion behavior. |
 | T01-REQ-06 | Enforce non-empty required strings, uniqueness, composite keys, foreign keys, `updated_at >= created_at`, and the assessed 80/200/500/50 length limits in emitted SQLite DDL. |
@@ -206,7 +210,7 @@ Track 01 closes only when all of the following pass from the locked environment:
 
 | Risk | Mitigation |
 | --- | --- |
-| Shell default is Python 3.14, not accepted Python 3.12 | Pin `.python-version`; let the documented environment tool acquire/select 3.12 before locking or testing. |
+| Ambient `PATH` resolves a non-accepted Python rather than the evidenced 3.12 runtime | Pin `.python-version`; let the documented environment tool acquire/select 3.12 before locking or testing. |
 | SQLModel metadata looks correct but Alembic DDL loses checks/indexes | Manually review the generated revision and inspect a migrated database. |
 | SQLite accepts values longer than `VARCHAR(n)` | Emit named `CHECK(length(...))` constraints and test real failures. |
 | Foreign keys are declared but disabled per connection | Central connection hook plus independent connection tests and invalid inserts. |

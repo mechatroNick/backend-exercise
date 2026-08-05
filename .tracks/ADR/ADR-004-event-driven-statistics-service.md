@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 04, 06, 07, 08
+- Affected tracks: 01, 04, 06, 07, 08
 - Affected SPEC versions: Baseline
 - Supersedes: Earlier discussion of request-only statistics computation
 - Superseded by: None

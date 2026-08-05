@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 02, 05
+- Affected tracks: 01, 02, 05
 - Affected SPEC versions: Baseline
 - Supersedes: None
 - Superseded by: None
