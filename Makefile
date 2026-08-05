@@ -2,7 +2,7 @@
 
 UV ?= uv
 
-.PHONY: sync format format-check lint typecheck check
+.PHONY: sync format format-check lint typecheck migrate migration-check check
 
 sync:
 	$(UV) sync --locked
@@ -18,5 +18,11 @@ lint:
 
 typecheck:
 	$(UV) run mypy app
+
+migrate:
+	$(UV) run alembic upgrade head
+
+migration-check:
+	$(UV) run alembic check
 
 check: format-check lint typecheck
