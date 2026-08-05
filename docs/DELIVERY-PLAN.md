@@ -376,7 +376,8 @@ Turn the working solution into a concise, reproducible senior-level submission w
 The project is done only when:
 
 - every mandatory assessment requirement has passing evidence;
-- all five accepted ADRs are implemented or explicitly superseded;
+- all six accepted ADRs are implemented, adopted as governance constraints, or
+  explicitly superseded;
 - current and historical statistics semantics remain separate and tested;
 - the application bootstraps locally with all internal services visible in logs;
 - migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;

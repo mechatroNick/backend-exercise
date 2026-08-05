@@ -78,4 +78,14 @@
 
 ## Open items
 
-- Author the Track 01 specification and plan before foundation implementation.
+- None within Track 00's documentation scope. Track 01 is Ready but unimplemented;
+  its SPEC/PLAN defines the next executable work.
+
+## 2026-08-06 — Final cross-track governance audit
+
+- Corrected the live delivery Definition of Done to cover all six accepted ADRs,
+  including ADR-006's evidence-governance constraint.
+- Updated Track 00's live next-track and open-item text to reflect that Track 01 is
+  now planned and Ready but remains unimplemented.
+- Added T00-11 and revalidated the documentation-only gate without changing product
+  semantics or claiming executable runtime evidence.

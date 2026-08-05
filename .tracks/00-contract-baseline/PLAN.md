@@ -18,6 +18,7 @@
 | T00-08 | Sequentially re-review and stabilize the completed Track 00 record before Track 01 review. | Complete | Bounded read-only fresh-reader review, provenance clarification, ADR-005 ownership correction, and portable validation receipt recorded without changing accepted product semantics. |
 | T00-09 | Adopt and index the shared engineering verification guideline and its documentation-only checker. | Complete | `docs/ENGINEERING-VERIFICATION-GUIDELINE.md` is indexed; `bash scripts/verify-docs.sh` passed and is recorded in `TEST-REPORT.md`. |
 | T00-10 | Accept ADR-006 and revalidate the expanded documentation gate. | Complete | ADR-006 binds evidence and closure process without changing product semantics; the six-ADR documentation gate is revalidated and recorded in `TEST-REPORT.md`. |
+| T00-11 | Reconcile the final cross-track governance audit. | Complete | The live delivery Definition of Done covers all six accepted ADRs, stale Track 01 next-step text is resolved, and the documentation gate is revalidated. |
 
 ## Validation commands
 
@@ -34,4 +35,7 @@ The exact portable commands and results are recorded in `TEST-REPORT.md`. Valida
 
 ## Next-track planning boundary
 
-Track 01's detailed SPEC/PLAN will be created only after Track 00 closes. It must use the accepted foundation decisions but should inspect the installed Python/toolchain state before pinning exact dependency versions.
+Track 01's detailed SPEC/PLAN was created only after Track 00 closed and remains
+Ready but unimplemented. Its implementation must use the accepted foundation
+decisions and inspect the installed Python/toolchain state before pinning exact
+dependency versions.
