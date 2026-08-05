@@ -116,7 +116,9 @@ Track 00 closes only when:
 
 ## 8. Assumptions and confirmed context
 
-- HR authorized AI coding tool use for this assessment; the final disclosure will be written from actual evidence.
+- The repository owner records that HR authorized AI coding tool use for this
+  assessment; supporting correspondence is external and private and is not stored in
+  this repository. The final disclosure will be written from actual evidence.
 - Delivery may take a few days and prioritizes quality.
 - Local SQLite and one Uvicorn worker are acceptable for the assessment.
 - The background service is an in-process thread, not a second operating-system process.
@@ -125,13 +127,18 @@ Track 00 closes only when:
 
 ## 9. Unknowns
 
-There are no currently known material product ambiguities blocking Track 01 planning. A later implementation discovery must be raised if it would change public behavior or an accepted ADR.
+There are no currently known material product ambiguities blocking Track 01 planning.
+The repository cannot independently verify the external/private HR correspondence. A
+later implementation discovery must be raised if it would change public behavior or an
+accepted ADR.
 
 ## 10. Stop conditions
 
 Stop and request direction if:
 
 - the assessment and a repository-owner decision cannot be reconciled;
+- the repository-owner-recorded AI authorization is rescinded or disputed; in that
+  case, the original assessment restriction controls;
 - a newly discovered requirement changes the public API or statistics meaning;
 - the design would require multiple Uvicorn workers while retaining process-local authoritative state;
 - a proposed extension threatens the mandatory quality gate;

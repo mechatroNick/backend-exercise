@@ -31,6 +31,26 @@
 | Trailing-whitespace scan | Pass |
 | `git diff --check` | Pass |
 
+## Sequential re-review receipt
+
+Before Track 01 review, a bounded, read-only fresh-reader review rechecked the
+completed Track 00 record. It found two documentation corrections: the HR
+authorization needed a repository-owner provenance boundary, and ADR-005 needed to
+name Track 06 as the durable dirty-marker owner. The corrections preserve the accepted
+API, statistics, and architecture semantics.
+
+The following portable commands were run after those corrections:
+
+| Command | Actual result |
+| --- | --- |
+| `sed -n '/^## Requirement matrix$/,/^## Accepted decisions$/p' docs/ASSESSMENT.md \| rg -o '^\| [A-Z]+-[0-9]{2} \|' \| wc -l`; repeat with `sort -u \| wc -l` and `sort \| uniq -d` | `43` total, `43` unique, and no duplicate IDs. |
+| `rg -l -- '- Status: Accepted' .tracks/ADR/*.md \| wc -l` | `5` accepted ADRs. |
+| `rg -n '^## [0-9]+\\. Track 0[0-8] —' docs/DELIVERY-PLAN.md \| wc -l` | `9` delivery-track sections (Tracks 00–08). |
+| `python3 -c "from pathlib import Path; from urllib.parse import unquote; import re; roots=(Path('docs'), Path('.tracks')); bad=[]; [bad.extend((str(path), target) for target in re.findall(r'!?\\[[^]]*\\]\\(([^)]+)\\)', path.read_text()) if not (target.startswith(('http://', 'https://', '#', 'mailto:')) or target.split('#', 1)[0] == '') and not (path.parent / unquote(target.split('#', 1)[0])).exists()) for root in roots for path in root.rglob('*.md')]; print('\\n'.join(f'{path}: {target}' for path, target in bad)); raise SystemExit(bool(bad))"` | Exit `0`; no unresolved local Markdown targets under `docs/` or `.tracks/`. |
+| `rg -n '[[:blank:]]$' docs/ASSESSMENT.md .tracks/00-contract-baseline .tracks/ADR/ADR-005-windowed-statistics-data-points.md` | Exit `1`; no trailing whitespace. |
+| `git diff --check` | Exit `0`; no whitespace errors. |
+| `git status --short` | Only this sequential re-review's six documentation files were modified; nothing was staged. |
+
 The repository status was inspected before and after the write wave. The existing move of the assessment PDF from `.tracks/` into `docs/` was preserved; no commit or staging operation was performed.
 
 ## Reader audit
@@ -51,3 +71,4 @@ The primary thread corrected all six items. A focused, read-only re-audit return
 - This report covers planning artifacts only; no product code or runtime behavior exists yet.
 - Exact package versions and executable project commands belong to Track 01 after local toolchain inspection.
 - External reference links in ADRs were not live-checked during this documentation gate; implementation should use version-appropriate primary documentation when needed.
+- The external/private HR correspondence is intentionally not repository-verifiable.

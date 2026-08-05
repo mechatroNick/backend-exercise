@@ -15,6 +15,7 @@
 | T00-05 | Validate internal consistency, links, status, and traceability. | Complete | 43 unique requirement IDs, five accepted ADRs, nine tracks, valid local link targets, no stale terms, and clean whitespace checks. |
 | T00-06 | Run a fresh-reader review and address findings. | Complete | Independent re-audit passed all six repaired contract checks with no blocking contradiction. |
 | T00-07 | Close Track 00 and make Track 01 ready for detailed planning. | Complete | TEST-REPORT and HISTORY contain evidence; indexes updated; no open blocker. |
+| T00-08 | Sequentially re-review and stabilize the completed Track 00 record before Track 01 review. | Complete | Bounded read-only fresh-reader review, provenance clarification, ADR-005 ownership correction, and portable validation receipt recorded without changing accepted product semantics. |
 
 ## Validation commands
 

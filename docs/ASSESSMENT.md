@@ -25,10 +25,12 @@ The PDF says both "up to 5 days" and "7 calendar days." This schedule discrepanc
 does not affect the implementation contract; the project is being delivered over a
 few days with quality taking priority.
 
-The exercise originally disallowed AI code generation. HR has explicitly authorized
-AI use for this submission, with the process to be disclosed later. The final process
-document must distinguish human decisions, AI assistance, validation, and reviewer-
-explainable ownership.
+The exercise originally disallowed AI code generation. The repository owner records
+that HR authorized AI use for this submission, with the process to be disclosed later.
+Supporting correspondence is external and private and is not stored in this repository.
+If that authorization is rescinded or disputed, the original assessment restriction
+controls. The final process document must distinguish human decisions, AI assistance,
+validation, and reviewer-explainable ownership.
 
 ## Requirement matrix
 

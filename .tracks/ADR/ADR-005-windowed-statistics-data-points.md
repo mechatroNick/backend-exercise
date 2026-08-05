@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 07, 08
+- Affected tracks: 06, 07, 08
 - Affected SPEC versions: Baseline
 - Supersedes: ADR-004 open question about snapshot versus historical persistence
 - Superseded by: None

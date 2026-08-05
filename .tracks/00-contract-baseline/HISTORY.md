@@ -40,6 +40,21 @@
 - Addressed every blocking and substantive non-blocking finding from an independent fresh-reader audit. The focused re-audit passed all repaired items.
 - Closed Track 00 with no known material product ambiguity and made Track 01 ready for detailed planning.
 
+## 2026-08-05 — Sequential re-review and stabilization
+
+- Performed a bounded, read-only fresh-reader re-review of the completed Track 00
+  record before Track 01 review; it did not assert an external identity or create
+  evidence outside the repository.
+- Clarified that the HR AI-use authorization is recorded by the repository owner,
+  that its supporting correspondence is external/private and not stored here, and
+  that the original assessment restriction controls if the authorization is rescinded
+  or disputed.
+- Corrected ADR-005 ownership to include Track 06, which implements the shared
+  durable dirty-marker mechanism consumed by Tracks 07 and 08.
+- Re-ran the portable documentation checks recorded in `TEST-REPORT.md`: 43 unique
+  requirement IDs, five accepted ADRs, nine delivery-track sections, resolved local
+  Markdown links, no trailing whitespace, and a clean `git diff --check`.
+
 ## Open items
 
 - Author the Track 01 specification and plan before foundation implementation.
