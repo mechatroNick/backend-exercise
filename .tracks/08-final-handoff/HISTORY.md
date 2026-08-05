@@ -1,5 +1,22 @@
 # Track 08 history
 
+## 2026-08-06 — Final verification-gate planning clarified
+
+- Added planning for `scripts/verify-track-08.sh` as the final disposable-clean-clone
+  automation/orchestrator. It will run the documentation verifier and Track 01–07
+  real-process harnesses in dependency order (or an explicitly equivalent final
+  orchestrator), plus actual migration/bootstrap/server flows, complete deterministic
+  test layers, runtime selectors, JSON Lines audit, security/dependency/hygiene checks,
+  and verified cleanup.
+- Kept this record planning-only: no harness, runtime, migration, server, external
+  submission, push, archive, link creation, deployment, or product change ran or is
+  claimed here.
+- Preserved Planned status, existing task IDs/dependencies, the conditional optional
+  gate, FUT-01's documentation-only boundary, no public history API, and the
+  repository owner's exclusive authority for archive/link/submission actions. A
+  declined bonus records **not selected**; an approved isolated bonus must rerun the
+  mandatory/full final harness.
+
 ## 2026-08-05 — Sequential planning started
 
 - Planned Track 08 after the committed Track 07 planning record (`720ad61`) and the

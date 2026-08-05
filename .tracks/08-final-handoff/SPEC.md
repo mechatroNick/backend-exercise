@@ -94,6 +94,15 @@ planned claims:
 - the final report identifies the repository owner as the sole owner of submission
   link/archive creation and any external submission.
 
+Track 08 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+closure invariant without changing any accepted product contract: **Complete**
+requires recorded passing deterministic, integration, contract, migration, quality,
+security, and real-process evidence, including the final
+`bash scripts/verify-track-08.sh` receipt and verified cleanup. A planned, skipped,
+unrun, blocked, or stale prerequisite command/report is never passing evidence. The
+final harness is an automation/orchestration gate, not a replacement for the
+track-owned deterministic proof or a basis for a public history API.
+
 ## Assumptions, unknowns, and stop conditions
 
 The owner will provide any necessary non-repository authorization/provenance evidence
