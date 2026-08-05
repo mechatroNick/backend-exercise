@@ -56,3 +56,18 @@ Start T01-01 only when implementation is authorized: resolve current compatible 
   and verified cleanup.
 - No Track 01 test, application process, migration, harness, or runtime validation
   was executed by this planning-only change.
+
+## 2026-08-06 — Incremental verification-governance review correction
+
+- Bumped the planning contract to SPEC/PLAN version 1.1 and added ADR-006 to the
+  governing verification and closure evidence.
+- Made the centralized JSON Lines ownership map explicit: `source`, service/component,
+  event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier
+  where applicable; redaction; and exactly one owning-boundary unexpected-exception
+  record. Worker-specific fields/events remain Track 06 work under ADR-004.
+- Resolved the settings ambiguity: log level is configurable, while the application
+  log format/schema is fixed JSON Lines under ADR-006 with no plaintext runtime
+  toggle.
+- Added `scripts/verify-track-01.sh` only to proposed ownership and pending evidence;
+  it has not been created or run. No runtime, test, migration, or harness evidence
+  was executed by this planning-only correction.

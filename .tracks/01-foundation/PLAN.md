@@ -1,6 +1,7 @@
 # Track 01 plan: foundation, configuration, schema, and migrations
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
+- Governing ADRs: ADR-001; foundation-relevant constraints from ADR-002, ADR-003, and ADR-004; ADR-006 verification and closure evidence
 - Status: Ready
 - Active item: None; implementation has not started
 
@@ -9,11 +10,11 @@
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
 | T01-01 | Establish the Python 3.12 project and locked toolchain. | Smith / implementation | None | Pending | `.python-version`, `pyproject.toml`, lockfile, dependency groups, Ruff/mypy/pytest configuration, and clean environment sync. |
-| T01-02 | Implement typed configuration, UTC clock, and structured JSON Lines logging foundations. | Smith / implementation | T01-01 | Pending | Settings safety/cross-environment tests; aware UTC clock tests; JSON-Line schema tests for source/service/event attribution and redaction; and owning-boundary single-exception-record tests. |
+| T01-02 | Implement typed configuration, UTC clock, and structured JSON Lines logging foundations. | Smith / implementation | T01-01 | Pending | Settings safety/cross-environment tests; aware UTC clock tests; JSON-Line schema tests for `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; redaction; and exactly-one owning-boundary exception-record tests. |
 | T01-03 | Implement feature-owned core SQLModel tables and UTC persistence type. | Smith / implementation | T01-01, T01-02 | Pending | Metadata review shows the four required tables, relationships, named constraints, and indexes; unit tests cover the UTC adapter. |
 | T01-04 | Implement the synchronous engine/session boundary and SQLite connection policy. | Smith / implementation | T01-01, T01-02 | Pending | Separate connections report FK enforcement and finite busy timeout; sessions are short-lived and injectable. |
 | T01-05 | Configure Alembic and author the reviewed core-schema revision. | Smith / implementation | T01-03, T01-04 | Pending | Empty upgrade, schema inspection, downgrade-to-base, and re-upgrade pass on disposable file databases. |
-| T01-06 | Implement the FastAPI factory/lifespan foundation, local operator commands, and Track 01 process harness. | Smith / implementation | T01-02, T01-04, T01-05 | Pending | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented; one-worker startup is explicit; and `scripts/verify-track-01.sh` uses the actual factory/bootstrap with a disposable migrated SQLite DB, dynamic isolated port, bounded observable-endpoint polling, startup/shutdown plus JSON-Line redaction assertions, and verified cleanup. |
+| T01-06 | Implement the FastAPI factory/lifespan foundation, local operator commands, and Track 01 process harness. | Smith / implementation | T01-02, T01-04, T01-05 | Pending | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented; one-worker startup is explicit; and `scripts/verify-track-01.sh` uses the actual factory/bootstrap with a disposable migrated SQLite DB, dynamic isolated port, bounded observable-endpoint polling, startup/shutdown JSON-Line field/redaction/exactly-one-owning-boundary-exception assertions, and verified cleanup. |
 | T01-07 | Add real-database constraint/index/cascade integration tests. | Smith / implementation | T01-03, T01-05 | Pending | Required, unique, length, FK, association, deletion, index, and UTC round-trip evidence passes. |
 | T01-08 | Run the complete foundation closure gate and review the diff. | Primary engineering thread | T01-01, T01-02, T01-03, T01-04, T01-05, T01-06, T01-07 | Pending | Deterministic unit/integration tests, format, lint, mypy, migration rehearsal, and `bash scripts/verify-track-01.sh` actually pass; TEST-REPORT records exact commands/results/versions/selectors/cleanup, guideline conformance, gaps, and primary diff/repository-hygiene review. |
 
@@ -30,9 +31,9 @@
 ### T01-02 — Cross-cutting core
 
 - Make Settings construction explicit and injectable; avoid an import-time global that reads the real environment during tests.
-- Validate the SQLite database scheme; missing/placeholder/insufficient production secrets; individual accepted setting ranges; and ADR-004 timing relationships. Require `APP_WORKER_COUNT == 1` only while `STATS_REFRESH_ENABLED` is true.
+- Validate the SQLite database scheme; missing/placeholder/insufficient production secrets; individual accepted setting ranges; and ADR-004 timing relationships. Require `APP_WORKER_COUNT == 1` only while `STATS_REFRESH_ENABLED` is true. Permit configurable log level only: ADR-006 fixes the application format/schema as JSON Lines and forbids a plaintext runtime toggle.
 - Implement `Clock` and `SystemClock`; tests use a fixed/fake clock later without sleep.
-- Configure one standard-library JSON Lines schema/formatter with stable attributable `source`, `service`, and `event` fields; prove redaction of seeded secrets/content and exactly one structured unexpected-exception record at the owning boundary. Detailed refresher fields and events remain Track 06 under ADR-004.
+- Configure one standard-library JSON Lines schema/formatter with stable `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; prove redaction of seeded secrets/content and exactly one structured unexpected-exception record at the owning boundary. Detailed refresher fields and events remain Track 06 under ADR-004.
 
 ### T01-03/T01-04 — Persistence model and connections
 
@@ -56,7 +57,7 @@
 - Invoke Uvicorn as `app.main:create_app --factory`; do not expose a module-level instantiated app. Importing the module must not read the environment, create an engine, migrate, or start a service.
 - Provide a bootstrap target that visibly runs Alembic then starts Uvicorn with one worker; provide separate migrate and run targets for development/debugging.
 - No Track 06 thread is started yet.
-- Deliver `scripts/verify-track-01.sh` using that actual documented factory/bootstrap, never a fake server. It must create only a verified disposable migrated SQLite DB and dynamic isolated port; bounded-poll a delivered observable endpoint (OpenAPI/docs or another delivered readiness seam); make real HTTP assertions; capture startup/shutdown JSON Lines; verify expected source/service/event fields and seeded-redaction absence; and trap child/resource cleanup. Preserve diagnostics only behind an explicit debug flag.
+- Deliver `scripts/verify-track-01.sh` using that actual documented factory/bootstrap, never a fake server. It must create only a verified disposable migrated SQLite DB and dynamic isolated port; bounded-poll a delivered observable endpoint (OpenAPI/docs or another delivered readiness seam); make real HTTP assertions; capture startup/shutdown JSON Lines; verify `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable, seeded-redaction absence, and exactly one owning-boundary unexpected-exception record; and trap child/resource cleanup. Preserve diagnostics only behind an explicit debug flag.
 
 ### T01-07/T01-08 — Evidence and closure
 
@@ -68,8 +69,9 @@
 ## Shared completion gate
 
 The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-applies to Track 01 without changing its product contract. A Pending or Ready item is
-not done. T01-08 can mark the track Complete only after recorded passing deterministic
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
+to Track 01 without changing its product contract. A Pending or Ready item is not
+done. T01-08 can mark the track Complete only after recorded passing deterministic
 tests, real migrated-database evidence, and the real-process harness receipt; planned
 or blocked commands do not count as pass.
 

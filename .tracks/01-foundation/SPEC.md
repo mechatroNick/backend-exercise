@@ -1,11 +1,11 @@
 # Track 01 specification: foundation, configuration, schema, and migrations
 
 - Status: Ready
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 00 (Complete)
-- Governing ADRs: ADR-001; foundation-relevant constraints from ADR-002, ADR-003, and ADR-004
+- Governing ADRs: ADR-001; foundation-relevant constraints from ADR-002, ADR-003, and ADR-004; ADR-006 verification and closure evidence
 - Assessment requirements: ENV-01, ARC-01, DATA-01, DATA-02, DATA-03, DATA-04
 
 ## 1. Intent anchor
@@ -54,7 +54,7 @@ The primary must stop and update an ADR before changing the language/framework/O
 - Ruff, mypy, pytest, and coverage configuration;
 - typed environment Settings for the accepted application/auth/statistics baseline, with explicit production secret and cross-field validation;
 - `.env.example` containing names and safe instructions, never a usable production secret;
-- centralized standard-library JSON Lines logging schema/formatter with attributable source, service, and event fields; redaction-safe configuration; and one owning-boundary exception record;
+- centralized standard-library JSON Lines logging schema/formatter with `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; redaction-safe configuration; and exactly one owning-boundary unexpected-exception record;
 - UTC-aware clock protocol/system implementation and SQLite timestamp adapter policy;
 - SQLModel engine/session factory and connection hooks;
 - User, Bookmark, Tag, and `bookmark_tags` table models;
@@ -111,6 +111,8 @@ tests/
 └── unit/
     ├── test_clock.py
     └── test_config.py
+scripts/
+└── verify-track-01.sh  # proposed; delivered only during Track 01 implementation
 ```
 
 The final split may be slightly smaller if it improves clarity, but feature-owned table models must remain identifiable and Alembic must import one deterministic metadata registry.
@@ -162,7 +164,7 @@ Naive datetimes are rejected at the persistence boundary. Table columns remain n
 
 Track 01 establishes only cross-cutting settings needed by the foundation:
 
-- application environment, database URL, and log level/format;
+- application environment, database URL, and configurable log level; the application log format/schema is fixed JSON Lines under ADR-006 and has no plaintext runtime toggle;
 - JWT secret and access-token TTL, even though token behavior begins in Track 02;
 - top-tag limit, even though the statistics endpoint begins in Track 04;
 - the complete ADR-004 refresher/queue/staleness/reconciliation/dirty-threshold/worker-count baseline, even though no worker behavior starts before Track 06.
@@ -182,7 +184,7 @@ Settings tests instantiate the model directly and never depend on the developer'
 | T01-REQ-07 | Create and verify indexes for owner/time list queries, updated-time queries, unique identities/tags, and reverse tag lookup. |
 | T01-REQ-08 | Build the complete core schema only through a reviewed Alembic revision that upgrades an empty database and supports downgrade/re-upgrade rehearsal; `create_all()` is forbidden in app and test code. |
 | T01-REQ-09 | Persist application-facing timestamps with deterministic UTC-aware round trips and reject naive values; expose an injectable clock. |
-| T01-REQ-10 | Provide centralized JSON Lines logging with attributable source/service/event fields, redaction, and one owning-boundary unexpected-exception record; provide one documented bootstrap that migrates then starts one Uvicorn worker, while application startup itself does not migrate. |
+| T01-REQ-10 | Provide centralized JSON Lines logging with `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; redact sensitive/submitted content and record each unexpected exception exactly once at its owning boundary. Provide one documented bootstrap that migrates then starts one Uvicorn worker, while application startup itself does not migrate. Worker-specific Track 06 fields/events are excluded. |
 | T01-REQ-11 | Provide reproducible format, lint, type-check, test, migration, and run commands that do not require a paid or cloud service. |
 | T01-REQ-12 | Prove schema and infrastructure invariants with real SQLite behavior, not only model/metadata inspection. |
 
@@ -203,12 +205,12 @@ Track 01 closes only when all of the following pass from the locked environment:
 - UTC timestamps round-trip as aware UTC and naive inputs fail;
 - importing/starting the app against an unmigrated disposable database does not create tables, and a repository scan finds no `create_all()` call in `app`, `tests`, or `alembic`;
 - the documented bootstrap migrates then starts exactly one application worker;
-- `scripts/verify-track-01.sh` starts the actual documented `app.main:create_app --factory` Uvicorn bootstrap against a disposable migrated SQLite database on a dynamic isolated port, bounded-polls an actually delivered observable endpoint, and asserts startup/shutdown plus JSON-Line source/service/event logging without seeded secrets or submitted-content sentinels;
+- `scripts/verify-track-01.sh` starts the actual documented `app.main:create_app --factory` Uvicorn bootstrap against a disposable migrated SQLite database on a dynamic isolated port, bounded-polls an actually delivered observable endpoint, and asserts startup/shutdown plus JSON-Line `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable, with no seeded secrets or submitted-content sentinels and exactly one owning-boundary unexpected-exception record;
 - the Track 01 harness cleans its verified disposable resources and child process, and reports the actual cleanup result; it does not preserve artifacts unless an explicit debug flag requests it;
 - formatting, linting, type checks, and all Track 01 tests pass;
 - no secret or generated database/coverage/cache artifact appears in repository status.
 
-Track 01 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded, passing deterministic unit/integration evidence and a passing real-process harness receipt, not a planned command or code presence. Track 01 owns delivery of `scripts/verify-track-01.sh` as the first such harness contract. It supplements tests and must use the delivered Uvicorn factory/bootstrap rather than a fake server. Worker-specific ADR-004 logging fields remain out of scope until their owning track.
+Track 01 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded, passing deterministic unit/integration evidence and a passing real-process harness receipt, not a planned command or code presence. Track 01 owns delivery of `scripts/verify-track-01.sh` as the first such harness contract. It supplements tests and must use the delivered Uvicorn factory/bootstrap rather than a fake server. Worker-specific ADR-004 logging fields remain out of scope until their owning track.
 
 ## 11. Risks and mitigations
 
