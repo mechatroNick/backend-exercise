@@ -1,12 +1,12 @@
 # Track 08 specification: final hardening, documentation, and assessment handoff
 
 - Status: Planned (implementation-gated)
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Completed Tracks 01–07 and their closure `TEST-REPORT.md` artifacts
 - Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`,
-  `docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-005
+  `docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-006
 
 ## Intent anchor
 
@@ -95,13 +95,27 @@ planned claims:
   link/archive creation and any external submission.
 
 Track 08 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 closure invariant without changing any accepted product contract: **Complete**
 requires recorded passing deterministic, integration, contract, migration, quality,
 security, and real-process evidence, including the final
 `bash scripts/verify-track-08.sh` receipt and verified cleanup. A planned, skipped,
 unrun, blocked, or stale prerequisite command/report is never passing evidence. The
 final harness is an automation/orchestration gate, not a replacement for the
-track-owned deterministic proof or a basis for a public history API.
+track-owned deterministic proof or a basis for a public history API. Its final JSON
+audit validates `source`, service/component, event, level, UTC timestamp, logger,
+`process_id`, execution/thread ID where applicable, and governing extension fields;
+correlation is supplied/generated only, never identity/body/token derived. It requires
+redaction and exactly one final-owning-boundary unexpected-exception record with
+redacted type, safe message, ordered frames, cause/context, and no locals; intermediates
+re-raise without duplicates, raw exception text is not indexed, and formatter/redactor
+failure produces one minimal schema-valid redacted JSON record, never plaintext or the
+unsafe original. Own authenticated response/header/sanitized-health assertion inputs
+remain ephemeral in memory; JWTs are parsed/used without echo/persistence; private
+inspection is sanitized/ephemeral; debug retention is explicit-flag-only and excludes
+protected response/token data. API/health output never exposes tracebacks, SQL, paths,
+credentials, or content, and cleanup removes disposable token/response/private-
+inspection/debug state.
 
 ## Assumptions, unknowns, and stop conditions
 

@@ -38,7 +38,7 @@
 
 ## Current state
 
-- Specification: Planned, version 1.0
+- Specification: Planned, version 1.1
 - Plan: Planned; T08-01 Blocked on T01-08, T02-07, T03-08, T04-07, T05-07, T06-08,
   and T07-09 closure evidence
 - Implementation: Not started; dependency-gated
@@ -50,3 +50,17 @@
 After every upstream track closes, execute T08-01. Compare each closure report to the
 actual repository and ADR contracts before attempting any clean-clone rehearsal or
 final documentation.
+
+## 2026-08-06 — Incremental evidence-governance planning correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 to the
+  governing/re-read/closure records without changing authority, product semantics,
+  upstream hard stops, or owner-only external actions/history rewrite boundaries.
+- Eliminated final-harness substitution: the future final gate invokes the exact
+  documentation verifier and exact Track 01-07 harnesses (directly or through a named
+  demonstrable in-repo orchestrator), records fresh receipts, and rejects masking.
+- Added full final JSON Lines, causal exception, fail-closed formatter/redactor,
+  ephemeral assertion, privacy, sanitized private-inspection, and cleanup evidence.
+- Made T08-09 depend on T08-08 only when the optional task is selected; the existing
+  not-selected closure path remains valid. This correction is planning only: no runtime
+  evidence, external action, harness, or final report was created or run.

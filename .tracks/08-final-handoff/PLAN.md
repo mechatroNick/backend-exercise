@@ -1,6 +1,7 @@
 # Track 08 plan: final hardening, documentation, and assessment handoff
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
+- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`, `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-006
 - Status: Planned (implementation-gated)
 - Active item: None; T08-01 is blocked pending all upstream closures
 
@@ -8,7 +9,7 @@
 
 Before any Track 08 implementation, the primary thread verifies Track 00 is Complete
 and Tracks 01–07 are Complete with their actual `TEST-REPORT.md` closure artifacts.
-It reconciles each report with the delivered tree and accepted ADRs, rather than
+It reconciles each report with the delivered tree and accepted ADRs (including ADR-006), rather than
 treating a planning artifact as implementation evidence. Stop on missing, stale, or
 contradictory evidence; return the defect to its owning track. No external submission,
 push, deployment, link/archive creation, or history rewrite is authorized here.
@@ -23,7 +24,7 @@ push, deployment, link/archive creation, or history rewrite is authorized here.
 | T08-06 | Run final security, dependency, secret, generated-artifact, license/hygiene, JSON Lines, and coherent-history review. | Smith / implementation | T08-02, T08-03, T08-04 | Pending | No committed secret/generated noise; ignore/lock/dependency receipt, JSON Lines schema/redaction/exception-ownership audit, security findings ranked with no unresolved critical/high defect, history reviewed without rewrite/squash, and documentation claims checked. |
 | T08-07 | Decide explicitly whether BONUS-01/BONUS-02 proceed after mandatory evidence is green. | Primary engineering thread | T08-03, T08-04, T08-05, T08-06 | Pending | Go/no-go record proves mandatory gate is green; decline leaves scope unchanged, approval defines isolated owner, acceptance evidence, and rollback/stop condition. |
 | T08-08 | If and only if T08-07 approves it, implement one bounded optional seed or bonus change and re-run the mandatory/full final harness. | Smith / implementation | T08-07 | Pending | Separate green evidence for chosen bonus, deterministic invocation, a fresh `bash scripts/verify-track-08.sh` mandatory/full receipt after the isolated change, no mandatory regression, and no public history API/topology drift. |
-| T08-09 | Produce final `TEST-REPORT.md`, release/handoff note, closure review, and owner-action checklist. | Primary engineering thread | T08-02, T08-03, T08-04, T08-05, T08-06, T08-07, T08-08 | Pending | Exact final commands/results, dependency-ordered harness and cleanup receipts, requirement traceability, severity disposition, limits, bonus disposition, and explicit owner-owned submission/link/archive step. |
+| T08-09 | Produce final `TEST-REPORT.md`, release/handoff note, closure review, and owner-action checklist. | Primary engineering thread | T08-02, T08-03, T08-04, T08-05, T08-06, T08-07, T08-08 if selected | Pending | Exact final commands/results, dependency-ordered harness and cleanup receipts, requirement traceability, severity disposition, limits, bonus disposition, and explicit owner-owned submission/link/archive step. |
 
 T08-08 is a conditional task: a declined T08-07 records “not selected” as its
 non-execution evidence, after which T08-09 may close without a product bonus.
@@ -31,7 +32,8 @@ non-execution evidence, after which T08-09 may close without a product bonus.
 ## Shared completion gate
 
 The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-applies to Track 08 without changing its status, task IDs/dependencies, optional
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
+to Track 08 without changing its status, task IDs/dependencies, optional
 go/no-go, FUT-01/documentation-only boundary, no-public-history boundary, or the
 repository owner's exclusive submission authority. Planned, Ready, Blocked, skipped,
 or unrun work is not done. T08-09 may mark Track 08 Complete only after current,
@@ -43,10 +45,13 @@ T08-08 remains isolated and requires a new mandatory/full final-harness receipt.
 The future `scripts/verify-track-08.sh` is the final clean-clone real
 automation/orchestrator. From a verified disposable clone at the reviewed commit, it
 must verify the committed Python 3.12 pin and locked `uv` without ambient database,
-credentials, or mutable repair; run `bash scripts/verify-docs.sh`; then run the
-delivered `scripts/verify-track-01.sh` through `scripts/verify-track-07.sh` in
-dependency order (or an explicitly equivalent final orchestrator with every
-track-owned selector and receipt). It must run the actual migration, bootstrap, and
+credentials, or mutable repair; invoke `bash scripts/verify-docs.sh` and every exact
+delivered `bash scripts/verify-track-01.sh` through `bash scripts/verify-track-07.sh`
+in dependency order, directly or through a named in-repo orchestrator whose
+implementation demonstrably invokes each exact harness. Equivalent selectors cannot
+replace them. It records every exact command/selector, exit result, report freshness
+check, inspected artifact, and cleanup result; missing, stale, skipped, unrun, or
+nonzero evidence fails. It must run the actual migration, bootstrap, and
 server flows plus the complete deterministic unit, integration, and contract suite;
 exercise OpenAPI, `/docs`, and delivered health/walkthrough selectors; and audit JSON
 Lines schema, redaction, and exactly-once exception ownership. It must also perform
@@ -61,13 +66,14 @@ archive, create a link, upload, deploy, or submit externally.
 | Area | Planned proof and stop condition |
 | --- | --- |
 | Clean clone/toolchain | `scripts/verify-track-08.sh` starts from a verified disposable clone, uses Python 3.12 and `uv sync --locked`, and has no ambient database or credentials; stop on missing lock, ambient-PATH dependence, undocumented setting, or mutable install step. |
-| Upstream automation | Run `bash scripts/verify-docs.sh` and `scripts/verify-track-01.sh` through `scripts/verify-track-07.sh` in dependency order, or an explicitly equivalent final orchestrator with all receipts; stop on any missing/stale `TEST-REPORT.md`, skipped/unrun harness, contradictory receipt, or failed cleanup. |
+| Upstream automation | Invoke `bash scripts/verify-docs.sh` and every exact delivered `bash scripts/verify-track-01.sh` through `bash scripts/verify-track-07.sh` directly, or a named in-repo orchestrator demonstrably invoking each exact harness; record command/selector, exit, freshness, inspected artifact, and cleanup result. Stop on missing/stale/skipped/unrun/nonzero/contradictory evidence or failed cleanup; equivalent selectors cannot replace harnesses. |
 | Migration/bootstrap | Empty database upgrade and documented bootstrap/server flow use only supported commands; stop on implicit schema creation, stale migration, multi-worker conflict, orphan process, or non-attributed service startup. |
 | Runtime contract | `/docs`/OpenAPI, auth-protected API examples, current stats, and health are checked against actual routes; stop on documentation/schema/runtime divergence. |
 | Statistics boundaries | Current stats remain correct if weekly projection is unavailable; no public history path is added; stop on any API/topology drift. |
 | Requirement evidence | Reconcile every assessment ID with Track 00–07 receipts and fresh final evidence; stop on an unproven mandatory row or unsupported “pass” claim. |
 | Documentation/disclosure | README, architecture/deployment, trade-offs, limitations, walkthrough, and AI disclosure derive from inspected facts; stop on a claim needing private/proprietary evidence not supplied by the owner. |
-| Security/hygiene | Inspect staged/tracked files, ignore rules, config/examples/logs, lock/dependency advisories as supported, generated DB/cache/coverage artifacts, JSON Lines schema/redaction/exception ownership, and history; stop on secret exposure, dirty generated artifact, or unresolved critical/high issue. |
+| Deterministic proof | Record focused and full deterministic-suite commands/results; fail required skip/xfail/deselection/alternate-selector hiding/swallowed failure/assertion-free smoke. Final process evidence supplements each track-owned deterministic proof. |
+| Security/hygiene | Inspect staged/tracked files, ignore rules, config/examples/logs, lock/dependency advisories as supported, generated DB/cache/coverage artifacts, full JSON Lines/redaction/exception ownership/fail-closed formatter behavior, and history; stop on secret exposure, dirty generated artifact, or unresolved critical/high issue. |
 | Optional scope | Seed or BONUS-02 begins only after explicit green go/no-go. A decline is recorded **not selected**; approval is isolated and re-runs the mandatory/full final harness after change. Stop on time, reliability, contract, or hygiene regression. |
 | Submission boundary | Prepare an owner checklist only; stop before remote push, archive/upload, submission-link creation, deployment, or history rewrite without new authority. |
 
@@ -109,12 +115,16 @@ toolchain for dependency/secret review; redact any sensitive output. Do not clai
 clean clone when uncommitted local files, a developer database, cached environment, or
 owner credentials made the result possible. The rehearsal verifies the committed
 Python pin; it must not create or silently repair `.python-version` in the clean clone.
-`scripts/verify-track-08.sh` is the recorded final entry point: it must invoke the
-documentation verifier and dependency-ordered upstream harnesses itself (or invoke
-the explicitly equivalent final orchestrator), retain every required receipt, run the
-full deterministic suite, actual migration/bootstrap/server flows, selector checks,
-JSON Lines audit, security/dependency/hygiene checks, and cleanup. It cannot accept an
-unrun required command as a pass or perform an owner-only external action.
+`scripts/verify-track-08.sh` is the recorded final entry point: it must invoke
+`bash scripts/verify-docs.sh` and every exact delivered `bash scripts/verify-track-01.sh`
+through `bash scripts/verify-track-07.sh` itself, or a named in-repo orchestrator whose
+implementation demonstrably invokes each exact harness; no equivalent selector can
+replace them. It retains every command/selector, exit result, report-freshness check,
+inspected artifact, and cleanup receipt; records focused and full deterministic-suite
+commands/results; rejects required skip/xfail/deselection/alternate-selector hiding/
+swallowed failures/assertion-free smoke; and runs migration/bootstrap/server,
+JSON-Lines/security/dependency/hygiene, and cleanup checks. It cannot accept unrun
+evidence as pass or perform an owner-only external action.
 
 ## Risks, limitations, and closure threshold
 
