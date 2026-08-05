@@ -56,7 +56,7 @@ flowchart LR
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
 | 07 | Weekly developing points and append-only correction revisions | 06 | Planned (implementation-gated) |
-| 08 | Final regression, README, deployment design, seed data, and optional bonuses | 01-07 | Pending |
+| 08 | Final hardening, documentation, assessment handoff, and optional bonuses | 01, 02, 03, 04, 05, 06, 07 | Planned (implementation-gated) |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -85,3 +85,6 @@ implementation.
 - [Track 07 specification](07-weekly-projections/SPEC.md)
 - [Track 07 execution plan](07-weekly-projections/PLAN.md)
 - [Track 07 history](07-weekly-projections/HISTORY.md)
+- [Track 08 specification](08-final-handoff/SPEC.md)
+- [Track 08 execution plan](08-final-handoff/PLAN.md)
+- [Track 08 history](08-final-handoff/HISTORY.md)

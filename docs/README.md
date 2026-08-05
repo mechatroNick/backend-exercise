@@ -37,6 +37,8 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 06: event-driven statistics execution plan](../.tracks/06-event-driven-stats/PLAN.md)
 - [Track 07: weekly projections specification](../.tracks/07-weekly-projections/SPEC.md)
 - [Track 07: weekly projections execution plan](../.tracks/07-weekly-projections/PLAN.md)
+- [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
+- [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 
 Detailed downstream artifacts may be planned sequentially after upstream plan review;
 their presence does not make implementation ready until each stated dependency closes
