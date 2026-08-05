@@ -43,6 +43,7 @@ flowchart LR
 | [ADR-003](ADR/ADR-003-identity-and-token-security.md) | Accepted | Identity normalization, password hashing, and access-only JWTs |
 | [ADR-004](ADR/ADR-004-event-driven-statistics-service.md) | Accepted | Queue-driven periodic statistics service, snapshots, health, bootstrap, and logs |
 | [ADR-005](ADR/ADR-005-windowed-statistics-data-points.md) | Accepted | Developing-window recalculation and append-only corrected historical revisions |
+| [ADR-006](ADR/ADR-006-engineering-verification-and-closure-evidence.md) | Accepted | Binding engineering verification, evidence, and closure process |
 
 ## Planned delivery tracks
 

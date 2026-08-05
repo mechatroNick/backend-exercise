@@ -1,6 +1,6 @@
 # Track 00 plan: contract and architecture baseline
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
 - Status: Complete
 - Active item: None
 
@@ -17,6 +17,7 @@
 | T00-07 | Close Track 00 and make Track 01 ready for detailed planning. | Complete | TEST-REPORT and HISTORY contain evidence; indexes updated; no open blocker. |
 | T00-08 | Sequentially re-review and stabilize the completed Track 00 record before Track 01 review. | Complete | Bounded read-only fresh-reader review, provenance clarification, ADR-005 ownership correction, and portable validation receipt recorded without changing accepted product semantics. |
 | T00-09 | Adopt and index the shared engineering verification guideline and its documentation-only checker. | Complete | `docs/ENGINEERING-VERIFICATION-GUIDELINE.md` is indexed; `bash scripts/verify-docs.sh` passed and is recorded in `TEST-REPORT.md`. |
+| T00-10 | Accept ADR-006 and revalidate the expanded documentation gate. | Complete | ADR-006 binds evidence and closure process without changing product semantics; the six-ADR documentation gate is revalidated and recorded in `TEST-REPORT.md`. |
 
 ## Validation commands
 

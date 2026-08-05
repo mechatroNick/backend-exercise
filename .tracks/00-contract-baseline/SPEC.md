@@ -1,11 +1,11 @@
 # Track 00 specification: contract and architecture baseline
 
 - Status: Complete
-- Specification version: 1.0
+- Specification version: 1.1
 - Started: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Supplied assessment and repository-owner clarifications
-- Governing ADRs: ADR-001 through ADR-005
+- Governing ADRs: ADR-001 through ADR-006
 
 ## 1. Intent anchor
 
@@ -83,7 +83,7 @@ When documents conflict, use this precedence:
 Inputs:
 
 - `docs/Technical Assessment Senior Software_Engineer.pdf`;
-- clarifications recorded in ADR-001 through ADR-005;
+- clarifications and verification governance recorded in ADR-001 through ADR-006;
 - `docs/ASSESSMENT.md`;
 - `docs/SOLUTION-DESIGN.md`;
 - `docs/DELIVERY-PLAN.md`.
@@ -149,7 +149,7 @@ Stop and request direction if:
 | Requirement | Primary evidence |
 | --- | --- |
 | T00-REQ-01 | `docs/ASSESSMENT.md` requirement matrix |
-| T00-REQ-02 | `.tracks/ADR/ADR-001...ADR-005` |
+| T00-REQ-02 | `.tracks/ADR/ADR-001...ADR-006`, including ADR-006 closure evidence process |
 | T00-REQ-03 | `.tracks/ADR/ADR-005-windowed-statistics-data-points.md`, Event-time design |
 | T00-REQ-04 | `docs/SOLUTION-DESIGN.md`, sections 10 and 12 |
 | T00-REQ-05 | `docs/SOLUTION-DESIGN.md`, sections 3–19 |
@@ -163,4 +163,6 @@ Stop and request direction if:
 Track 00 remains Complete for its documentation-contract scope. Its shared
 [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 sets evidence and closure rules for future executable tracks without asserting that
-this baseline contains unit, API, database, log, or runtime proof.
+this baseline contains unit, API, database, log, or runtime proof. [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
+makes that process binding while preserving the assessment, accepted ADRs, stricter
+track rules, and existing product semantics.

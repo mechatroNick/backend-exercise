@@ -66,6 +66,16 @@
   unit, API, database, structured-log, or runtime claim. Future executable tracks
   must add their own deterministic tests and real-process harness evidence.
 
+## 2026-08-06 — Verification-governance correction
+
+- Accepted ADR-006 to bind the shared engineering verification guideline as the
+  Tracks 00-08 closure and evidence process without changing product semantics or
+  overriding the assessment, accepted ADRs, or stricter track rules.
+- Bumped the Track 00 specification to 1.1, added T00-10, and revalidated the
+  documentation-only gate with six accepted ADRs.
+- Preserved Track 00's documentation-only exception and its explicit absence of
+  executable runtime claims.
+
 ## Open items
 
 - Author the Track 01 specification and plan before foundation implementation.

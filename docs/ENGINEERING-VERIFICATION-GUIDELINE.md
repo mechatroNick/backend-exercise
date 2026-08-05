@@ -3,10 +3,10 @@
 ## Purpose and authority
 
 This is the shared policy for logging, automated tests, process-level verification,
-evidence receipts, and track closure. It governs how evidence is produced and
-recorded; it does not change API or product semantics. The supplied assessment,
-accepted ADRs, and a track SPEC's stricter rule prevail when they conflict with this
-guideline.
+evidence receipts, and track closure. [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
+makes it binding for Tracks 00-08. It governs how evidence is produced and recorded;
+it does not change API or product semantics. The supplied assessment, accepted ADRs,
+and a track SPEC's stricter rule prevail when they conflict with this guideline.
 
 This repository is currently documentation-only. `scripts/verify-docs.sh` therefore
 proves only documentation integrity. It is not unit, API, migration, database, log,

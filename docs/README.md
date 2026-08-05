@@ -22,6 +22,7 @@ assessment. Durable execution state and architecture decisions live under
 - [ADR-003: Identity and token security](../.tracks/ADR/ADR-003-identity-and-token-security.md)
 - [ADR-004: Event-driven statistics service](../.tracks/ADR/ADR-004-event-driven-statistics-service.md)
 - [ADR-005: Windowed statistics data points](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
+- [ADR-006: Engineering verification and closure evidence](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 - [Track 00: closed contract baseline](../.tracks/00-contract-baseline/SPEC.md)
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
 - [Track 01: foundation specification](../.tracks/01-foundation/SPEC.md)

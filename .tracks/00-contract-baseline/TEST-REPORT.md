@@ -95,3 +95,23 @@ The primary thread corrected all six items. A focused, read-only re-audit return
 The verifier deliberately stops at documentation integrity. Product bootstrap,
 unit/API/contract tests, migrations, database assertions, structured-log capture, and
 real HTTP smoke checks remain required future evidence for executable Tracks 01–08.
+
+## ADR-006 governance-correction receipt
+
+- Date: 2026-08-06
+- Scope: Track 00 documentation governance only. This receipt does not claim product
+  runtime, unit, API, migration, database, or structured-log verification.
+- Selectors: 43 requirement IDs, six Accepted ADRs, and nine numbered track
+  directories.
+
+| Command | Actual result |
+| --- | --- |
+| `bash -n scripts/verify-docs.sh` | Exit `0`; Bash syntax valid. |
+| `bash scripts/verify-docs.sh` | Exit `0`; `PASS: documentation-only verification (43 requirement IDs, 6 accepted ADRs, 9 tracks).` |
+| `git diff --check` | Exit `0`; no whitespace errors. |
+| `rg -n '[[:blank:]]$' docs .tracks scripts/verify-docs.sh` | Exit `1`; no trailing whitespace. |
+| `git diff --cached --quiet` | Exit `0`; nothing staged. |
+| `git status --short` | Exit `0`; the nine bounded governance-correction files were modified or new and no files were staged. |
+
+The six-ADR documentation gate passed. Executable Tracks 01-08 still require their
+own deterministic-test and real-process-harness evidence before closure.
