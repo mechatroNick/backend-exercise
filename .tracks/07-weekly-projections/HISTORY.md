@@ -31,3 +31,25 @@
 After Track06 closes with real evidence, execute T07-01 to compare its delivered
 dirty-marker migration, current completion ordering, raw-SQL reader, worker cycle,
 Settings, health, and logs before authoring projection migration or code.
+
+## 2026-08-05 — Shared verification-gate adoption
+
+- Adopted the committed shared logging, deterministic-test, and real-process closure
+  gate in Track07 planning only. Status, task IDs/dependencies, reserved baseline
+  `source_generation=0`, positive dirty generations/two-consumer completion, immutable
+  correction rules, one-worker topology, current-stats independence, and no-public-
+  history boundary remain unchanged.
+- Planned (but did not create or run) `scripts/verify-track-07.sh` to extend the
+  delivered Track06 actual API process and its same named non-daemon refresher thread
+  with a disposable migrated database, dynamic isolated port, real
+  mutation/current-stats/live-ready flows, bounded observable projection processing,
+  supported private database/operator inspection, observable developing/baseline
+  evidence where available, projection failure/disabled current-stats independence,
+  JSON-Line sentinel checks, clean shutdown, and cleanup.
+- Retained deterministic fake UTC clock, migration, barrier, and fault-injection
+  tests as the required proof for UTC boundaries, restart/crash, revision/generation
+  races, correction immutability, and two-consumer cleanup. The future process harness
+  supplements rather than proves those claims and adds no public history route or
+  test-only topology.
+- No Track07 test, application process, migration, harness, runtime validation, or
+  `TEST-REPORT.md` receipt was executed or created by this planning-only change.

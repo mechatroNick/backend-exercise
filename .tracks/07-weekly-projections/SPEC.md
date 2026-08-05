@@ -199,6 +199,21 @@ low-cardinality baseline, developing, finalization, correction, retry, backlog/o
 and completion events with duration/count/version but never IDs, windows, payload/hash,
 bookmark/tag content, SQL, paths, credentials, or secrets.
 
+Tests and the process harness parse captured application logs as JSON Lines and retain
+ADR-004's exact `service`, `event`, `thread_name`, `process_id`,
+`service_instance_id`, timestamp, level, and logger fields. They assert correlation
+identifiers where a request or asynchronous flow has one, plus applicable duration,
+count, generation/completion, baseline/checkpoint, failure, and calculation-version
+fields for the projection events. Required outcomes include ADR-004 startup, cycle,
+retry, overflow, readiness, shutdown, and join events together with baseline,
+developing replacement, finalization, correction, backlog/overdue, and projection
+completion outcomes. Safe credential, submitted-content, and identifier sentinels must
+be absent from logs, HTTP output, and retained artifacts. Under the shared
+[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md),
+an unexpected exception occurs exactly once at its owning boundary with safe
+structured evidence; intermediate layers add context and re-raise. This adds
+projection evidence without duplicating or weakening ADR-004.
+
 ## 7. Requirements and acceptance threshold
 
 | ID | Requirement |
@@ -209,13 +224,30 @@ bookmark/tag content, SQL, paths, credentials, or secrets.
 | T07-REQ-04 | Replace developing rows, detect overdue windows, and atomically final-recompute, append revision 1, and create/refresh next developing work. |
 | T07-REQ-05 | Append immutable corrections only for changed compatible canonical results, preserve effective selection/history, and handle revision concurrency. |
 | T07-REQ-06 | Reuse existing worker, durable recovery, health, and safe logs without changing current stats or runtime topology. |
-| T07-REQ-07 | Prove migration, boundaries, idempotency, crash/restart, generation concurrency, correction, privacy cascade, and current-statistics independence deterministically; close TEST-REPORT.md. |
+| T07-REQ-07 | Prove migration, boundaries, idempotency, crash/restart, generation concurrency, correction, privacy cascade, and current-statistics independence deterministically; run the real-process closure harness and close TEST-REPORT.md. |
 
 Closure requires Track06 report review; migrated schema/recovery evidence; controlled
 version/hash policy; restartable baseline receipts; Sunday/Monday and calendar boundary
 proof; atomic/idempotent finalization; correction/no-op/revision-race proof;
 two-consumer completion race proof; user-cascade/privacy proof; health/log evidence;
-and exact current-stats independence evidence. No critical/high defect may remain.
+and exact current-stats independence evidence. The planned
+`scripts/verify-track-07.sh` extends the delivered Track06 actual API process and its
+same named non-daemon `bookmark-stats-refresher` only, using a disposable migrated
+database and dynamic isolated port. It makes real mutation, current-stats, liveness,
+and readiness flows; bounds observation of actual projection processing through
+delivered configuration and observable seams; and uses supported private
+database/operator inspection of working/developed/completion state, never a public
+route. It proves developing replacement and current-surviving-state baseline evidence
+only when those states are actually observable, verifies projection failure or disabled
+mode leaves current-stats JSON body and headers correct, parses expected JSON Lines,
+and proves clean shutdown and cleanup.
+
+The process harness supplements rather than proves Sunday/Monday boundaries, backfill
+restart, finalization crashes, revision or concurrent-generation races, correction
+immutability, or two-consumer cleanup. Those claims require deterministic fake UTC
+clocks, disposable migrated integration tests, controlled barriers, and fault
+injection, with no real sleeps. The harness adds no test-only public endpoint,
+scheduler, process, thread, or public history API. No critical/high defect may remain.
 
 ## 8. Edge-case and failure ledger
 
@@ -232,6 +264,8 @@ and exact current-stats independence evidence. No critical/high defect may remai
 | Revision concurrency | Barrier/forced unique conflict proves no duplicate revision and retry selects committed effective revision. |
 | Lifecycle/health | Existing one thread/manual cycle; projection failure, stalled/backlog/overdue/baseline failure, disabled mode, restart, readiness/liveness behavior. |
 | Privacy/compatibility | User deletion cascades projection rows; no IDs/content/secrets in logs; no history route; current stats remain exact and independent. |
+| Observability | Parse JSON Lines for ADR-004 fields and projection baseline/developing/finalization/correction/backlog/completion events with applicable correlation, duration, count, generation/completion, and version fields; safe credential/content/ID sentinels are absent and unexpected exceptions appear exactly once at their owning boundary. |
+| Process closure | Planned `scripts/verify-track-07.sh` extends the delivered Track06 process and same named worker with a disposable migrated database, dynamic isolated port, real mutation/current-stats/live-ready flows, bounded observable processing, private DB/operator projection-state inspection, current-stats independence on failure/disabled mode, clean shutdown, and cleanup; it adds no public history route or test-only topology. |
 
 ## 9. Risks, limits, and follow-up ownership
 

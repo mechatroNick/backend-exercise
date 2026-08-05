@@ -20,9 +20,38 @@ missing Track06 evidence, or a proposed public/current-statistics change.
 | T07-04 | Implement restartable idempotent canonical initial historical backfill and baseline checkpoint semantics. | Smith / implementation | T07-02, T07-03 | Pending | Closed surviving rev1/current developing baseline, restart/partial crash, Track06 bridge, no-audit/no-empty-week proof. |
 | T07-05 | Implement developing replacement, overdue detection, atomic boundary finalization, and next developing creation/refresh. | Smith / implementation | T07-03, T07-04 | Pending | One-row replacement, no-event/clock-jump behavior, rev1/next transaction, finalization replay/crash proof. |
 | T07-06 | Implement late corrections, immutable supersession/revision allocation, and projection-side marker completion. | Smith / implementation | T07-02, T07-03, T07-04, T07-05 | Pending | Changed-hash N+1, identical/no-op no append, revision race, concurrent generation, guarded cleanup, restart. |
-| T07-07 | Integrate with existing worker/manual cycle, readiness metrics, and redacted logs; retain current-stats independence. | Smith / implementation | T07-04, T07-05, T07-06 | Pending | One-thread/session/non-overlap, health backlog/overdue/baseline, safe logs, current stats parity. |
-| T07-08 | Run deterministic migration, concurrency, failure, lifecycle, and regression evidence. | Smith / implementation | T07-02, T07-03, T07-04, T07-05, T07-06, T07-07 | Pending | Full ledger with fake clock/manual cycle/barriers; quality/hygiene receipts. |
-| T07-09 | Primary closure, Track08 handoff, and TEST-REPORT.md. | Primary engineering thread | T07-01, T07-02, T07-03, T07-04, T07-05, T07-06, T07-07, T07-08 | Pending | Traceability complete, risks/limits recorded, no critical/high defect, actual commands/results. |
+| T07-07 | Integrate with existing worker/manual cycle, readiness metrics, and redacted logs; retain current-stats independence. | Smith / implementation | T07-04, T07-05, T07-06 | Pending | One-thread/session/non-overlap, health backlog/overdue/baseline, parsed JSON Lines with ADR-004 and projection fields/events, sentinel absence, and current stats body/header parity through projection failure/disabled mode. |
+| T07-08 | Run deterministic migration, concurrency, failure, lifecycle, and regression evidence plus the real-process closure harness. | Smith / implementation | T07-02, T07-03, T07-04, T07-05, T07-06, T07-07 | Pending | Full ledger with fake UTC clock/manual cycle/barriers/fault injection, quality/hygiene receipts, and actual `bash scripts/verify-track-07.sh` receipt; no real sleep proves calendar or race invariants. |
+| T07-09 | Primary closure, Track08 handoff, and TEST-REPORT.md. | Primary engineering thread | T07-01, T07-02, T07-03, T07-04, T07-05, T07-06, T07-07, T07-08 | Pending | Traceability complete, risks/limits recorded, no critical/high defect, actual deterministic/process-harness commands/results, and verified cleanup. |
+
+## Shared completion gate
+
+The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+applies without changing Track07 status, task IDs/dependencies, baseline
+`source_generation=0`, positive dirty generations/two-consumer completion, immutable
+correction rules, one-worker topology, current-stats independence, or the no-public-
+history boundary. Planned, Ready, or Blocked is not done. T07-09 may mark Track07
+Complete only after recorded passing deterministic tests, migrated-database evidence,
+JSON-Line/redaction evidence, and actual `bash scripts/verify-track-07.sh` results
+with cleanup; planned, skipped, or blocked commands never count as pass.
+
+The future `scripts/verify-track-07.sh` extends the delivered Track06 actual API
+process and its same named non-daemon `bookmark-stats-refresher` only. It uses a
+disposable database created by the real migration path and a dynamic isolated port,
+then makes real mutation, current-stats, `/health/live`, and `/health/ready` requests.
+Through delivered configuration and observable seams, it bounds observation of actual
+projection processing and uses supported private database/operator inspection of
+working, developed, and completion state without a public route. It records developing
+replacement and current-surviving-state baseline evidence only if actually observable,
+checks projection failure or disabled mode leaves current-stats body and headers
+correct, parses ADR-004 and projection JSON Lines with seeded-sentinel absence, and
+verifies clean shutdown and cleanup.
+
+This process proof supplements, rather than proves, Sunday/Monday boundaries, backfill
+restart, finalization crashes, revision/concurrent-generation races, correction
+immutability, or two-consumer cleanup. Deterministic fake UTC clocks, migrated
+integration tests, barriers, and fault injection remain mandatory. The harness adds no
+test-only public endpoint, scheduler, process, thread, or public history API.
 
 ## Work-wave detail
 
@@ -64,7 +93,7 @@ missing Track06 evidence, or a proposed public/current-statistics change.
 - After baseline completes, projection completion joins Track06 current completion. Do
   not remove a marker after only one consumer succeeds.
 
-### T07-07/T07-09 — operations, regressions, closure
+### T07-07 — worker integration, health, and safe observability
 
 - Add work to existing named worker/manual cycle only: no scheduler/process/queue,
   request session, or import-time service. Preserve bounded sessions, batches, stop,
@@ -72,8 +101,45 @@ missing Track06 evidence, or a proposed public/current-statistics change.
 - Readiness receives safe baseline/backlog/overdue/projection freshness state; liveness
   remains independent. Logs retain structured service attribution and low cardinality:
   no user/window IDs, payload/hash, SQL, content, credentials, or secrets.
-- Primary proves internal weekly work leaves current stats independent, records actual
-  migration/test/health/log evidence, and hands final hardening only to Track08.
+- Parse captured JSON Lines and enforce ADR-004's exact `service`, `event`,
+  `thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger
+  fields, correlation identifiers where applicable, and projection duration/count,
+  generation/completion, baseline/checkpoint, failure, and calculation-version fields.
+  Capture ADR-004 lifecycle outcomes plus baseline, developing, finalization,
+  correction, retry, backlog/overdue, and completion events. Seed safe
+  credential/content/ID sentinels and assert absence; unexpected exceptions log once
+  at the owning boundary under the shared guideline.
+- Prove internal weekly work leaves current stats JSON body and source headers
+  independent when projection processing fails or is disabled.
+
+### T07-08 — deterministic and real-process evidence
+
+- Keep UTC boundaries, backfill restart, finalization crashes, revision and
+  concurrent-generation races, correction immutability, and two-consumer cleanup under
+  fake UTC clocks, disposable migrated integration databases, controlled barriers, and
+  fault injection. A process harness cannot establish these invariants through wall
+  clock or scheduler timing, and no real sleep is valid evidence.
+- Deliver `scripts/verify-track-07.sh` only after the Track06 process harness exists.
+  It extends the delivered actual API process and its same named non-daemon refresher
+  thread with a verified disposable migrated database and dynamic isolated port. Use
+  bounded polling and delivered configuration/observable seams; do not add a test-only
+  public endpoint, scheduler, process, thread, or public history API.
+- Make real mutation, current-stats, `/health/live`, and `/health/ready` requests.
+  Inspect working/developed/two-consumer-completion state only through supported
+  private database/operator tooling, record developing replacement and current-
+  surviving-state baseline evidence only if observable, parse actual JSON Lines and
+  sentinel absence, then verify projection failure/disabled current-stats body/header
+  independence, clean shutdown, and trap cleanup.
+
+### T07-09 — closure and Track 08 handoff
+
+- Primary creates `TEST-REPORT.md` only from actual deterministic, migrated-database,
+  quality, and `bash scripts/verify-track-07.sh` results, including versions,
+  selectors, inspected private artifacts, selected non-sensitive port, cleanup, gaps,
+  and preserved debug artifacts where applicable.
+- Hand Track08 only confirmed Track07 closure evidence, limitations, and the retained
+  no-public-history/current-stats independence boundary; do not expand final delivery
+  scope or reinterpret immutable historical semantics.
 
 ## Deterministic edge-case/evidence ledger
 
@@ -105,12 +171,15 @@ migration DDL inspection, health responses, and blocked commands in TEST-REPORT.
     uv run alembic upgrade head
     uv run alembic check
     make check
+    bash scripts/verify-track-07.sh
     git diff --check
     git status --short
 
 Focused tests use fake UTC clocks, manual worker-cycle controls, disposable migrated
 SQLite databases, failure injection, and barriers. They must not use real ten-second
-waits or timing-dependent scheduler assertions. Add exact payload/hash, DDL, race, and
+waits or timing-dependent scheduler assertions. The planned harness extends delivered
+Track06 process evidence but cannot substitute for deterministic calendar, restart,
+crash, race, correction, or two-consumer proof. Add exact payload/hash, DDL, race, and
 current-stats-independence checks when implemented; never mark planned commands passed.
 
 ## Review checkpoints and commit boundary
