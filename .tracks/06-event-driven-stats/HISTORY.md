@@ -37,3 +37,22 @@ weekly event-time semantics and prevents unbounded inert markers before Track 07
 After Track 05 closes with actual `TEST-REPORT.md` evidence, execute T06-01 to compare
 delivered publisher, transaction, raw-SQL, Settings, lifespan, and logging seams and
 confirm the staged completion handoff remains traceable before writing product code.
+
+## 2026-08-05 — Shared verification-gate adoption
+
+- Adopted the committed shared logging, deterministic-test, and real-process closure
+  gate in Track 06 planning only. Status, task IDs/dependencies, marker generations,
+  transaction/publication ordering, current-stats fallback contract, one-worker
+  topology, ADR-004 log-field contract, and the Track 07 staged handoff remain
+  unchanged.
+- Planned (but did not create or run) `scripts/verify-track-06.sh` to extend the
+  delivered Track 05 mandatory bootstrap with a disposable migrated database, dynamic
+  isolated port, actual API process and named non-daemon refresher thread, real HTTP
+  mutation/current-stats/header/live-ready flows, bounded worker
+  completion/degradation/recovery observation, snapshot/live parity, queue/dirty
+  recovery, clean shutdown, and cleanup.
+- Retained fake-clock/manual-cycle/barrier/fault-injection tests as the required proof
+  for generation and concurrency invariants; the future process harness supplements
+  rather than proves those claims, and no real ten-second sleep is planned.
+- No Track 06 test, application process, migration, harness, runtime validation, or
+  `TEST-REPORT.md` receipt was executed or created by this planning-only change.

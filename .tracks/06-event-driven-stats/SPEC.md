@@ -179,6 +179,21 @@ data, credentials, tokens, URLs, SQL, or secrets. Emit distinct events for start
 cycle success/failure, retry, overflow, readiness transition, shutdown, and join
 timeout.
 
+The Track 06 test and process-harness log audit parses every captured application log
+as JSON Lines and enforces the ADR-004 fields exactly: `service`, `event`,
+`thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger.
+It also checks correlation identifiers when a request or asynchronous flow has one,
+and checks duration, queue/count, generation/count, affected-user count, interval,
+and failure-count fields when the selected event makes them applicable. It captures
+the expected startup, cycle, retry, overflow, readiness, shutdown, and join outcomes.
+It deliberately seeds safe credential, submitted-content, and identifier sentinels
+and proves that none appear in logs, HTTP output, or retained artifacts. The shared
+[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+governs unexpected-exception evidence: the owning request, task, thread, or process
+boundary logs it exactly once with safe structured exception evidence; intermediate
+layers add safe context and re-raise. This supplements, and neither duplicates nor
+weakens, ADR-004's logging contract.
+
 ## 7. Requirements and acceptance evidence
 
 | ID | Requirement |
@@ -189,13 +204,28 @@ timeout.
 | T06-REQ-04 | Provide one lifecycle-owned named worker with per-cycle session ownership, immediate/startup and periodic reconciliation, cooperative bounded shutdown, and no cycle overlap. |
 | T06-REQ-05 | Atomically publish immutable current snapshots and preserve exact live raw-SQL body correctness for snapshot fallback paths. |
 | T06-REQ-06 | Provide exact accepted health routes, one-worker enforcement, bounded redacted readiness, and safe service-attributed lifecycle logs. |
-| T06-REQ-07 | Prove deterministic concurrency, failure, recovery, isolation, and observability behavior without real sleeps; close with `TEST-REPORT.md`. |
+| T06-REQ-07 | Prove deterministic concurrency, failure, recovery, isolation, and observability behavior without real sleeps; run the real-process closure harness and close with `TEST-REPORT.md`. |
 
 Closure requires every Track 05 core gate receipt, migrated migration lifecycle proof,
 same-transaction ordering proof, event safe-field/content proof, queue-loss/overflow
 recovery, generation race proof, snapshot/live exact-body parity for two users,
 lifecycle and health degradation/recovery evidence, JSON/redaction log evidence, and
-all relevant quality commands. No known critical/high defect may remain.
+all relevant quality commands. The planned `scripts/verify-track-06.sh` extends the
+delivered Track 05 mandatory bootstrap/gate using a disposable database built by the
+real migration path and a dynamic isolated port. It must launch the actual API process
+and observe its exact named non-daemon `bookmark-stats-refresher` thread, then make
+real HTTP mutation, current-stats, source-header, liveness, and readiness flows. It
+must use delivered configuration and observable seams to bound observation of actual
+worker completion, degradation, and recovery; it must not add a test-only public
+endpoint, second process, or second worker thread. The harness proves snapshot/live
+body parity, observable or database-supported queue/dirty recovery, clean shutdown,
+and verified cleanup.
+
+The process harness supplements rather than proves transaction ordering, generation
+compare-and-delete, no-overlap, or reader-publication concurrency invariants. Those
+claims require deterministic fake-clock/manual-cycle tests, controlled barriers, and
+fault injection, with no real ten-second sleeps. No known critical/high defect may
+remain.
 
 ## 8. Edge-case and failure ledger
 
@@ -208,8 +238,9 @@ all relevant quality commands. No known critical/high defect may remain.
 | Snapshot concurrency | Barrier concurrent readers against build/swap; no partial/mixed generation; injected SQL/publication failure retains old immutable snapshot and pending work. |
 | Worker ownership | Fake clock/manual cycle proves one instance, exact non-daemon name, own sessions, no overlap, interruptible cadence, restart isolation, disabled mode, and bounded shutdown/join timeout. |
 | Health | Dead, stuck, never-successful, repeatedly failed, stale, startup-timeout, and backlog-threshold worker states fail readiness while liveness remains independent. |
-| Observability | Capture redacted low-cardinality startup/cycle/retry/overflow/readiness/shutdown/join-timeout logs; seed IDs/content/secrets must not appear. |
+| Observability | Parse JSON Lines and enforce ADR-004 service/event/thread/process/instance fields plus applicable correlation, duration, and count fields for startup/cycle/retry/overflow/readiness/shutdown/join outcomes; seed safe credential/content/ID sentinels must not appear, and unexpected exceptions appear exactly once at their owning boundary. |
 | Migration/recovery | Empty/existing upgrade, constraints/FK/cascade/indexes, atomic upsert, rollback, downgrade/re-upgrade, and restart reconciliation pass on disposable migrated SQLite. |
+| Process closure | Planned `scripts/verify-track-06.sh` extends the delivered Track 05 bootstrap with a disposable migrated database, dynamic isolated port, actual API process and named non-daemon worker, real HTTP mutation/current-stats/header/live-ready flows, bounded completion/degradation/recovery observation, snapshot/live parity, queue/dirty recovery, clean shutdown, and cleanup. |
 
 ## 9. Risks, limits, and follow-up ownership
 

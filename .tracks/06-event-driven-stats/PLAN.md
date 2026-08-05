@@ -20,9 +20,36 @@ not adapt a public or durable-state contract silently.
 | T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | Pending | Create/material scalar/tag/delete ordering and safe-field tests; reads/no-op/rollback absence; delete-window proof. |
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | Pending | Overflow preserves request/marker; duplicate/reordered/lost events harmless; atomic readers and snapshot/live parity proof. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Pending | One non-daemon instance, manual-cycle/fake-clock, own session/non-overlap, restart, retry, post-commit-crash, concurrent-increment, and join-timeout evidence. |
-| T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; captured low-cardinality logs. |
-| T06-07 | Run deterministic integration/concurrency/failure suite and migration/quality validation; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; full ledger, SQL/live fallback parity, migration lifecycle, contracts, hygiene, and command receipts. |
-| T06-08 | Primary closure, risk review, Track07 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; exact actual validation results and staged marker contract recorded. |
+| T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; parsed JSON Lines enforce ADR-004 service/event/thread/process/instance fields plus applicable correlation/duration/count fields and exact-once owning-boundary unexpected exceptions. |
+| T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; barrier/fault-injection proof for generation and concurrency; full ledger, SQL/live fallback parity, migration lifecycle, contracts, hygiene, and actual `bash scripts/verify-track-06.sh` receipt. |
+| T06-08 | Primary closure, risk review, Track07 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; actual deterministic and process-harness results, verified cleanup, and staged marker contract recorded. |
+
+## Shared completion gate
+
+The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+applies without changing Track 06's status, task IDs/dependencies, marker-generation
+rules, transaction/publication ordering, current-stats fallback contract, one-worker
+topology, ADR-004 log fields, or the Track 07 staged handoff. Planned, Ready, or
+Blocked is not done. T06-08 may mark Track 06 Complete only after recorded passing
+deterministic tests, migrated-database evidence, JSON-Line/redaction evidence, and
+actual `bash scripts/verify-track-06.sh` results with cleanup; planned, skipped, or
+blocked commands never count as pass.
+
+The future `scripts/verify-track-06.sh` extends the delivered Track 05 mandatory
+bootstrap/gate. It uses only a disposable database created through the real Alembic
+migration path and a dynamic isolated port, starts the actual API process, and proves
+that its exact named non-daemon `bookmark-stats-refresher` thread is running. It makes
+real HTTP mutation, current-stats, `X-Stats-Source`/`X-Stats-Generated-At`,
+`/health/live`, and `/health/ready` requests; bounds observation of actual worker
+completion, degradation, and recovery through delivered configuration and observable
+seams; checks snapshot/live body parity and observable or database-supported
+queue/dirty recovery; and verifies clean shutdown and trap cleanup. It must not add a
+test-only public endpoint, a second process, or a second worker thread.
+
+This process proof supplements, rather than proves, generation, transaction-ordering,
+no-overlap, and snapshot-publication concurrency invariants. Deterministic fake-clock,
+manual-cycle, barrier, and fault-injection tests remain mandatory for those claims and
+never wait for a real ten-second cadence.
 
 ## Work-wave detail
 
@@ -72,7 +99,7 @@ not adapt a public or durable-state contract silently.
   Generation compare-and-delete must include observed generation in the delete
   predicate so a concurrent increment persists.
 
-### T06-06/T06-08 — operations, evidence, and handoff
+### T06-06 — health, lifecycle logging, and safe observability
 
 - Register only `/health/live` and `/health/ready`; liveness must not invoke business
   SQL or make refresher failure fatal. Readiness uses database and enabled-service
@@ -82,10 +109,41 @@ not adapt a public or durable-state contract silently.
 - Validate Settings reject multiple application workers when the service is enabled;
   disabled refresh has no process-local-service readiness requirement and `stats`
   stays correct via live SQL.
-- Emit tested structured service events for startup, cycle, retry, overflow, readiness
-  change, shutdown, and bounded join timeout. Fields are low cardinality/no IDs or
-  content/secrets. Primary records a truthful `TEST-REPORT.md` and hands Track07 only
-  the confirmed initial-backfill and multi-consumer marker-completion contract.
+- Parse captured JSON Lines and enforce ADR-004's exact `service`, `event`,
+  `thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger
+  fields. Assert correlation identifiers where a request/asynchronous flow has one,
+  and applicable duration, queue/count, generation/count, affected-user, interval, and
+  failure-count fields. Capture startup, cycle, retry, overflow, readiness, shutdown,
+  and join outcomes. Deliberately seed safe credential/content/ID sentinels and assert
+  their absence; unexpected exceptions log exactly once at the owning boundary under
+  the shared guideline. Do not duplicate or weaken ADR-004.
+
+### T06-07 — deterministic and real-process evidence
+
+- Keep concurrency, marker-generation, transaction-order, no-overlap, and
+  publication-atomicity proof deterministic with fake clocks, manual-cycle hooks,
+  controlled barriers, and fault injection. The real-process harness supplements
+  these tests and cannot prove those invariants by elapsed time or scheduler luck.
+- Deliver `scripts/verify-track-06.sh` only after the Track 05 bootstrap exists. It
+  extends that delivered mandatory gate with a verified disposable migrated database,
+  dynamic isolated port, actual API process, and its named non-daemon refresher
+  thread. Use bounded polling and delivered configuration/observable seams for worker
+  completion, degradation, and recovery; never add a test-only endpoint, second
+  process, or second worker thread.
+- Exercise real mutation, current-stats, source-header, `/health/live`, and
+  `/health/ready` flows. Parse the actual process JSON Lines; prove snapshot/live
+  parity, queue/dirty recovery through observable state or the disposable database,
+  clean shutdown, and trap cleanup. No real ten-second sleep is a valid assertion.
+
+### T06-08 — closure and Track 07 handoff
+
+- Primary records a truthful `TEST-REPORT.md` only from actual deterministic,
+  migrated-database, quality, and `bash scripts/verify-track-06.sh` results, including
+  versions, selectors, artifacts, selected non-sensitive port, cleanup, gaps, and
+  retained debug artifacts where applicable.
+- Hand Track 07 only the confirmed canonical initial-backfill and multi-consumer
+  marker-completion contract; preserve the current-only pre-install completion rule
+  and do not claim historical points or change the accepted handoff.
 
 ## Deterministic edge-case/evidence ledger
 
@@ -119,15 +177,18 @@ uv run alembic downgrade base
 uv run alembic upgrade head
 uv run alembic check
 make check
+bash scripts/verify-track-06.sh
 git diff --check
 git status --short
 ```
 
 Focused tests use fake clocks, manual worker-cycle triggers, fake/session factories,
 barriers, and deterministic failure injection. They must not wait ten seconds or rely
-on scheduler timing. Add exact migration DDL/constraint/index inspection, endpoint
-header/body parity, structured-log parsing, and closure-report commands only when
-implemented; never claim these planned commands passed before they run.
+on scheduler timing. The planned harness extends delivered Track 05 bootstrap/process
+evidence but cannot substitute for deterministic invariant proof. Add exact migration
+DDL/constraint/index inspection, endpoint header/body parity, structured-log parsing,
+and closure-report commands only when implemented; never claim these planned commands
+passed before they run.
 
 ## Review checkpoints and commit boundary
 
