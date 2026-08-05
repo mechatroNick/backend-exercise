@@ -138,8 +138,22 @@ environment demonstrate all of the following:
   auth-operation security, statuses, envelopes, and examples agree with runtime;
 - focused unit/integration/endpoint tests plus format, lint, type-check, and full
   suite commands pass; logs/DTOs/test output are reviewed for credential leakage;
+- deterministic unit, integration, and auth-operation contract tests pass, and the
+  planned `scripts/verify-track-02.sh` real-process harness extends Track 01's
+  delivered bootstrap using a disposable migrated database and dynamic isolated port;
+- that harness starts the actual server, bounded-polls its delivered observable seam,
+  performs real HTTP registration/login and protected-success flows plus a
+  representative generic authentication/error failure, and asserts response statuses,
+  bodies, and documented schemas without taking ownership of Track 05's
+  cross-operation OpenAPI gate;
+- captured JSON Lines prove expected source/service/event fields and correlation
+  where applicable, while deliberate safe test-only password/token/content sentinels
+  are absent from logs, output, and retained artifacts; the harness never prints or
+  stores real credentials and verifies cleanup under the shared policy;
 - no secrets, hashes, tokens, generated databases, caches, or coverage artifacts
   appear in repository status.
+
+Track 02 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never a planned command or code presence. `scripts/verify-track-02.sh` supplements test layers and must use the delivered Track 01 bootstrap rather than a fake server. It does not alter auth/error semantics or Track 05's ownership of full cross-operation OpenAPI conformance.
 
 ## 8. Risks and mitigations
 
