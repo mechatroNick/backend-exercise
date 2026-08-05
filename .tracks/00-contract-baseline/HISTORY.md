@@ -89,3 +89,13 @@
   now planned and Ready but remains unimplemented.
 - Added T00-11 and revalidated the documentation-only gate without changing product
   semantics or claiming executable runtime evidence.
+
+## 2026-08-06 — Dedicated branch delivery
+
+- Created `codex/track-00-contract-baseline` from the verified baseline so Track 00
+  has the same auditable branch-and-merge boundary required for later tracks.
+- Re-ran `bash -n scripts/verify-docs.sh` and `bash scripts/verify-docs.sh`; both
+  exited `0`, and the documentation verifier again reported 43 requirement IDs,
+  six accepted ADRs, and nine tracks.
+- Preserved the closure boundary: Track 00 remains Complete only for documentation
+  and governance, with no application-runtime claim.

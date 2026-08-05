@@ -137,3 +137,22 @@ own deterministic-test and real-process-harness evidence before closure.
 
 Historical five-ADR receipts above remain accurate for their execution time. This
 additive receipt confirms the current six-ADR governance state.
+
+## Per-track branch delivery receipt
+
+- Date: 2026-08-06
+- Branch: `codex/track-00-contract-baseline`, created from the verified documentation
+  baseline and intended for a non-fast-forward merge into `main`.
+- Scope: Track 00 documentation and governance only. Product runtime remains owned by
+  Tracks 01-08; this receipt makes no executable application claim.
+- Cleanup: Not applicable; the verifier is read-only and creates no process,
+  database, temporary resource, cache, or coverage artifact.
+
+| Command | Actual result |
+| --- | --- |
+| `bash -n scripts/verify-docs.sh` | Exit `0`; Bash syntax valid. |
+| `bash scripts/verify-docs.sh` | Exit `0`; `PASS: documentation-only verification (43 requirement IDs, 6 accepted ADRs, 9 tracks).` |
+
+This receipt revalidates the accepted Track 00 scope on its dedicated delivery
+branch. It does not replace the deterministic tests and real-process Bash harnesses
+required to close executable Tracks 01-08.
