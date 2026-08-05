@@ -2,21 +2,22 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001; foundation-relevant constraints from ADR-002, ADR-003, and ADR-004; ADR-006 verification and closure evidence
-- Status: Ready
-- Active item: None; implementation has not started
+- Status: Complete
+- Active item: None; Track 01 closed with passing deterministic, migration, coverage,
+  and real-process evidence recorded in `TEST-REPORT.md`
 
 ## Execution plan
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T01-01 | Establish the Python 3.12 project and locked toolchain. | Smith / implementation | None | Pending | `.python-version`, `pyproject.toml`, lockfile, dependency groups, Ruff/mypy/pytest configuration, and clean environment sync. |
-| T01-02 | Implement typed configuration, UTC clock, and structured JSON Lines logging foundations. | Smith / implementation | T01-01 | Pending | Settings safety/cross-environment tests; aware UTC clock tests; JSON-Line schema tests for `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; redaction; and exactly-one owning-boundary exception-record tests. |
-| T01-03 | Implement feature-owned core SQLModel tables and UTC persistence type. | Smith / implementation | T01-01, T01-02 | Pending | Metadata review shows the four required tables, relationships, named constraints, and indexes; unit tests cover the UTC adapter. |
-| T01-04 | Implement the synchronous engine/session boundary and SQLite connection policy. | Smith / implementation | T01-01, T01-02 | Pending | Separate connections report FK enforcement and finite busy timeout; sessions are short-lived and injectable. |
-| T01-05 | Configure Alembic and author the reviewed core-schema revision. | Smith / implementation | T01-03, T01-04 | Pending | Empty upgrade, schema inspection, downgrade-to-base, and re-upgrade pass on disposable file databases. |
-| T01-06 | Implement the FastAPI factory/lifespan foundation, local operator commands, and Track 01 process harness. | Smith / implementation | T01-02, T01-04, T01-05 | Pending | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented; one-worker startup is explicit; and `scripts/verify-track-01.sh` uses the actual factory/bootstrap with a disposable migrated SQLite DB, dynamic isolated port, bounded observable-endpoint polling, startup/shutdown JSON-Line field/redaction/exactly-one-owning-boundary-exception assertions, and verified cleanup. |
-| T01-07 | Add real-database constraint/index/cascade integration tests. | Smith / implementation | T01-03, T01-05 | Pending | Required, unique, length, FK, association, deletion, index, and UTC round-trip evidence passes. |
-| T01-08 | Run the complete foundation closure gate and review the diff. | Primary engineering thread | T01-01, T01-02, T01-03, T01-04, T01-05, T01-06, T01-07 | Pending | Deterministic unit/integration tests, format, lint, mypy, migration rehearsal, and `bash scripts/verify-track-01.sh` actually pass; TEST-REPORT records exact commands/results/versions/selectors/cleanup, guideline conformance, gaps, and primary diff/repository-hygiene review. |
+| T01-01 | Establish the Python 3.12 project and locked toolchain. | Smith / implementation | None | Complete | `.python-version`, `pyproject.toml`, lockfile, dependency groups, Ruff/mypy/pytest configuration, and clean environment sync. |
+| T01-02 | Implement typed configuration, UTC clock, and structured JSON Lines logging foundations. | Smith / implementation | T01-01 | Complete | Settings safety/cross-environment tests; aware UTC clock tests; JSON-Line schema tests for `source`, service/component, event, level, UTC timestamp, logger, `process_id`, and execution/thread identifier where applicable; redaction; and exactly-one owning-boundary exception-record tests. |
+| T01-03 | Implement feature-owned core SQLModel tables and UTC persistence type. | Smith / implementation | T01-01, T01-02 | Complete | Metadata review shows the four required tables, relationships, named constraints, and indexes; unit tests cover the UTC adapter. |
+| T01-04 | Implement the synchronous engine/session boundary and SQLite connection policy. | Smith / implementation | T01-01, T01-02 | Complete | Separate connections report FK enforcement and finite busy timeout; sessions are short-lived and injectable. |
+| T01-05 | Configure Alembic and author the reviewed core-schema revision. | Smith / implementation | T01-03, T01-04 | Complete | Empty upgrade, schema inspection, downgrade-to-base, and re-upgrade pass on disposable file databases. |
+| T01-06 | Implement the FastAPI factory/lifespan foundation, local operator commands, and Track 01 process harness. | Smith / implementation | T01-02, T01-04, T01-05 | Complete | Import/startup has no schema side effect; migrate/run/bootstrap/check commands are documented; one-worker startup is explicit; and `scripts/verify-track-01.sh` uses the actual factory/bootstrap with a disposable migrated SQLite DB, dynamic isolated port, bounded observable-endpoint polling, startup/shutdown JSON-Line field/redaction/exactly-one-owning-boundary-exception assertions, and verified cleanup. |
+| T01-07 | Add real-database constraint/index/cascade integration tests. | Smith / implementation | T01-03, T01-05 | Complete | Required, unique, length, FK, association, deletion, index, and UTC round-trip evidence passes. |
+| T01-08 | Run the complete foundation closure gate and review the diff. | Primary engineering thread | T01-01, T01-02, T01-03, T01-04, T01-05, T01-06, T01-07 | Complete | Deterministic unit/integration tests, format, lint, mypy, migration rehearsal, and `bash scripts/verify-track-01.sh` actually pass; TEST-REPORT records exact commands/results/versions/selectors/cleanup, guideline conformance, gaps, and primary diff/repository-hygiene review. |
 
 ## Work-wave detail
 
