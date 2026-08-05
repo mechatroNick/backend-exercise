@@ -27,6 +27,8 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 01: foundation execution plan](../.tracks/01-foundation/PLAN.md)
 - [Track 02: auth and error specification](../.tracks/02-auth-errors/SPEC.md)
 - [Track 02: auth and error execution plan](../.tracks/02-auth-errors/PLAN.md)
+- [Track 03: bookmark CRUD specification](../.tracks/03-bookmark-crud/SPEC.md)
+- [Track 03: bookmark CRUD execution plan](../.tracks/03-bookmark-crud/PLAN.md)
 
 Detailed downstream artifacts may be planned sequentially after upstream plan review;
 their presence does not make implementation ready until each stated dependency closes
