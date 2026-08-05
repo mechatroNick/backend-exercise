@@ -157,3 +157,10 @@ Stop and request direction if:
 | T00-REQ-07 | `docs/DELIVERY-PLAN.md`, Tracks 00–08 |
 | T00-REQ-08 | ADR decision records and this specification's decision latitude |
 | T00-REQ-09 | Reader audit recorded in `TEST-REPORT.md` |
+
+## 12. Post-closure governance addendum
+
+Track 00 remains Complete for its documentation-contract scope. Its shared
+[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+sets evidence and closure rules for future executable tracks without asserting that
+this baseline contains unit, API, database, log, or runtime proof.

@@ -38,7 +38,7 @@ validation, and reviewer-explainable ownership.
 
 | ID | Classification | Requirement | Owning track | Closure evidence |
 | --- | --- | --- | --- | --- |
-| GOV-01 | Required support | Preserve explicit requirements, decisions, dependencies, and validation evidence. | 00 | Approved baseline, ADR set, and track traceability. |
+| GOV-01 | Required support | Preserve explicit requirements, decisions, dependencies, and validation evidence. | 00 | Approved baseline, ADR set, track traceability, and evidence recorded under the [engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md); documentation-only evidence does not prove runtime behavior. |
 | DEL-01 | Required | Submit a Git repository/link or archive with meaningful incremental history. | 08 | Submission-ready repository and documented commit sequence. |
 | DEL-02 | Required support | Explain project architecture and deployment architecture in the README. | 08 | Fresh-reader review of the completed README. |
 | DEL-03 | User-decided | Disclose the AI-assisted engineering process later using actual evidence. | 08 | Process section accurately reflects completed work. |

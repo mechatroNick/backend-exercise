@@ -55,6 +55,17 @@
   requirement IDs, five accepted ADRs, nine delivery-track sections, resolved local
   Markdown links, no trailing whitespace, and a clean `git diff --check`.
 
+## 2026-08-05 — Verification-policy adoption
+
+- Added the authoritative documentation-scope engineering verification guideline and
+  indexed it from the reader and track control planes.
+- Added `scripts/verify-docs.sh`, a read-only Bash documentation verifier for the
+  expected artifacts, inventories, URL-decoded local Markdown links, whitespace,
+  and diff hygiene.
+- Kept Track 00 Complete only for documentation scope: the new checker makes no
+  unit, API, database, structured-log, or runtime claim. Future executable tracks
+  must add their own deterministic tests and real-process harness evidence.
+
 ## Open items
 
 - Author the Track 01 specification and plan before foundation implementation.

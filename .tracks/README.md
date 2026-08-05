@@ -65,6 +65,12 @@ implementation-ready only when its stated upstream implementation and closure ga
 are satisfied. Decisions that change observable behavior require an ADR update before
 implementation.
 
+Track completion uses the shared
+[engineering verification guideline](../docs/ENGINEERING-VERIFICATION-GUIDELINE.md):
+Complete means the track's recorded evidence actually passed. Planned, Ready, and
+Blocked states are not completion, and executable tracks also require their
+deterministic tests and real-process harness evidence.
+
 ### Detailed planned artifacts
 
 - [Track 02 specification](02-auth-errors/SPEC.md)

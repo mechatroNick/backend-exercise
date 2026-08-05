@@ -471,6 +471,8 @@ Structured application logs include at least:
 
 They exclude passwords, password hashes, bearer tokens, complete URLs, bookmark text, and tag content. Startup logs make the API and refresher identities visible in the same output stream.
 
+The shared [engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) defines common evidence, log-capture, and process-harness expectations. Worker-specific log fields and events remain authoritative in [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md).
+
 ## 15. Concurrency and SQLite behavior
 
 The service is intentionally synchronous. Request handlers and the background thread each use their own short-lived sessions. SQLModel sessions are never shared across threads.
@@ -537,6 +539,8 @@ alembic upgrade head
 ```
 
 The final validation also starts the application through the documented bootstrap, exercises representative HTTP flows, verifies health transitions, and rebuilds a database from migrations.
+
+Executable-track Bash harnesses supplement these tests as defined by the [engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md); they do not replace deterministic unit or contract coverage.
 
 ## 17. Bootstrap and operator experience
 

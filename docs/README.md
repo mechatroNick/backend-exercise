@@ -12,6 +12,7 @@ assessment. Durable execution state and architecture decisions live under
 | [Assessment interpretation](ASSESSMENT.md) | Implementer and reviewer | Requirements, constraints, scope, and traceability |
 | [Solution design](SOLUTION-DESIGN.md) | Senior engineer and reviewer | API, data, runtime, event, statistics, security, health, and deployment design |
 | [Delivery plan](DELIVERY-PLAN.md) | Implementer and reviewer | Ordered tracks, dependencies, validation, and commit boundaries |
+| [Engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) | Implementer and reviewer | Shared logging, testing, harness, evidence, and closure policy |
 
 ## Decision and execution records
 

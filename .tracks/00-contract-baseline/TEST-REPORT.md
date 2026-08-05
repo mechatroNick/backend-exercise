@@ -72,3 +72,26 @@ The primary thread corrected all six items. A focused, read-only re-audit return
 - Exact package versions and executable project commands belong to Track 01 after local toolchain inspection.
 - External reference links in ADRs were not live-checked during this documentation gate; implementation should use version-appropriate primary documentation when needed.
 - The external/private HR correspondence is intentionally not repository-verifiable.
+
+## Verification-policy adoption receipt
+
+- Scope: Track 00 documentation control plane only; this receipt is not unit, API,
+  migration, database, structured-log, or runtime evidence.
+- Selectors: `docs/`, `.tracks/`, 43 requirement IDs, five Accepted ADRs, and nine
+  numbered track directories.
+- Tool versions: Bash `3.2.57(1)-release`, Python `3.9.6`, and ripgrep `15.1.0`.
+- Cleanup: Not applicable. `scripts/verify-docs.sh` creates no processes, temporary
+  resources, databases, or artifacts and performs no writes.
+
+| Command | Actual result |
+| --- | --- |
+| `bash -n scripts/verify-docs.sh` | Exit `0`; Bash syntax valid. |
+| `bash scripts/verify-docs.sh` | Exit `0`; `PASS: documentation-only verification (43 requirement IDs, 5 accepted ADRs, 9 tracks).` |
+| `git diff --check` | Exit `0`; no whitespace errors. |
+| `rg -n '[[:blank:]]$' docs .tracks scripts/verify-docs.sh` | Exit `1`; no trailing whitespace. |
+| URL-decoded local Markdown-link checker over `docs/` and `.tracks/` | Exit `0`; no unresolved local targets. |
+| `git status --short` | Modified/new files limited to this documentation-policy adoption; no files staged. |
+
+The verifier deliberately stops at documentation integrity. Product bootstrap,
+unit/API/contract tests, migrations, database assertions, structured-log capture, and
+real HTTP smoke checks remain required future evidence for executable Tracks 01–08.

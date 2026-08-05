@@ -37,7 +37,7 @@ Every track follows the same discipline:
 7. Record commands, outcomes, gaps, and decisions in `HISTORY.md` and `TEST-REPORT.md`.
 8. Run the track closure gate and update the track index.
 
-No track is considered complete based only on code presence. Completion requires behavioral evidence.
+No track is considered complete based only on code presence. Completion requires behavioral evidence. The shared [engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) defines evidence receipts, status vocabulary, structured-log checks, and the required executable-track Bash-harness baseline.
 
 ## 3. Track overview
 
