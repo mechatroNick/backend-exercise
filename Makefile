@@ -2,7 +2,10 @@
 
 UV ?= uv
 
-.PHONY: sync format format-check lint typecheck migrate migration-check check
+HOST ?= 127.0.0.1
+PORT ?= 8000
+
+.PHONY: sync format format-check lint typecheck migrate migration-check run bootstrap test check
 
 sync:
 	$(UV) sync --locked
@@ -25,4 +28,14 @@ migrate:
 migration-check:
 	$(UV) run alembic check
 
-check: format-check lint typecheck
+run:
+	$(UV) run uvicorn app.main:create_app --factory --host $(HOST) --port $(PORT) --workers 1 --no-access-log --log-level critical
+
+bootstrap:
+	@$(UV) run alembic upgrade head
+	@exec $(UV) run uvicorn app.main:create_app --factory --host $(HOST) --port $(PORT) --workers 1 --no-access-log --log-level critical
+
+test:
+	$(UV) run pytest
+
+check: format-check lint typecheck test

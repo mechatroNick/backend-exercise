@@ -39,8 +39,11 @@ _SENSITIVE_VALUE = re.compile(
 class LoggingSettings(Protocol):
     """Narrow settings required by the logging composition root."""
 
-    app_env: str
-    log_level: str
+    @property
+    def app_env(self) -> str: ...
+
+    @property
+    def log_level(self) -> str: ...
 
 
 class Redactor(Protocol):
