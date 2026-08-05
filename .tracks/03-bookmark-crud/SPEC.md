@@ -1,11 +1,11 @@
 # Track 03 specification: protected bookmark CRUD, normalized tags, and ownership isolation
 
 - Status: Planned
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 02 implementation and closure; Track 01 implementation and closure; Track 00 (Complete)
-- Governing ADRs: ADR-001, ADR-002, ADR-004
+- Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
 - Assessment requirements: BKM-01, BKM-02, BKM-03, ISO-01, TAG-01, TIME-01; AUTH-04 dependency
 
 ## 1. Intent anchor
@@ -100,6 +100,7 @@ post-commit-only publication, or Track 04--06 ownership.
 | Track 01 | Implemented and closed | Migration, constraints, sessions, clock, factory, quality workflow. |
 | Track 02 | Implemented and closed | Bearer current-user dependency, typed error envelope, and auth integration. |
 | ADR-001/002/004 | Accepted | ORM/DTO, CRUD/tag/timestamp, and publisher-seam contracts. |
+| ADR-006 | Accepted | Governs evidence and closure only; it does not change CRUD, tag, timestamp, no-op publisher, or downstream contracts. |
 
 Track 03 is **Planned**, not Ready, until Track 02 closure supplies actual evidence.
 Revise before code if delivered interfaces materially differ.
@@ -126,13 +127,22 @@ Revise before code if delivered interfaces materially differ.
   performs actual HTTP registration/auth then create/list/detail/PATCH/delete flows,
   two-user concealed `404`, tag normalization/deduplication, material-versus-no-op
   timestamp checks, and bodyless `204` assertions.
-- Captured JSON Lines prove expected attribution and correlation where applicable,
-  while deliberately seeded safe token/URL/title/description/tag sentinels are absent
-  from logs, output, and retained artifacts. The harness verifies cleanup and proves
-  the Track 03 no-op publisher seam cannot change CRUD outcomes; it makes no Track 06
-  event-publication claim.
+- URL, title, description, tags, timestamps, and the returned JWT legitimately occur
+  in intended own-user response bodies needed for assertions. The harness keeps them
+  ephemeral/in-memory, or in strictly protected disposable state only when unavoidable;
+  it parses/uses them without echoing and removes response/token state during cleanup.
+  It never exposes cross-user data.
+- Captured JSON Lines prove `source`, service/component, event, level, UTC timestamp,
+  logger, `process_id`, and execution/thread identifier where applicable, with safe
+  request correlation not based on token, user, or submitted content. They also prove
+  redaction and exactly one unexpected-exception record at the owning HTTP boundary.
+  Deliberately seeded safe token/URL/title/description/tag sentinels are absent from
+  application logs, indexed fields, diagnostics/command output, assertion failures,
+  unsafe debug bundles, and retained artifacts. The harness verifies cleanup and
+  proves the Track 03 no-op publisher seam cannot change CRUD outcomes; it makes no
+  Track 06 event-publication claim.
 
-Track 03 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never planned work or code presence. `scripts/verify-track-03.sh` supplements tests through the delivered bootstrap, without altering CRUD/tag/timestamp semantics, the inert publisher seam, or downstream ownership.
+Track 03 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never planned work or code presence. `scripts/verify-track-03.sh` supplements tests through the delivered bootstrap, without altering CRUD/tag/timestamp semantics, the inert publisher seam, or downstream ownership.
 
 ## 8. Risks, stop conditions, and follow-ups
 

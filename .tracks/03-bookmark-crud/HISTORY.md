@@ -37,3 +37,19 @@ clock seams with this plan before writing product code.
   CRUD outcomes and does not claim concrete Track 06 event publication.
 - No Track 03 test, application process, migration, harness, or runtime validation
   was executed by this planning-only change.
+
+## 2026-08-06 — Incremental verification-governance review correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 as an
+  Accepted evidence-and-closure dependency only; status, task IDs/dependencies,
+  CRUD/tag/time semantics, the inert no-op publisher seam, and downstream ownership
+  remain unchanged.
+- Expanded pending harness evidence to validate inherited JSON Lines fields, safe
+  request correlation not based on token/user/content, redaction, and exactly one
+  unexpected-exception record at the owning HTTP boundary.
+- Clarified legitimate own-user assertion inputs: bookmark URL/title/description/tags/
+  timestamps and returned JWT remain ephemeral/in-memory (or strictly protected
+  disposable state only if unavoidable), are parsed/used without echoing, removed
+  during cleanup, and never disclose cross-user data or enter unsafe receipt surfaces.
+- This correction is planning only: no Track 03 test, process, migration, harness,
+  runtime validation, product artifact, or credential was created or executed.
