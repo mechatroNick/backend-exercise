@@ -41,3 +41,18 @@ Start T01-01 only when implementation is authorized: resolve current compatible 
 - Replaced path-dependent Python-default wording with the observed inventory: `python3` resolves to `/usr/bin/python3` 3.9.6, Homebrew's unversioned Python is 3.14.2, and 3.13.5/3.14.2 are installed; no accepted Python 3.12 runtime is evidenced, so the locked environment must not depend on ambient `PATH`.
 - Validated the focused Markdown metadata, task ownership/dependencies, Python inventory, trailing whitespace, diff whitespace, and worktree status without installing dependencies or changing product code.
 - Residual boundary: the earlier sandboxed `uv` runtime-inventory probe panicked in local system configuration; that environment limitation remains distinct from repository/toolchain compatibility and must be rechecked when implementation is authorized.
+
+## 2026-08-05 — Shared verification-guideline adoption
+
+- Adopted the committed shared engineering verification guideline in Track 01 planning
+  without changing Track 01 status, task IDs, product contracts, or downstream
+  dependencies.
+- Planned the centralized JSON Lines foundation: attributable source/service/event
+  fields, redaction checks, and one structured unexpected-exception record at the
+  owning boundary. ADR-004 worker-specific logging remains deferred to Track 06.
+- Planned (but did not create or run) `scripts/verify-track-01.sh`: it will exercise
+  the delivered Uvicorn factory/bootstrap with a disposable migrated SQLite database,
+  a dynamic isolated port, bounded observable-endpoint polling, JSON-Line assertions,
+  and verified cleanup.
+- No Track 01 test, application process, migration, harness, or runtime validation
+  was executed by this planning-only change.
