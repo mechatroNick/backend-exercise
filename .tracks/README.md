@@ -55,7 +55,7 @@ flowchart LR
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
-| 07 | Weekly developing points and append-only correction revisions | 06 | Pending |
+| 07 | Weekly developing points and append-only correction revisions | 06 | Planned (implementation-gated) |
 | 08 | Final regression, README, deployment design, seed data, and optional bonuses | 01-07 | Pending |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
@@ -82,3 +82,6 @@ implementation.
 - [Track 06 specification](06-event-driven-stats/SPEC.md)
 - [Track 06 execution plan](06-event-driven-stats/PLAN.md)
 - [Track 06 history](06-event-driven-stats/HISTORY.md)
+- [Track 07 specification](07-weekly-projections/SPEC.md)
+- [Track 07 execution plan](07-weekly-projections/PLAN.md)
+- [Track 07 history](07-weekly-projections/HISTORY.md)
