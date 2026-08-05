@@ -23,6 +23,7 @@ _SETTINGS_ENV_NAMES = (
     "STATS_DIRTY_MAX_AGE_SECONDS",
     "STATS_DIRTY_MAX_COUNT",
     "APP_WORKER_COUNT",
+    "SQLITE_BUSY_TIMEOUT_MILLISECONDS",
     "LOG_LEVEL",
 )
 
@@ -42,6 +43,7 @@ def test_defaults_are_safe_for_non_production() -> None:
     assert settings.top_tags_limit == 5
     assert settings.stats_refresh_enabled is True
     assert settings.app_worker_count == 1
+    assert settings.sqlite_busy_timeout_milliseconds == 5_000
     assert settings.log_level == "INFO"
 
 
@@ -105,6 +107,8 @@ def test_database_url_must_be_local_sqlite(database_url: str, message: str) -> N
         ({"stats_dirty_max_count": 0}, "greater than or equal"),
         ({"stats_dirty_max_count": 1_000_001}, "less than or equal"),
         ({"app_worker_count": 0}, "greater than or equal"),
+        ({"sqlite_busy_timeout_milliseconds": 0}, "greater than or equal"),
+        ({"sqlite_busy_timeout_milliseconds": 60_001}, "less than or equal"),
         (
             {"stats_refresh_enabled": False, "app_worker_count": 1_000_001},
             "less than or equal",

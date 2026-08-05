@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     app_worker_count: Annotated[int, Field(ge=1, le=_MAX_TUNABLE_VALUE)] = Field(
         default=1, validation_alias="APP_WORKER_COUNT"
     )
+    sqlite_busy_timeout_milliseconds: Annotated[int, Field(ge=1, le=60_000)] = Field(
+        default=5_000, validation_alias="SQLITE_BUSY_TIMEOUT_MILLISECONDS"
+    )
     log_level: LogLevel = Field(default="INFO", validation_alias="LOG_LEVEL")
 
     @field_validator("database_url")
