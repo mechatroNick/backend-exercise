@@ -61,7 +61,24 @@ Track 03 must be Complete; Track 01 provides migrated SQLite/settings/clock and 
 02 provides bearer/errors. Closure requires combined-filter and page-boundary tests;
 empty/cross-user/multi-tag/tag-tie/month-year/delete/tag-change stats tests; exact
 body/schema proof; no interpolation; same-predicate items/total; bounded query counts;
-EXPLAIN receipts for claimed index behavior; and quality/hygiene passes.
+EXPLAIN receipts for claimed index behavior; deterministic filter/date/pagination/
+query-count/raw-SQL tests; and quality/hygiene passes. It also requires the planned
+`scripts/verify-track-04.sh` to extend the delivered real bootstrap with a disposable
+migrated database, dynamic isolated port, and actual server. The harness must create
+authenticated data and make real HTTP list-filter requests covering literal wildcard,
+date inclusivity/boundaries, stable pages/total, and exact tag behavior, plus
+`/api/bookmarks/stats` body/tie/month/cross-user-isolation assertions and relevant
+supported database inspection. Captured JSON Lines must prove expected attribution and
+correlation where applicable while seeded safe URL/title/tag/token sentinels are absent
+from logs, output, and retained artifacts; cleanup must be verified.
+
+The process smoke does not establish N+1 or index claims: Track 04 retains
+deterministic query-count instrumentation and recorded `EXPLAIN QUERY PLAN` evidence
+for those assertions. Track 04 imports the shared
+[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+closure invariant: Complete requires recorded passing deterministic tests and a
+real-process harness receipt, never planned work or code presence. The harness does
+not alter the ORM-versus-raw-SQL boundary, public DTO, or Track 05 ownership.
 
 Risks: join duplicates, count drift, inconsistent multi-query stats, N+1, cross-user
 leakage, and speculative index changes. Mitigate with EXISTS/distinct, shared predicates,
