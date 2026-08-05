@@ -33,6 +33,8 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 04: search and statistics execution plan](../.tracks/04-search-stats/PLAN.md)
 - [Track 05: mandatory quality-gate specification](../.tracks/05-mandatory-quality-gate/SPEC.md)
 - [Track 05: mandatory quality-gate execution plan](../.tracks/05-mandatory-quality-gate/PLAN.md)
+- [Track 06: event-driven statistics specification](../.tracks/06-event-driven-stats/SPEC.md)
+- [Track 06: event-driven statistics execution plan](../.tracks/06-event-driven-stats/PLAN.md)
 
 Detailed downstream artifacts may be planned sequentially after upstream plan review;
 their presence does not make implementation ready until each stated dependency closes

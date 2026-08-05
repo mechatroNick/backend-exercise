@@ -131,8 +131,13 @@ bookmark_stats_window_dirty
 - last_marked_at
 ```
 
-Unique key: `(user_id, window_start)`. The marker is removed only after a successful
-projection transaction.
+Unique key: `(user_id, window_start)`. Marker completion is generation-safe and
+includes every installed consumer. Before the historical projection is installed, a
+successful canonical current-snapshot recomputation may complete and remove its
+observed generation under ADR-004. Track 07 must then perform a canonical initial
+historical backfill before normal marker consumption. Once that consumer is installed,
+a marker is removed only after both current-snapshot and historical-projection work
+have completed the observed generation; a concurrent increment remains pending.
 
 ## Rejected alternative: observation-time snapshot
 

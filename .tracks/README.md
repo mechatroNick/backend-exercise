@@ -54,7 +54,7 @@ flowchart LR
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Planned (implementation-gated) |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
-| 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Pending |
+| 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
 | 07 | Weekly developing points and append-only correction revisions | 06 | Pending |
 | 08 | Final regression, README, deployment design, seed data, and optional bonuses | 01-07 | Pending |
 
@@ -79,3 +79,6 @@ implementation.
 - [Track 05 specification](05-mandatory-quality-gate/SPEC.md)
 - [Track 05 execution plan](05-mandatory-quality-gate/PLAN.md)
 - [Track 05 history](05-mandatory-quality-gate/HISTORY.md)
+- [Track 06 specification](06-event-driven-stats/SPEC.md)
+- [Track 06 execution plan](06-event-driven-stats/PLAN.md)
+- [Track 06 history](06-event-driven-stats/HISTORY.md)
