@@ -1,0 +1,380 @@
+# Delivery Plan
+
+## 1. Delivery strategy
+
+Work is split into independently reviewable tracks. Each track has a narrow outcome, explicit dependencies, acceptance evidence, and a proposed commit boundary. Mandatory assessment requirements reach a complete quality gate before background statistics extensions begin.
+
+This ordering is intentional:
+
+```mermaid
+flowchart LR
+    T00["00 Contract baseline"] --> T01["01 Foundation and schema"]
+    T01 --> T02["02 Errors and auth"]
+    T02 --> T03["03 Bookmark CRUD and tags"]
+    T03 --> T04["04 Search and current stats"]
+    T04 --> T05["05 Mandatory quality gate"]
+    T05 --> T06["06 Event-driven current snapshots"]
+    T06 --> T07["07 Weekly projections and corrections"]
+    T07 --> T08["08 Final hardening and handoff"]
+```
+
+The detailed execution artifact for a track is created immediately before that track starts. This avoids writing speculative task lists too far ahead while preserving stable requirements and architectural decisions in `docs/` and `.tracks/ADR/`.
+
+## 2. Working rules
+
+Every track follows the same discipline:
+
+1. Re-read its accepted requirements and ADRs.
+2. Record scope, non-goals, dependencies, and acceptance evidence in the track `SPEC.md`.
+3. Create a small ordered `PLAN.md` with one active item at a time.
+4. Implement in reviewable increments.
+5. Run focused validation after each meaningful write wave.
+6. Inspect the diff for accidental scope expansion and security-sensitive output.
+7. Record commands, outcomes, gaps, and decisions in `HISTORY.md` and `TEST-REPORT.md`.
+8. Run the track closure gate and update the track index.
+
+No track is considered complete based only on code presence. Completion requires behavioral evidence.
+
+## 3. Track overview
+
+| Track | Outcome | Depends on | State |
+| --- | --- | --- | --- |
+| 00 | Confirmed contract, ADR set, traceability, architecture, and delivery control plane | Assessment and user decisions | Complete |
+| 01 | Reproducible project foundation and migration-built constrained core schema | 00 | Ready |
+| 02 | Consistent error model plus secure registration/login/auth dependencies | 01 | Planned |
+| 03 | User-scoped bookmark CRUD with normalized many-to-many tags and timestamp invariants | 02 | Planned |
+| 04 | Search/filter/pagination and correct raw-SQL current statistics | 03 | Planned |
+| 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Planned |
+| 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Planned |
+| 07 | Weekly developing/developed points and append-only correction projections | 06 | Planned |
+| 08 | Full regression, documentation evidence, walkthrough readiness, and bounded bonuses | 07 | Planned |
+
+## 4. Track 00 — Contract and architecture baseline
+
+### Outcome
+
+Create a durable and internally consistent interpretation of the exercise before product implementation begins.
+
+### Included
+
+- preserve the supplied assessment in `docs/`;
+- extract a requirement-to-evidence matrix;
+- record all confirmed choices and rejected alternatives in accepted ADRs;
+- distinguish mandatory current statistics from the weekly projection extension;
+- define system boundaries, runtime topology, data invariants, testing strategy, and delivery tracks;
+- identify any remaining material ambiguity and ask before implementation.
+
+### Acceptance evidence
+
+- every assessment requirement has a stable identifier and track owner in [ASSESSMENT.md](ASSESSMENT.md);
+- [SOLUTION-DESIGN.md](SOLUTION-DESIGN.md) links every accepted ADR;
+- accepted ADRs contain the confirmed weekly event-time definition and correction rules;
+- the plan puts the complete mandatory gate before optional/extended runtime behavior;
+- a reader can explain what is required, what is an extension, and how correctness will be demonstrated without consulting chat history.
+
+### Proposed commit
+
+`docs: establish assessment contract and solution design`
+
+## 5. Track 01 — Foundation, configuration, and core schema
+
+### Outcome
+
+Produce a reproducible Python service skeleton and an Alembic-built SQLite core schema with enforced relationships and constraints.
+
+### Included
+
+- `pyproject.toml`, application package, test layout, and quality-tool configuration;
+- typed Settings with development/test configuration and safe secret rules;
+- SQLModel engine/session factory;
+- per-connection SQLite foreign-key enablement, busy timeout, and reviewed pragmas;
+- Alembic setup and first migration for users, bookmarks, tags, and `bookmark_tags`;
+- clock abstraction and UTC serialization convention;
+- minimal app factory/lifespan foundation;
+- local commands for migrate, test, lint, type-check, and run.
+
+### Non-goals
+
+- auth endpoints;
+- bookmark routes;
+- statistics projection tables;
+- background worker.
+
+### Acceptance evidence
+
+- a clean database is constructed by `alembic upgrade head`;
+- migrations are the only application schema creation path;
+- real inserts demonstrate foreign-key and unique-constraint enforcement;
+- settings reject unsafe production secret configuration;
+- lint, type checks, and foundation tests pass.
+
+### Proposed commit
+
+`build: establish application foundation and constrained schema`
+
+## 6. Track 02 — Error contract and authentication
+
+### Outcome
+
+Provide secure identity creation and token authentication behind a uniform documented error surface.
+
+### Included
+
+- global domain, validation, authentication, and unexpected-error handlers;
+- registration DTOs and username/email/password normalization;
+- Argon2 hashing and verification;
+- JWT creation/validation with configurable expiry;
+- registration and login routes;
+- authenticated-user dependency;
+- OpenAPI bearer security scheme, response models, status codes, and examples.
+
+### Acceptance evidence
+
+- valid registration and login work end to end;
+- normalized email/username conflicts return `409` in the standard envelope;
+- invalid, expired, malformed, and missing tokens return consistent `401` responses;
+- password hashes and tokens never appear in ordinary logs or response DTOs;
+- auth route responses validate against generated OpenAPI schemas.
+
+### Proposed commit
+
+`feat: add secure authentication and error contracts`
+
+## 7. Track 03 — Bookmark CRUD, tags, and isolation
+
+### Outcome
+
+Deliver complete protected bookmark CRUD with normalized many-to-many tags and rigorously tested ownership/timestamp behavior.
+
+### Included
+
+- separate table models and create/update/read DTOs;
+- service/repository transaction boundary;
+- create, get, patch, and delete routes;
+- global tag canonicalization and association management;
+- owner-scoped database queries;
+- stable response ordering for tags;
+- material-change detection with injected clock;
+- extension seam for after-commit statistics invalidations, initially a no-op publisher.
+
+### Acceptance evidence
+
+- CRUD success and failure paths match documented schemas and statuses;
+- another user's bookmark is indistinguishable from a missing bookmark;
+- duplicate URLs remain allowed;
+- tag trimming, lowercasing, deduplication, reuse, and orphan retention behave as specified;
+- `created_at` and `updated_at` start equal;
+- material scalar and tag changes advance only `updated_at`;
+- empty, identical, reordered-tag, failed, and rolled-back updates do not advance it;
+- deletion returns a bodyless `204`.
+
+### Proposed commit
+
+`feat: implement isolated bookmark CRUD and normalized tags`
+
+## 8. Track 04 — Search, pagination, and current raw-SQL statistics
+
+### Outcome
+
+Complete all remaining core functional behavior, including the assessment-mandated raw SQL statistics endpoint.
+
+### Included
+
+- title keyword and exact normalized tag filtering;
+- created and updated inclusive UTC calendar-date filters;
+- page/page-size validation, total count, and deterministic ordering;
+- eager loading/query design that avoids N+1;
+- raw SQL current statistics implementation;
+- configurable top-tag limit and deterministic tie handling;
+- authenticated, user-scoped `/api/bookmarks/stats` response.
+
+### Acceptance evidence
+
+- combined filters and totals are correct;
+- date upper bounds use next-midnight-exclusive semantics;
+- stable ordering prevents duplicate/missing items across page boundaries;
+- list query count remains bounded as result size grows;
+- raw SQL returns correct empty and populated results for each user;
+- total tags count only attached distinct tags;
+- top-tag ties and monthly ordering are deterministic;
+- ordinary CRUD code contains no raw SQL.
+
+### Proposed commit
+
+`feat: add bookmark discovery and raw SQL statistics`
+
+## 9. Track 05 — Mandatory quality and contract gate
+
+### Outcome
+
+Reach a demonstrably complete assessment solution before beginning the background-processing extension.
+
+### Included
+
+- complete OpenAPI metadata and representative examples;
+- real response-instance validation against generated OpenAPI schemas;
+- broad integration coverage across auth, isolation, CRUD, tags, filters, pagination, statistics, errors, and migrations;
+- query-count regression tests;
+- at least ten meaningful tests, with a target substantially above that minimum;
+- clean lint, format, type-check, and full test runs;
+- a runnable mandatory-core checkpoint.
+
+### Acceptance evidence
+
+- the assessment traceability matrix has passing evidence for every mandatory functional requirement;
+- `/docs` exposes accurate bearer auth, schemas, examples, parameters, statuses, and errors;
+- runtime success and error responses validate against the generated OpenAPI document;
+- the full mandatory suite passes from a clean migration-built database;
+- no known critical or high-severity defect remains.
+
+### Stop condition
+
+Do not start Track 06 if a mandatory requirement is failing or lacks evidence. Extension work may not mask an incomplete core solution.
+
+### Proposed commit
+
+`test: enforce mandatory API and OpenAPI quality gate`
+
+## 10. Track 06 — Event-driven current statistics service
+
+### Outcome
+
+Add the loose-coupled runtime requested by the user while retaining live raw-SQL correctness fallback.
+
+### Included
+
+- `BookmarkStatsInvalidated` DTO and publisher protocol;
+- bounded in-process queue implementation;
+- migration for the durable dirty-window marker;
+- same-transaction dirty-generation increment for material bookmark mutations;
+- publish-after-commit integration for material bookmark mutations;
+- FastAPI lifespan-managed named refresher thread;
+- configurable ten-second default batching cadence;
+- event coalescing and canonical current-stat recomputation;
+- generation-safe marker cleanup and startup/overflow recovery;
+- atomic immutable snapshot publication;
+- live raw-SQL fallback for missing, stale, disabled, or unhealthy snapshots;
+- `/health/live` and `/health/ready`;
+- service/thread-attributed structured logs and redaction tests.
+
+### Acceptance evidence
+
+- every successful material action publishes once after commit;
+- no-op and rolled-back actions publish nothing;
+- every material mutation commits its dirty marker before post-commit publication;
+- the event contains no bookmark content or credential data;
+- burst invalidations coalesce without incorrect counter arithmetic;
+- snapshot swaps never expose partially updated objects;
+- disabling or failing the refresher leaves the current endpoint correct through live SQL;
+- a dropped or overflowed event is recovered from durable dirty state;
+- a concurrent invalidation cannot be erased by an older worker generation;
+- lifecycle tests prove named-thread start, cooperative stop, and restart isolation;
+- readiness degrades on a dead, stuck, or repeatedly failing refresher when enabled.
+
+### Proposed commit
+
+`feat: add observable event-driven statistics refresh`
+
+## 11. Track 07 — Weekly projection and correction revisions
+
+### Outcome
+
+Implement confirmed developing and developed weekly event-time points with durable invalidation recovery and append-only corrections.
+
+### Included
+
+- migration for developing points and developed revisions;
+- projection consumption of the Track 06 durable dirty-window markers;
+- UTC Monday-to-Monday window calculation from `bookmark.created_at`;
+- replaceable current-week recomputation;
+- atomic boundary finalization and next-window creation;
+- append-only late correction revisions with `supersedes_id`;
+- deterministic content hashes and idempotent replay;
+- restart/backlog/queue-overflow recovery and health metrics.
+
+### Acceptance evidence
+
+- a recovered dirty marker triggers the correct developing or correction projection;
+- current-week changes replace one developing point rather than append observations;
+- finalization creates immutable revision 1 from a final canonical query;
+- a late delete or tag change appends revision `N+1` and preserves earlier revisions;
+- identical replay appends no duplicate revision;
+- events around Sunday/Monday UTC are assigned to the correct half-open week;
+- current `/api/bookmarks/stats` remains independent of weekly history.
+
+### Proposed commit
+
+`feat: add durable weekly statistics projections`
+
+## 12. Track 08 — Final hardening, documentation, and handoff
+
+### Outcome
+
+Turn the working solution into a concise, reproducible senior-level submission with honest evidence.
+
+### Included
+
+- full clean-environment regression and migration rehearsal;
+- README quickstart, commands, API usage, examples, architecture, design choices, tradeoffs, and limitations;
+- generated or verified OpenAPI artifact if useful for review;
+- final test report with requirement-to-evidence links;
+- AI-assisted-development disclosure and process narrative based on actual work history;
+- walkthrough/demo script;
+- seed command and Docker only if core quality is already protected;
+- bounded security/dependency review and cleanup.
+
+### Acceptance evidence
+
+- a reviewer can clone, configure, migrate, run, and test the service using documented commands;
+- one bootstrap starts the API and in-process services with attributable logs;
+- README claims agree with code and test evidence;
+- all mandatory and accepted extension requirements have traceable passing evidence;
+- known limitations and production evolution are explicit;
+- git history is coherent and free of generated noise or secrets;
+- no bonus feature weakens the core solution.
+
+### Proposed commits
+
+- `docs: add reproducible setup and engineering walkthrough`
+- optional isolated bonus commits only after the final core gate
+
+## 13. Cross-track acceptance matrix
+
+| Quality attribute | Primary tracks | Closure evidence |
+| --- | --- | --- |
+| Functional completeness | 02–05 | Integration and contract suite mapped to requirement IDs. |
+| Data integrity | 01, 03, 07 | Migration tests, real constraint failures, transaction/concurrency tests. |
+| Security and isolation | 02, 03, 08 | Auth, ownership, secret-validation, redaction, and review evidence. |
+| API usability | 02–05, 08 | Accurate OpenAPI, examples, consistent errors, README usage. |
+| Performance discipline | 04, 06 | Bounded pagination, query-count tests, coalescing, bounded queue. |
+| Reliability | 06, 07 | Fallback path, lifecycle, durable recovery, idempotency, readiness. |
+| Maintainability | all | Layer boundaries, accepted ADRs, typed code, focused commits. |
+| Reviewer experience | 00, 05, 08 | Traceability, clean bootstrap, walkthrough, honest limitations. |
+
+## 14. Risk register
+
+| Risk | Mitigation | Track proving it |
+| --- | --- | --- |
+| SQLite foreign keys declared but not enforced | Per-connection pragma plus real failure tests. | 01 |
+| Persistence models leak into API schemas | Separate table models and DTOs. | 03, 05 |
+| `updated_at` changes on no-op or fails to change on tag update | Material-change comparison and injected clock matrix. | 03 |
+| User data leaks through ID lookup or statistics | Owner predicates in repositories/raw SQL and two-user tests. | 03, 04 |
+| OpenAPI exists but is inaccurate | Validate real response instances against generated schemas. | 05 |
+| Background thread creates a second source of truth | Canonical recomputation and live raw-SQL fallback. | 06 |
+| In-process event loss leaves stale current/history work | Durable dirty generation in mutation transaction. | 06 |
+| Worker deletes a newly dirtied marker | Generation compare-and-delete. | 06 |
+| Late historical change mutates audit history | Append correction revision with supersession link. | 07 |
+| Extension consumes time while mandatory API is incomplete | Hard Track 05 gate before Track 06. | 05 |
+| Documentation overstates the implementation | Write final README process/evidence from verified repository state. | 08 |
+
+## 15. Definition of done
+
+The project is done only when:
+
+- every mandatory assessment requirement has passing evidence;
+- all five accepted ADRs are implemented or explicitly superseded;
+- current and historical statistics semantics remain separate and tested;
+- the application bootstraps locally with all internal services visible in logs;
+- migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;
+- documentation describes the actual implementation, including tradeoffs and known limits;
+- no unresolved material ambiguity, secret, or high-severity defect remains.
