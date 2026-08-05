@@ -39,3 +39,19 @@ dependencies or writing product code.
 - No Track 02 test, application process, migration, harness, runtime validation, or
   real credential was created, executed, printed, or stored by this planning-only
   change.
+
+## 2026-08-06 — Incremental verification-governance review correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 as an
+  Accepted evidence-and-closure dependency only; status, task IDs/dependencies,
+  authentication/error semantics, and the Track 05 OpenAPI boundary remain unchanged.
+- Expanded pending harness evidence to validate inherited base JSON Lines fields,
+  safe request correlation, redaction, no raw exception text indexed field, and
+  exactly one unexpected-exception record at the owning HTTP boundary.
+- Required safe password/token/content sentinels to be absent from logs,
+  diagnostic/command output, assertion failures, and retained artifacts. The planned
+  protected flow parses and uses its returned JWT without echoing it and removes its
+  protected disposable state during cleanup; correlation never uses credential or
+  identity values and no public correlation-header contract is added.
+- This correction is planning only: no Track 02 test, process, migration, harness,
+  runtime validation, credential, or artifact was created or executed.

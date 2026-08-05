@@ -1,11 +1,11 @@
 # Track 02 specification: error contract, registration, login, and JWT authentication
 
 - Status: Planned
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 01 implementation and closure; Track 00 (Complete)
-- Governing ADRs: ADR-001, ADR-002, ADR-003
+- Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006
 - Assessment requirements: AUTH-01, AUTH-02, AUTH-03, AUTH-04, ERR-01, SEC-01
 
 ## 1. Intent anchor
@@ -111,6 +111,7 @@ schema, or the authentication failure-disclosure policy.
 | Track 01 | Implemented and closed | Provides Python 3.12 locked environment, Settings, injected clock, app factory, synchronous sessions, users table, Alembic test database, and quality commands. |
 | ADR-002 | Accepted | Fixes auth paths, `409` uniqueness, `401` credential behavior, and envelope shape. |
 | ADR-003 | Accepted | Fixes identity, password, Argon2, JWT, secret, and non-enumeration contracts. |
+| ADR-006 | Accepted | Governs evidence and closure only; it does not change authentication, error, or Track 05 OpenAPI semantics. |
 
 Track 02 remains **Planned**, not Ready, until the Track 01 closure gate supplies
 actual implementation evidence. If that implementation differs materially from
@@ -146,14 +147,21 @@ environment demonstrate all of the following:
   representative generic authentication/error failure, and asserts response statuses,
   bodies, and documented schemas without taking ownership of Track 05's
   cross-operation OpenAPI gate;
-- captured JSON Lines prove expected source/service/event fields and correlation
-  where applicable, while deliberate safe test-only password/token/content sentinels
-  are absent from logs, output, and retained artifacts; the harness never prints or
-  stores real credentials and verifies cleanup under the shared policy;
+- captured JSON Lines prove `source`, service/component, event, level, UTC timestamp,
+  logger, `process_id`, execution/thread ID where applicable, and safe request
+  correlation where provided or generated; correlation never uses a token, subject,
+  email, or authorization header and does not add a public correlation-header
+  contract. Sensitive/submitted content is redacted, raw exception text is not an
+  indexed field, and each unexpected exception is recorded exactly once at the owning
+  HTTP boundary;
+- seeded password/token/content sentinels are absent from logs, diagnostic/command
+  output, assertion failures, and retained artifacts. The harness parses and uses the
+  valid returned JWT without echoing it, keeps any protected disposable state
+  necessary for the flow, and removes it during cleanup;
 - no secrets, hashes, tokens, generated databases, caches, or coverage artifacts
   appear in repository status.
 
-Track 02 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never a planned command or code presence. `scripts/verify-track-02.sh` supplements test layers and must use the delivered Track 01 bootstrap rather than a fake server. It does not alter auth/error semantics or Track 05's ownership of full cross-operation OpenAPI conformance.
+Track 02 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never a planned command or code presence. `scripts/verify-track-02.sh` supplements test layers and must use the delivered Track 01 bootstrap rather than a fake server. It does not alter auth/error semantics or Track 05's ownership of full cross-operation OpenAPI conformance.
 
 ## 8. Risks and mitigations
 

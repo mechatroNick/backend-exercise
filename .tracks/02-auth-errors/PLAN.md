@@ -1,6 +1,7 @@
 # Track 02 plan: error contract and authentication
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
+- Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006
 - Status: Planned
 - Active item: None; implementation is dependency-gated on Track 01 closure
 
@@ -13,7 +14,7 @@
 | T02-03 | Add identity/password normalization, Argon2 hashing, and injected-clock access-only JWT security primitives. | Smith / implementation | T02-01 | Pending | Deterministic unit tests prove username/email policy, NFC handling, Argon2 verify, required claims, expiry, and secret-safe behavior. |
 | T02-04 | Add auth repository/service operations for register, generic login failure, canonical user lookup, and race-safe uniqueness translation with transaction rollback. | Smith / implementation | T02-02, T02-03 | Pending | Integration tests prove canonical duplicate conflicts, no user enumeration, rollback, and public/persistence separation. |
 | T02-05 | Add JSON auth routes, bearer authenticated-user dependency, composition wiring, and scoped auth-operation OpenAPI metadata. | Smith / implementation | T02-02, T02-03, T02-04 | Pending | Endpoint tests prove `201` register, `200` login, standard `401`s, current-subject resolution, and generated-schema agreement for auth operations. |
-| T02-06 | Add the focused auth/error test matrix, credential-redaction regression checks, and Track 02 process-harness assertions. | Smith / implementation | T02-02, T02-03, T02-04, T02-05 | Pending | Deterministic unit/integration/contract cases cover the edge-case ledger; test output and ordinary logs contain no credential-bearing values; and `scripts/verify-track-02.sh` proves real registration/login, protected success, representative generic auth/error failure, JSON-Line attribution/correlation where applicable, seeded-sentinel absence, and cleanup against the actual server. |
+| T02-06 | Add the focused auth/error test matrix, credential-redaction regression checks, and Track 02 process-harness assertions. | Smith / implementation | T02-02, T02-03, T02-04, T02-05 | Pending | Deterministic unit/integration/contract cases cover the edge-case ledger; test output and ordinary logs contain no credential-bearing values; and `scripts/verify-track-02.sh` proves real registration/login, protected success, representative generic auth/error failure, base JSON-Line fields/safe correlation/redaction/exactly-one-owning-HTTP-boundary exception behavior, seeded-sentinel absence from all receipt surfaces, token-safe protected flow, and cleanup against the actual server. |
 | T02-07 | Run Track 02 closure validation, inspect the diff/OpenAPI, record evidence, and determine readiness of Track 03. | Primary engineering thread | T02-01, T02-02, T02-03, T02-04, T02-05, T02-06 | Pending | Actual passing deterministic tests, quality commands, auth-operation schema validation, and `bash scripts/verify-track-02.sh`; TEST-REPORT records exact commands/results/versions/selectors/cleanup, guideline conformance, hygiene review, and gaps. Full cross-operation OpenAPI conformance remains Track 05. |
 
 ## Work-wave detail
@@ -102,17 +103,25 @@
   dynamic isolated port, bounded-poll a delivered observable seam, then make real
   HTTP registration/login and protected-success requests plus a representative generic
   auth/error-failure request. Assert status/body/schema expectations and captured JSON
-  Lines with source/service/event and correlation where applicable. Seed only safe
-  test-only password/token/content sentinels, assert their absence from output/logs/
-  artifacts, never print or store real credentials, and verify trap cleanup.
+  Lines with `source`, service/component, event, level, UTC timestamp, logger,
+  `process_id`, execution/thread ID where applicable, and safe request correlation
+  where provided or generated. Correlation must never be a token, subject, email, or
+  authorization header, and this plan adds no public correlation-header contract.
+  Assert redaction, no raw exception text indexed field, and exactly one unexpected
+  exception record at the owning HTTP boundary. Seed only safe test-only password/
+  token/content sentinels and assert they are absent from logs, diagnostic/command
+  output, assertion failures, and retained artifacts. Parse and use the valid returned
+  JWT for protected success without echoing it; keep only protected disposable state
+  necessary for the flow and remove it during trap cleanup.
 
 ## Shared completion gate
 
 The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-applies without changing Track 02 contracts or Track 05's full OpenAPI ownership. A
-Planned, Ready, or Blocked state is not done. T02-07 may mark Track 02 Complete only
-after recorded passing deterministic tests, actual harness evidence, and documented
-cleanup; planned, skipped, or blocked commands never count as pass.
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
+without changing Track 02 contracts or Track 05's full OpenAPI ownership. A Planned,
+Ready, or Blocked state is not done. T02-07 may mark Track 02 Complete only after
+recorded passing deterministic tests, actual harness evidence, and documented cleanup;
+planned, skipped, or blocked commands never count as pass.
 
 ## Edge-case ledger
 
