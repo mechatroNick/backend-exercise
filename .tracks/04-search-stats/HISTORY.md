@@ -30,3 +30,18 @@ After Track 03 closes, run T04-01 before implementation.
   evidence as the only basis for N+1/index claims; a process smoke alone is not proof.
 - No Track 04 test, application process, migration, harness, or runtime validation
   was executed by this planning-only change.
+
+## 2026-08-06 — Incremental verification-governance review correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 as an
+  Accepted evidence-and-closure dependency only; status, task IDs/dependencies,
+  raw-SQL/query/DTO contracts, and Track 05 ownership remain unchanged.
+- Expanded pending harness evidence to validate inherited JSON Lines fields, safe
+  correlation not based on token/user/body/content, redaction, no raw exception text
+  indexed field, and exactly one unexpected exception at its owning boundary.
+- Clarified that own-user fixture/JWT/list/stat responses are ephemeral assertion
+  inputs only and that sensitive/content sentinels and cross-user values never reach
+  logs, diagnostics, assertion failures, unsafe debug bundles, or retained artifacts.
+- Retained deterministic query-count instrumentation and recorded `EXPLAIN QUERY PLAN`
+  as the only N+1/index proof; no Track 04 test, process, migration, harness, or
+  runtime validation was executed by this planning-only correction.

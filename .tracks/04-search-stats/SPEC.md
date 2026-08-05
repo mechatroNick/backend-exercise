@@ -1,11 +1,11 @@
 # Track 04 specification: search, pagination, and canonical current statistics
 
 - Status: Planned
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 03 implementation and closure; Tracks 01--02 closure
-- Governing ADRs: ADR-001, ADR-002, ADR-004
+- Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
 - Assessment requirements: QRY-01, QRY-02, SQL-01, SQL-02, SQL-03; ISO-01 statistics dimension
 
 ## Intent and must-preserve contracts
@@ -68,14 +68,27 @@ migrated database, dynamic isolated port, and actual server. The harness must cr
 authenticated data and make real HTTP list-filter requests covering literal wildcard,
 date inclusivity/boundaries, stable pages/total, and exact tag behavior, plus
 `/api/bookmarks/stats` body/tie/month/cross-user-isolation assertions and relevant
-supported database inspection. Captured JSON Lines must prove expected attribution and
-correlation where applicable while seeded safe URL/title/tag/token sentinels are absent
-from logs, output, and retained artifacts; cleanup must be verified.
+supported database inspection. Captured JSON Lines, disclosure evidence, and cleanup
+must satisfy the detailed rules below. ADR-006 is an Accepted evidence-and-closure
+dependency only and does not alter Track 04 query, raw-SQL, DTO, or Track 05 contracts.
+
+Own-user fixture/JWT/list/stat response values are direct assertion inputs only: keep
+them ephemeral/in-memory, never print or persist them, and use strictly protected
+disposable state only if unavoidable before removing it during cleanup. URL, title,
+description, tag, token, and content sentinels must be absent from application logs,
+indexed fields, command diagnostics, assertion failures, unsafe debug bundles, and
+retained artifacts. Cross-user values are never exposed, including on failure. Captured
+JSON Lines validate `source`, service/component, event, level, UTC timestamp, logger,
+`process_id`, and execution/thread identifier where applicable; safe request
+correlation is never token, user, body, or content based; sensitive data is redacted;
+raw exception text is not an indexed field; and an unexpected exception is recorded
+exactly once at its owning boundary.
 
 The process smoke does not establish N+1 or index claims: Track 04 retains
 deterministic query-count instrumentation and recorded `EXPLAIN QUERY PLAN` evidence
 for those assertions. Track 04 imports the shared
 [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 closure invariant: Complete requires recorded passing deterministic tests and a
 real-process harness receipt, never planned work or code presence. The harness does
 not alter the ORM-versus-raw-SQL boundary, public DTO, or Track 05 ownership.
