@@ -1,13 +1,14 @@
 # Track 07 plan: weekly event-time projections and correction revisions
 
-- Specification: [SPEC.md](SPEC.md), version 1.0
+- Specification: [SPEC.md](SPEC.md), version 1.1
+- Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Status: Planned (implementation-gated)
 - Active item: None; Track06 closure TEST-REPORT.md is required first
 
 ## Dependency gate and intent check
 
 Before code, primary verifies Track06 is Complete, reads its actual closure report and
-delivered migration/worker/marker/seam behavior, and confirms the committed staged
+delivered migration/worker/marker/seam behavior, re-reads ADR-001/004/005/006, and confirms the committed staged
 completion rule: canonical initial historical backfill first, then two installed
 consumers complete the same observed generation before cleanup. Stop on a mismatch,
 missing Track06 evidence, or a proposed public/current-statistics change.
@@ -20,14 +21,15 @@ missing Track06 evidence, or a proposed public/current-statistics change.
 | T07-04 | Implement restartable idempotent canonical initial historical backfill and baseline checkpoint semantics. | Smith / implementation | T07-02, T07-03 | Pending | Closed surviving rev1/current developing baseline, restart/partial crash, Track06 bridge, no-audit/no-empty-week proof. |
 | T07-05 | Implement developing replacement, overdue detection, atomic boundary finalization, and next developing creation/refresh. | Smith / implementation | T07-03, T07-04 | Pending | One-row replacement, no-event/clock-jump behavior, rev1/next transaction, finalization replay/crash proof. |
 | T07-06 | Implement late corrections, immutable supersession/revision allocation, and projection-side marker completion. | Smith / implementation | T07-02, T07-03, T07-04, T07-05 | Pending | Changed-hash N+1, identical/no-op no append, revision race, concurrent generation, guarded cleanup, restart. |
-| T07-07 | Integrate with existing worker/manual cycle, readiness metrics, and redacted logs; retain current-stats independence. | Smith / implementation | T07-04, T07-05, T07-06 | Pending | One-thread/session/non-overlap, health backlog/overdue/baseline, parsed JSON Lines with ADR-004 and projection fields/events, sentinel absence, and current stats body/header parity through projection failure/disabled mode. |
-| T07-08 | Run deterministic migration, concurrency, failure, lifecycle, and regression evidence plus the real-process closure harness. | Smith / implementation | T07-02, T07-03, T07-04, T07-05, T07-06, T07-07 | Pending | Full ledger with fake UTC clock/manual cycle/barriers/fault injection, quality/hygiene receipts, and actual `bash scripts/verify-track-07.sh` receipt; no real sleep proves calendar or race invariants. |
+| T07-07 | Integrate with existing worker/manual cycle, readiness metrics, and redacted logs; retain current-stats independence. | Smith / implementation | T07-04, T07-05, T07-06 | Pending | One-thread/session/non-overlap, health backlog/overdue/baseline, complete base/ADR-004/projection JSON Lines fields, safe correlation/redaction/fail-closed formatter evidence, exactly-once causal exception ownership, ephemeral assertion handling, sentinel/cross-user absence, and current stats body/header parity through projection failure/disabled mode. |
+| T07-08 | Run deterministic migration, concurrency, failure, lifecycle, and regression evidence plus the real-process closure harness. | Smith / implementation | T07-02, T07-03, T07-04, T07-05, T07-06, T07-07 | Pending | Full ledger with fake UTC clock/manual cycle/barriers/fault injection, safe private inspection and response/token/debug cleanup, quality/hygiene receipts, and actual `bash scripts/verify-track-07.sh` receipt; no real sleep proves calendar or race invariants. |
 | T07-09 | Primary closure, Track08 handoff, and TEST-REPORT.md. | Primary engineering thread | T07-01, T07-02, T07-03, T07-04, T07-05, T07-06, T07-07, T07-08 | Pending | Traceability complete, risks/limits recorded, no critical/high defect, actual deterministic/process-harness commands/results, and verified cleanup. |
 
 ## Shared completion gate
 
 The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
-applies without changing Track07 status, task IDs/dependencies, baseline
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
+without changing Track07 status, task IDs/dependencies, baseline
 `source_generation=0`, positive dirty generations/two-consumer completion, immutable
 correction rules, one-worker topology, current-stats independence, or the no-public-
 history boundary. Planned, Ready, or Blocked is not done. T07-09 may mark Track07
@@ -44,8 +46,13 @@ projection processing and uses supported private database/operator inspection of
 working, developed, and completion state without a public route. It records developing
 replacement and current-surviving-state baseline evidence only if actually observable,
 checks projection failure or disabled mode leaves current-stats body and headers
-correct, parses ADR-004 and projection JSON Lines with seeded-sentinel absence, and
-verifies clean shutdown and cleanup.
+correct, parses complete base/ADR-004/projection JSON Lines with safe correlation,
+redaction, fail-closed formatter behavior, causal exception ownership, and
+seeded-sentinel/cross-user absence, and verifies clean shutdown and cleanup. Its
+credentials/JWT and own user-scoped current-stats/header/safe-health responses remain
+ephemeral in memory; tokens are parsed/used without echo/persistence. Private inspection
+output is sanitized and ephemeral; debug retention requires an explicit flag and
+excludes protected response/token data.
 
 This process proof supplements, rather than proves, Sunday/Monday boundaries, backfill
 restart, finalization crashes, revision/concurrent-generation races, correction
@@ -101,14 +108,18 @@ test-only public endpoint, scheduler, process, thread, or public history API.
 - Readiness receives safe baseline/backlog/overdue/projection freshness state; liveness
   remains independent. Logs retain structured service attribution and low cardinality:
   no user/window IDs, payload/hash, SQL, content, credentials, or secrets.
-- Parse captured JSON Lines and enforce ADR-004's exact `service`, `event`,
-  `thread_name`, `process_id`, `service_instance_id`, timestamp, level, and logger
-  fields, correlation identifiers where applicable, and projection duration/count,
-  generation/completion, baseline/checkpoint, failure, and calculation-version fields.
+- Parse captured JSON Lines for `source`, service/component, event, level, UTC
+  timestamp, logger, `process_id`, execution/thread identity including `thread_name`,
+  ADR-004 `service_instance_id`, and applicable safe projection duration/count/
+  generation/completion/baseline/checkpoint/failure/calculation-version fields.
+  Correlation is supplied/generated only, never token/user ID/body/content derived.
   Capture ADR-004 lifecycle outcomes plus baseline, developing, finalization,
-  correction, retry, backlog/overdue, and completion events. Seed safe
-  credential/content/ID sentinels and assert absence; unexpected exceptions log once
-  at the owning boundary under the shared guideline.
+  correction, retry, backlog/overdue, and completion events. Redact sentinels; final
+  owning boundaries log once with structured type/safe message/ordered frames/cause/
+  context/no locals, intermediates re-raise without duplicates, raw exception text is
+  not indexed, and formatter/redactor failure emits one minimal schema-valid redacted
+  JSON record. Harness assertion values remain ephemeral; unsafe receipt surfaces and
+  cross-user responses remain clean.
 - Prove internal weekly work leaves current stats JSON body and source headers
   independent when projection processing fails or is disabled.
 
@@ -128,8 +139,10 @@ test-only public endpoint, scheduler, process, thread, or public history API.
   Inspect working/developed/two-consumer-completion state only through supported
   private database/operator tooling, record developing replacement and current-
   surviving-state baseline evidence only if observable, parse actual JSON Lines and
-  sentinel absence, then verify projection failure/disabled current-stats body/header
-  independence, clean shutdown, and trap cleanup.
+  sentinel/cross-user absence, then verify projection failure/disabled current-stats
+  body/header independence, clean shutdown, and trap cleanup. Own response/header/
+  safe-health values and JWTs are in-memory only; remove response/token/private-
+  inspection/debug state and retain debug artifacts only under an explicit safe flag.
 
 ### T07-09 — closure and Track 08 handoff
 

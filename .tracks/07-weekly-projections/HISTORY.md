@@ -20,7 +20,7 @@
 
 ## Current state
 
-- Specification: Planned, version 1.0
+- Specification: Planned, version 1.1
 - Plan: Planned; T07-01 Blocked on Track06 closure TEST-REPORT.md
 - Implementation: Not started; dependency-gated
 - Material product questions: None known; private completion names/checkpoint mechanics
@@ -53,3 +53,17 @@ Settings, health, and logs before authoring projection migration or code.
   test-only topology.
 - No Track07 test, application process, migration, harness, runtime validation, or
   `TEST-REPORT.md` receipt was executed or created by this planning-only change.
+
+## 2026-08-06 — Incremental evidence-governance planning correction
+
+- Bumped the SPEC/PLAN planning contract to version 1.1 and added ADR-006 to the
+  governing/re-read/closure records without changing the Planned gate, Track06
+  Complete-plus-report hard stop, or any event-time/projection boundary.
+- Completed base/ADR-004 projection logging, safe correlation, redaction, causal
+  exactly-once exception, fail-closed formatter/redactor, and safe ephemeral harness
+  assertion/disclosure requirements.
+- Preserved `source_generation=0`, positive generation/two-consumer completion,
+  immutable corrections, the same worker, current-stats independence, no public
+  history, Track08 boundary, and deterministic/process evidence separation.
+- This correction is planning only: no Track07 test, process, migration, harness,
+  runtime validation, artifact, or `TEST-REPORT.md` receipt was created or executed.

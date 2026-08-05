@@ -1,11 +1,11 @@
 # Track 07 specification: weekly event-time projections and correction revisions
 
 - Status: Planned (implementation-gated)
-- Specification version: 1.0
+- Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 06 Complete with its closure TEST-REPORT.md
-- Governing ADRs: ADR-001, ADR-004, ADR-005
+- Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Assessment requirements: WIN-01, WIN-02; extends WIN-03 and preserves EVT-01..03, OPS-01, SQL-01, and SQL-02 boundaries
 
 ## 1. Intent anchor
@@ -200,19 +200,29 @@ and completion events with duration/count/version but never IDs, windows, payloa
 bookmark/tag content, SQL, paths, credentials, or secrets.
 
 Tests and the process harness parse captured application logs as JSON Lines and retain
-ADR-004's exact `service`, `event`, `thread_name`, `process_id`,
-`service_instance_id`, timestamp, level, and logger fields. They assert correlation
-identifiers where a request or asynchronous flow has one, plus applicable duration,
-count, generation/completion, baseline/checkpoint, failure, and calculation-version
-fields for the projection events. Required outcomes include ADR-004 startup, cycle,
+`source`, service/component, event, level, UTC timestamp, logger, `process_id`, and
+execution/thread identity including `thread_name`; ADR-004 adds `service_instance_id`
+plus applicable safe projection duration/count/generation/completion/baseline/checkpoint/
+failure/calculation-version fields. Correlation is supplied/generated only, never token,
+user ID, body, or content derived. Required outcomes include ADR-004 startup, cycle,
 retry, overflow, readiness, shutdown, and join events together with baseline,
 developing replacement, finalization, correction, backlog/overdue, and projection
-completion outcomes. Safe credential, submitted-content, and identifier sentinels must
-be absent from logs, HTTP output, and retained artifacts. Under the shared
-[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md),
-an unexpected exception occurs exactly once at its owning boundary with safe
-structured evidence; intermediate layers add context and re-raise. This adds
-projection evidence without duplicating or weakening ADR-004.
+completion outcomes. Harness credentials/JWTs and own user-scoped current-stats
+bodies/headers and safe health responses are ephemeral in-memory assertions only;
+tokens are parsed/used without echoing or persistence. Own values/tokens/IDs/content
+sentinels and all cross-user data are absent from logs, indexed fields, command or
+diagnostic/private-inspection output, assertion failures, unsafe debug bundles, retained
+artifacts, and cross-user responses. Health is sanitized: no SQL, paths, raw exceptions,
+credentials, or content. Debug retention needs an explicit flag and excludes protected
+response/token data; cleanup removes disposable response/token/private-inspection/debug
+state. Under the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md), a final
+owning request/task/thread/process boundary logs each unexpected exception once with
+redacted structured type, safe message, ordered frames, cause/context, and no locals;
+intermediates add safe context and re-raise without duplicate logs; raw exception text
+is not indexed. Formatter/redactor failure fails closed to one minimal schema-valid
+redacted JSON record, never plaintext or the unsafe original. This adds projection
+evidence without duplicating or weakening ADR-004.
 
 ## 7. Requirements and acceptance threshold
 
@@ -264,7 +274,7 @@ scheduler, process, thread, or public history API. No critical/high defect may r
 | Revision concurrency | Barrier/forced unique conflict proves no duplicate revision and retry selects committed effective revision. |
 | Lifecycle/health | Existing one thread/manual cycle; projection failure, stalled/backlog/overdue/baseline failure, disabled mode, restart, readiness/liveness behavior. |
 | Privacy/compatibility | User deletion cascades projection rows; no IDs/content/secrets in logs; no history route; current stats remain exact and independent. |
-| Observability | Parse JSON Lines for ADR-004 fields and projection baseline/developing/finalization/correction/backlog/completion events with applicable correlation, duration, count, generation/completion, and version fields; safe credential/content/ID sentinels are absent and unexpected exceptions appear exactly once at their owning boundary. |
+| Observability | Parse JSON Lines for complete base/ADR-004/projection fields and events, supplied/generated safe correlation, redaction, exactly-once final-owning-boundary structured causal exceptions without locals/raw indexed text, and fail-closed formatter/redactor output. Own assertion data remains ephemeral; sentinels and cross-user data are absent from all unsafe receipt surfaces. |
 | Process closure | Planned `scripts/verify-track-07.sh` extends the delivered Track06 process and same named worker with a disposable migrated database, dynamic isolated port, real mutation/current-stats/live-ready flows, bounded observable processing, private DB/operator projection-state inspection, current-stats independence on failure/disabled mode, clean shutdown, and cleanup; it adds no public history route or test-only topology. |
 
 ## 9. Risks, limits, and follow-up ownership
