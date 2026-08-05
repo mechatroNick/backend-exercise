@@ -1,0 +1,127 @@
+# ==========================================
+# Comprehensive .gitignore for Python FastAPI
+# ==========================================
+
+# --- Environment & Secret Files ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.secret
+
+# --- Python & Bytecode ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv*/
+
+# --- Package Managers & Tooling (uv, poetry, pdm, pip) ---
+.uv/
+.pip-cache/
+pip-log.txt
+pip-delete-this-directory.cfg
+.pdm-build/
+.pdm-python
+.pdm-plugins/
+
+# --- Testing & Coverage (pytest, coverage, hypothesis) ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.hypothesis/
+coverage.xml
+nosetests.xml
+junit-*.xml
+
+# --- Linting & Type Checking (ruff, mypy, pyright) ---
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.pytype/
+.dmypy.json
+dmypy.json
+
+# --- FastAPI & App Specifics ---
+# Local SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads, Media, & Temp Files
+uploads/
+media/
+tmp/
+temp/
+*.tmp
+
+# Logs
+*.log
+logs/
+
+# Celery / Redis / Background Tasks
+celerybeat-schedule
+celerybeat.pid
+dump.rdb
+
+# --- IDEs & Editors ---
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / JetBrains
+.idea/
+
+# Sublime / Vim / Emacs
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.#*
+
+# --- OS Generated Files ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# --- AI & Agent Tooling ---
+.gemini/
+.antigravity/
