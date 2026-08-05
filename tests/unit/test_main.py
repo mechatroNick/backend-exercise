@@ -130,3 +130,157 @@ def test_starting_against_unmigrated_database_does_not_create_tables(tmp_path: P
                 connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'").fetchall()
                 == []
             )
+
+
+def test_test_fault_is_logged_once_and_returns_fastapis_default_500(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stream = io.StringIO()
+    import app.main as main
+
+    original_configure_logging = main.configure_logging
+
+    def configure_to_stream(value: Settings, *, component: str) -> Any:
+        return original_configure_logging(value, stream=stream, component=component)
+
+    monkeypatch.setattr(main, "configure_logging", configure_to_stream)
+    app = create_app(
+        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+    )
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.get("/openapi.json", headers={"X-Track01-Harness-Fault": "1"})
+
+    assert response.status_code == 500
+    assert "track01-secret-sentinel-do-not-emit" not in response.text
+    assert "track01-submitted-bookmark-sentinel-do-not-emit" not in response.text
+    unexpected = [
+        record
+        for record in _records(stream)
+        if record["event"] == "http.request.unexpected_exception"
+    ]
+    assert len(unexpected) == 1
+    assert unexpected[0]["exception"]["type"] == "RuntimeError"
+    assert unexpected[0]["exception"]["frames"]
+    assert "track01-secret-sentinel-do-not-emit" not in stream.getvalue()
+    assert "track01-submitted-bookmark-sentinel-do-not-emit" not in stream.getvalue()
+
+
+def test_normal_responses_and_non_test_fault_header_do_not_log_unexpected_events(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stream = io.StringIO()
+    import app.main as main
+
+    original_configure_logging = main.configure_logging
+
+    def configure_to_stream(value: Settings, *, component: str) -> Any:
+        return original_configure_logging(value, stream=stream, component=component)
+
+    monkeypatch.setattr(main, "configure_logging", configure_to_stream)
+    app = create_app(
+        Settings(app_env="development", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+    )
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        assert (
+            client.get("/openapi.json", headers={"X-Track01-Harness-Fault": "1"}).status_code == 200
+        )
+        assert client.get("/not-a-route").status_code == 404
+
+    assert not [
+        record
+        for record in _records(stream)
+        if record["event"] == "http.request.unexpected_exception"
+    ]
+
+
+def test_test_fault_reraises_after_exactly_one_owning_boundary_log(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stream = io.StringIO()
+    import app.main as main
+
+    original_configure_logging = main.configure_logging
+
+    def configure_to_stream(value: Settings, *, component: str) -> Any:
+        return original_configure_logging(value, stream=stream, component=component)
+
+    monkeypatch.setattr(main, "configure_logging", configure_to_stream)
+    app = create_app(
+        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+    )
+
+    with TestClient(app) as client, pytest.raises(RuntimeError):
+        client.get("/openapi.json", headers={"X-Track01-Harness-Fault": "1"})
+
+    assert [record["event"] for record in _records(stream)].count(
+        "http.request.unexpected_exception"
+    ) == 1
+
+
+def test_startup_initialization_failure_logs_once_and_disposes_partial_engine(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stream = io.StringIO()
+    import app.main as main
+
+    original_configure_logging = main.configure_logging
+    disposed = False
+
+    class DisposableEngine:
+        def dispose(self) -> None:
+            nonlocal disposed
+            disposed = True
+
+    def configure_to_stream(value: Settings, *, component: str) -> Any:
+        return original_configure_logging(value, stream=stream, component=component)
+
+    def fail_session_factory(_engine: object) -> object:
+        raise RuntimeError("track01-secret-sentinel-do-not-emit")
+
+    monkeypatch.setattr(main, "configure_logging", configure_to_stream)
+    monkeypatch.setattr(main, "create_database_engine", lambda _settings: DisposableEngine())
+    monkeypatch.setattr(main, "create_session_factory", fail_session_factory)
+    app = create_app(
+        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+    )
+
+    with pytest.raises(RuntimeError), TestClient(app):
+        pass
+
+    assert disposed is True
+    startup_failures = [
+        record for record in _records(stream) if record["event"] == "application.startup_failed"
+    ]
+    assert len(startup_failures) == 1
+    assert startup_failures[0]["exception"]["type"] == "RuntimeError"
+    assert startup_failures[0]["exception"]["frames"]
+    assert "track01-secret-sentinel-do-not-emit" not in stream.getvalue()
+
+
+def test_startup_engine_creation_failure_is_logged_once_without_partial_disposal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stream = io.StringIO()
+    import app.main as main
+
+    original_configure_logging = main.configure_logging
+
+    def configure_to_stream(value: Settings, *, component: str) -> Any:
+        return original_configure_logging(value, stream=stream, component=component)
+
+    def fail_engine_creation(_settings: Settings) -> object:
+        raise RuntimeError("track01-secret-sentinel-do-not-emit")
+
+    monkeypatch.setattr(main, "configure_logging", configure_to_stream)
+    monkeypatch.setattr(main, "create_database_engine", fail_engine_creation)
+    app = create_app(
+        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+    )
+
+    with pytest.raises(RuntimeError), TestClient(app):
+        pass
+
+    assert [record["event"] for record in _records(stream)].count("application.startup_failed") == 1
+    assert "track01-secret-sentinel-do-not-emit" not in stream.getvalue()

@@ -98,6 +98,10 @@ if [[ "${ready}" != "1" ]]; then
   exit 1
 fi
 
+fault_status="$(curl --silent --show-error --output "${work_dir}/fault-response.txt" --write-out '%{http_code}' --header 'X-Track01-Harness-Fault: 1' "http://127.0.0.1:${port}/openapi.json")"
+[[ "${fault_status}" == "500" ]] || { printf 'test fault returned HTTP %s, expected 500\n' "${fault_status}" >&2; exit 1; }
+kill -0 "${child_pid}" 2>/dev/null || { printf 'bootstrap process exited after test fault\n' >&2; exit 1; }
+
 awk '/^\{/{print}' "${process_output_path}" >"${log_path}"
 
 ${uv_command} run python - "${work_dir}/openapi.json" "${log_path}" "${process_output_path}" "${database_path}" <<'PY'
@@ -126,6 +130,11 @@ assert [record["event"] for record in records].count("application.starting") == 
 assert [record["event"] for record in records].count("application.started") == 1
 application_records = [record for record in records if record["event"].startswith("application.")]
 assert len({record["process_id"] for record in application_records}) == 1
+unexpected = [record for record in records if record["event"] == "http.request.unexpected_exception"]
+assert len(unexpected) == 1
+assert unexpected[0]["process_id"] == application_records[0]["process_id"]
+assert unexpected[0]["exception"]["type"] == "RuntimeError"
+assert unexpected[0]["exception"]["frames"]
 with sqlite3.connect(database_path) as connection:
     tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
 assert {"alembic_version", "users", "bookmarks", "tags", "bookmark_tags"} <= tables
@@ -145,21 +154,6 @@ child_pid=""
 awk '/^\{/{print}' "${process_output_path}" >"${log_path}"
 
 ${uv_command} run python - "${log_path}" <<'PY'
-import sys
-
-from app.core.config import Settings
-from app.core.logging import configure_logging, log_exception
-
-log_path = sys.argv[1]
-with open(log_path, "a", encoding="utf-8") as stream:
-    logger = configure_logging(Settings(app_env="test"), stream=stream, component="diagnostic-probe")
-    try:
-        raise RuntimeError("track01-secret-sentinel-do-not-emit track01-submitted-bookmark-sentinel-do-not-emit")
-    except RuntimeError as error:
-        log_exception(logger, "track01.diagnostic_probe.unexpected_exception", exception=error, component="diagnostic-probe")
-PY
-
-${uv_command} run python - "${log_path}" <<'PY'
 import json
 import sys
 
@@ -169,12 +163,7 @@ records = [json.loads(line) for line in raw.splitlines() if line]
 events = [record["event"] for record in records]
 assert events.count("application.stopping") == 1
 assert events.count("application.stopped") == 1
-probe = [record for record in records if record["event"] == "track01.diagnostic_probe.unexpected_exception"]
-assert len(probe) == 1
-exception = probe[0]["exception"]
-assert exception["type"] == "RuntimeError"
-assert exception["frames"]
 assert "track01-secret-sentinel-do-not-emit" not in raw
 assert "track01-submitted-bookmark-sentinel-do-not-emit" not in raw
-print("Track 01 process evidence: factory bootstrap, one worker, OpenAPI, JSON lifecycle, exception probe")
+print("Track 01 process evidence: factory bootstrap, one worker, OpenAPI, JSON lifecycle, request exception boundary")
 PY
