@@ -24,3 +24,16 @@
 
 After Track 02 closes, execute T03-01 to compare delivered auth/error/persistence/
 clock seams with this plan before writing product code.
+
+## 2026-08-05 — Shared verification-guideline adoption
+
+- Adopted the committed engineering verification guideline in Track 03 planning
+  without changing status, task IDs/dependencies, CRUD/tag/timestamp semantics, the
+  inert publisher seam, or Track 04/05/06 ownership.
+- Planned (but did not create or run) `scripts/verify-track-03.sh` to extend the
+  delivered bootstrap with real authenticated CRUD, two-user concealment, tag and
+  timestamp assertions, JSON-Line redaction/attribution evidence, and cleanup.
+- The planned proof confirms that Track 03's injected no-op publisher does not alter
+  CRUD outcomes and does not claim concrete Track 06 event publication.
+- No Track 03 test, application process, migration, harness, or runtime validation
+  was executed by this planning-only change.

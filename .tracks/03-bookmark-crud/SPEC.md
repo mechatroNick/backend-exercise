@@ -118,8 +118,21 @@ Revise before code if delivered interfaces materially differ.
   change CRUD outcomes; Track 03 claims no concrete invalidation publication.
 - List DTO/default ordering compatibility is proved without claiming Track 04 filters,
   page parameters, total correctness, or N+1/query-count evidence.
-- Focused/full quality tests and Track 03 operation-schema validation pass; no secret
-  or generated artifact appears in status. Full cross-operation OpenAPI proof is Track 05.
+- Deterministic DTO, domain, repository, service, and endpoint tests plus focused/full
+  quality tests and Track 03 operation-schema validation pass; no secret or generated
+  artifact appears in status. Full cross-operation OpenAPI proof is Track 05.
+- The planned `scripts/verify-track-03.sh` extends the delivered bootstrap with a
+  disposable migrated database and dynamic isolated port, starts the real server, and
+  performs actual HTTP registration/auth then create/list/detail/PATCH/delete flows,
+  two-user concealed `404`, tag normalization/deduplication, material-versus-no-op
+  timestamp checks, and bodyless `204` assertions.
+- Captured JSON Lines prove expected attribution and correlation where applicable,
+  while deliberately seeded safe token/URL/title/description/tag sentinels are absent
+  from logs, output, and retained artifacts. The harness verifies cleanup and proves
+  the Track 03 no-op publisher seam cannot change CRUD outcomes; it makes no Track 06
+  event-publication claim.
+
+Track 03 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never planned work or code presence. `scripts/verify-track-03.sh` supplements tests through the delivered bootstrap, without altering CRUD/tag/timestamp semantics, the inert publisher seam, or downstream ownership.
 
 ## 8. Risks, stop conditions, and follow-ups
 

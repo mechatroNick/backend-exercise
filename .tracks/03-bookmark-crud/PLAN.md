@@ -14,8 +14,8 @@
 | T03-04 | Implement service-owned create/detail/baseline-list/PATCH/delete transactions with timestamp and rollback semantics. | Smith / implementation | T03-02, T03-03 | Pending | Fixed-clock integration proves atomicity, duplicate URL allowance, no-op behavior. |
 | T03-05 | Add an inert `DomainEventPublisher` injection port/no-op adapter at the explicit post-commit extension point, without a concrete event contract. | Smith / implementation | T03-04 | Pending | Composition tests prove the no-op seam cannot alter CRUD outcomes; Track 06 publication behavior remains absent. |
 | T03-06 | Add protected CRUD routes, authenticated owner injection, response/error/OpenAPI metadata, and route order review. | Smith / implementation | T03-01, T03-02, T03-04, T03-05 | Pending | Endpoint tests prove statuses, `404` concealment, `204`, bearer protection, schemas. |
-| T03-07 | Add edge-case regression, disclosure, and lazy-loading boundary checks. | Smith / implementation | T03-02, T03-03, T03-04, T03-05, T03-06 | Pending | Ledger cases pass; list performance is explicitly deferred to Track 04. |
-| T03-08 | Run closure validation and record evidence/readiness for Track 04. | Primary engineering thread | T03-01, T03-02, T03-03, T03-04, T03-05, T03-06, T03-07 | Pending | Actual quality/OpenAPI/hygiene evidence; Track 04/05/06 boundaries retained. |
+| T03-07 | Add edge-case regression, disclosure, lazy-loading boundary checks, and Track 03 process-harness assertions. | Smith / implementation | T03-02, T03-03, T03-04, T03-05, T03-06 | Pending | Deterministic DTO/domain/repository/service/endpoint ledger cases pass; list performance is explicitly deferred to Track 04; and `scripts/verify-track-03.sh` proves real CRUD/isolation/tag/timestamp/204 flows, JSON-Line attribution/correlation where applicable, seeded-sentinel absence, inert no-op publisher behavior, and cleanup. |
+| T03-08 | Run closure validation and record evidence/readiness for Track 04. | Primary engineering thread | T03-01, T03-02, T03-03, T03-04, T03-05, T03-06, T03-07 | Pending | Actual passing deterministic tests, quality/operation-OpenAPI/hygiene evidence, and `bash scripts/verify-track-03.sh`; TEST-REPORT records commands/results/versions/selectors/cleanup, guideline conformance, gaps, and retained Track 04/05/06 boundaries. |
 
 ## Work-wave detail
 
@@ -47,6 +47,23 @@ change; stop if a required invariant is absent.
 - Validate Track 03 operations against generated schemas only; Track 05 owns global
   conformance. Use disposable migrated SQLite, fixed clocks, and the inert no-op
   publisher composition.
+- Deliver `scripts/verify-track-03.sh` through that actual bootstrap, never a fake
+  server. Use a disposable migrated database and dynamic isolated port, then
+  bounded-poll a delivered observable seam before real HTTP registration/auth,
+  create/list/detail/PATCH/delete, two-user concealed `404`, normalized/deduplicated
+  tags, material/no-op timestamp, and bodyless `204` checks. Capture JSON Lines for
+  expected attribution/correlation where applicable; seed only safe token/URL/title/
+  description/tag sentinels and assert their absence from logs/output/artifacts.
+  Verify trap cleanup and that the injected no-op publisher seam cannot change CRUD
+  outcomes, without naming or asserting concrete Track 06 publication behavior.
+
+## Shared completion gate
+
+The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+applies without changing Track 03 contracts or downstream ownership. Planned, Ready,
+or Blocked is not done. T03-08 may mark Track 03 Complete only after recorded passing
+deterministic tests, actual real-process harness evidence, and documented cleanup;
+planned, skipped, or blocked commands never count as pass.
 
 ## Edge-case ledger
 
@@ -76,6 +93,7 @@ uv run pytest
 uv run alembic upgrade head
 uv run alembic check
 make check
+bash scripts/verify-track-03.sh
 rg -n 'queue\.Queue|bookmark-stats-refresher|StatsDirty|dirty.marker' app tests
 git diff --check
 git status --short
