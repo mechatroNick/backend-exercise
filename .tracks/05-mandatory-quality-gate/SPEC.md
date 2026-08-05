@@ -49,7 +49,22 @@ clean migrated DB, no critical/high defect, and actual quality/smoke receipts. `
 and documentation/submission obligations owned by Track 08 remain explicitly open; no
 product requirement may be relabeled as delivery-only to pass this gate. Stop/reframe
 on upstream contract conflict, a semantic change, unreproducible clean migration, or
-any missing core evidence.
+any missing core evidence. The closure suite is deterministic unit/integration/
+contract coverage, real-instance OpenAPI validation, performance/raw-SQL checks, and
+a logging schema/redaction audit; skips or xfails must not mask mandatory behavior.
+
+The planned `scripts/verify-track-05.sh` is the mandatory-core real automation gate.
+From a disposable clean/migrated state and dynamic isolated port, it starts the actual
+server, runs or invokes Tracks 01--04 harnesses (or equivalent non-duplicative
+selectors), exercises representative complete auth/CRUD/search/stats/error/docs/health
+flows, and validates actual response bodies/statuses against generated OpenAPI. It
+parses JSON Lines to prove required attribution/correlation and absence of safe seeded
+credential/content sentinels, then verifies cleanup. Process smoke alone cannot prove
+query-count or complete contract coverage, so deterministic evidence remains required.
+`TEST-REPORT.md` must contain actual receipts. Track 06 remains blocked unless this
+gate is green and no known critical/high defect remains.
+
+Track 05 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) closure invariant: Complete requires recorded passing evidence, never planned work or code presence. It does not expand the mandatory-core scope or weaken the Track 06 stop.
 
 ## Traceability and defect routing
 
