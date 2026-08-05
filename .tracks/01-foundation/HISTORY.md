@@ -11,9 +11,9 @@
 
 ## Current state
 
-- Specification: Ready
-- Plan: Ready
-- Implementation: Not started
+- Specification: Complete
+- Plan: Complete
+- Implementation: Complete
 - Material product questions: None known
 
 ## 2026-08-05 — Planning audit
@@ -28,7 +28,9 @@
 
 ## Next action
 
-Start T01-01 only when implementation is authorized: resolve current compatible package versions from primary sources, create the Python 3.12 locked environment, and stop for review if the selected stack cannot meet ADR-001.
+Begin Track 02 from this verified foundation. Recheck the Track 01 closure receipt and
+preserve the factory, Settings, clock, session, migration, schema, and logging seams
+before adding the centralized public error contract and authentication behavior.
 
 ## 2026-08-05 — Sequential planning review after Track 00 baseline `d7e8420`
 
@@ -71,3 +73,25 @@ Start T01-01 only when implementation is authorized: resolve current compatible 
 - Added `scripts/verify-track-01.sh` only to proposed ownership and pending evidence;
   it has not been created or run. No runtime, test, migration, or harness evidence
   was executed by this planning-only correction.
+
+## 2026-08-06 — Implementation and closure
+
+- Delivered the locked Python 3.12 toolchain, validated Settings, injectable UTC
+  clock, fail-closed JSON Lines logging, constrained SQLModel persistence boundary,
+  reviewed initial Alembic revision, inert FastAPI factory/lifespan, and documented
+  one-worker bootstrap in seven green implementation commits.
+- Proved schema constraints, exact index order, foreign-key/cascade behavior,
+  per-connection SQLite policy, UTC round trips, transaction rollback, import/startup
+  non-mutation, and upgrade/downgrade/re-upgrade behavior against disposable databases
+  created only through Alembic.
+- A focused closure review found that the first harness used a post-process synthetic
+  exception probe. Commit `53b40b8` corrected that gap with one application-owned
+  unexpected-request boundary and a private `APP_ENV=test` fault seam. The revised
+  harness triggers the real Uvicorn worker, verifies one redacted exception record
+  from the lifecycle process, and confirms the worker remains alive.
+- Independent re-review returned PASS. Final branch validation recorded 127 passing
+  tests, 100% statement and branch coverage across `app`, clean Ruff and mypy gates,
+  a clean Alembic lifecycle, a passing real-process harness with verified cleanup,
+  and no forbidden `create_all()` call or tracked generated artifact.
+- The complete command, selector, tool-version, cleanup, review, and known-gap
+  receipts are recorded in `TEST-REPORT.md`.

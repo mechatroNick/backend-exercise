@@ -1,6 +1,6 @@
 # Track 01 specification: foundation, configuration, schema, and migrations
 
-- Status: Ready
+- Status: Complete
 - Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread

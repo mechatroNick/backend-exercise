@@ -50,8 +50,8 @@ flowchart LR
 | Order | Track | Depends on | State |
 | --- | --- | --- | --- |
 | 00 | Contract and ADR baseline | None | Complete |
-| 01 | Foundation, configuration, schema, and migrations | 00 | Ready |
-| 02 | Error contract, registration, login, and JWT authentication | 01 | Planned (implementation-gated) |
+| 01 | Foundation, configuration, schema, and migrations | 00 | Complete |
+| 02 | Error contract, registration, login, and JWT authentication | 01 | Ready |
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Planned (implementation-gated) |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
