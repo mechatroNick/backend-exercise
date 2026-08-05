@@ -18,7 +18,11 @@ flowchart LR
     T07 --> T08["08 Final hardening and handoff"]
 ```
 
-The detailed execution artifact for a track is created immediately before that track starts. This avoids writing speculative task lists too far ahead while preserving stable requirements and architectural decisions in `docs/` and `.tracks/ADR/`.
+Detailed execution artifacts may be created sequentially after upstream plan review
+when that helps bound later work. Their presence does not authorize implementation:
+each track remains dependency-gated until its upstream implementation and closure
+evidence are complete. This preserves stable requirements and architectural decisions
+in `docs/` and `.tracks/ADR/` without treating planned detail as runtime readiness.
 
 ## 2. Working rules
 

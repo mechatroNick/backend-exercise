@@ -50,7 +50,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | 00 | Contract and ADR baseline | None | Complete |
 | 01 | Foundation, configuration, schema, and migrations | 00 | Ready |
-| 02 | Error contract, registration, login, and JWT authentication | 01 | Pending |
+| 02 | Error contract, registration, login, and JWT authentication | 01 | Planned (implementation-gated) |
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Pending |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Pending |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Pending |
@@ -58,6 +58,15 @@ flowchart LR
 | 07 | Weekly developing points and append-only correction revisions | 06 | Pending |
 | 08 | Final regression, README, deployment design, seed data, and optional bonuses | 01-07 | Pending |
 
-Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts will be created for a
-track immediately before that track begins. Decisions that change observable
-behavior require an ADR update before implementation.
+Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
+sequentially after review of upstream plans, so a downstream track can be prepared
+without waiting to repeat discovery. Their presence records planning only: a track is
+implementation-ready only when its stated upstream implementation and closure gates
+are satisfied. Decisions that change observable behavior require an ADR update before
+implementation.
+
+### Detailed planned artifacts
+
+- [Track 02 specification](02-auth-errors/SPEC.md)
+- [Track 02 execution plan](02-auth-errors/PLAN.md)
+- [Track 02 history](02-auth-errors/HISTORY.md)

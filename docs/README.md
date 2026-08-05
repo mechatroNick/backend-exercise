@@ -25,6 +25,12 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
 - [Track 01: foundation specification](../.tracks/01-foundation/SPEC.md)
 - [Track 01: foundation execution plan](../.tracks/01-foundation/PLAN.md)
+- [Track 02: auth and error specification](../.tracks/02-auth-errors/SPEC.md)
+- [Track 02: auth and error execution plan](../.tracks/02-auth-errors/PLAN.md)
+
+Detailed downstream artifacts may be planned sequentially after upstream plan review;
+their presence does not make implementation ready until each stated dependency closes
+with the required evidence.
 
 ## Authority
 
