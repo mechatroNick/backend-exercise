@@ -1,6 +1,6 @@
 # Track 06 specification: event-driven current statistics, durable recovery, and operations
 
-- Status: Planned (implementation-gated)
+- Status: Ready (implementation authorized)
 - Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
@@ -15,9 +15,11 @@ accelerates current-statistics reads with snapshots, but the canonical raw-SQL r
 remains the correctness authority: process-local queue, thread, and snapshot state
 must never be required for a correct `GET /api/bookmarks/stats` response.
 
-Track 06 is **Blocked** until Track 05 is Complete with its stated core gate evidence.
-Its detailed plan is planning only; it does not authorize implementation or make the
-extension Ready.
+Track 05 is Complete and merged to `main` at `001056c`; its post-merge Track 05
+harness, documentation verification, and cleanup self-test passed. The Track 06
+compatibility gate found no critical/high defect or incompatible delivered seam.
+Implementation is therefore authorized on `codex/track-06-event-driven-stats`, while
+all acceptance claims remain open until T06-08 records executable evidence.
 
 ## 2. Must-preserve contracts
 

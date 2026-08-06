@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
-- Status: Planned (implementation-gated)
-- Active item: None; Track 05 core gate has not closed
+- Status: Ready (implementation authorized)
+- Active item: T06-02 — dirty-marker migration and transaction-safe repository
 
 ## Dependency gate and intent check
 
@@ -16,8 +16,8 @@ not adapt a public or durable-state contract silently.
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T06-01 | Verify Track 05 closure receipts and delivered core seams; confirm the staged Track 07 marker-completion handoff is represented in the implementation design. | Smith / implementation | Track 05 Complete | Blocked | Compatibility/gate receipt; mandatory core proof remains intact and the accepted cleanup handoff is traceable. |
-| T06-02 | Create/review Alembic dirty-marker migration and transaction-safe atomic upsert/reconciliation repository operations. | Smith / implementation | T06-01 | Pending | New/existing DB upgrade, FK/cascade/unique/index inspection, rollback, downgrade/re-upgrade, generation atomicity, and recovery receipt. |
+| T06-01 | Verify Track 05 closure receipts and delivered core seams; confirm the staged Track 07 marker-completion handoff is represented in the implementation design. | Smith / implementation | Track 05 Complete | Complete | Compatibility/gate receipt at `001056c`; mandatory core proof remains intact and the accepted cleanup handoff is traceable. |
+| T06-02 | Create/review Alembic dirty-marker migration and transaction-safe atomic upsert/reconciliation repository operations. | Smith / implementation | T06-01 | In progress | New/existing DB upgrade, FK/cascade/unique/index inspection, rollback, downgrade/re-upgrade, generation atomicity, and recovery receipt. |
 | T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | Pending | Create/material scalar/tag/delete ordering and safe-field tests; reads/no-op/rollback absence; delete-window proof. |
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | Pending | Overflow preserves request/marker; duplicate/reordered/lost events harmless; atomic readers and snapshot/live parity proof. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Pending | One non-daemon instance, manual-cycle/fake-clock, own session/non-overlap, restart, retry, post-commit-crash, concurrent-increment, and join-timeout evidence. |
@@ -36,6 +36,39 @@ Blocked is not done. T06-08 may mark Track 06 Complete only after recorded passi
 deterministic tests, migrated-database evidence, JSON-Line/redaction evidence, and
 actual `bash scripts/verify-track-06.sh` results with cleanup; planned, skipped, or
 blocked commands never count as pass.
+
+## T06-01 compatibility and design receipt
+
+The dependency gate closed from actual Track 05 evidence: merge `001056c`, 473 tests,
+100% statement/branch coverage, exact 79-node mandatory selection, clean migration
+lifecycle, and the passing real-process harness. Primary post-merge execution of
+`scripts/verify-track-05.sh`, documentation verification, and the abnormal-cleanup
+self-test also passed. Independent compatibility and architecture review found no
+critical/high defect.
+
+Implementation preserves these reviewed boundaries:
+
+- The service-owned request transaction performs one atomic dirty upsert before
+  commit, then one total/non-throwing typed publication attempt after commit.
+- The Track 04 `BookmarkStatsReader` remains the only aggregate SQL implementation
+  for worker recomputation and live fallback.
+- Publication invalidates a per-user local epoch before nonblocking enqueue. A worker
+  candidate may be exposed only when both that epoch and every observed durable
+  generation still match during generation-safe finalization; this prevents a
+  computed-before-concurrent-write snapshot from becoming observable.
+- Marker removal is not hard-coded to historical semantics. Track 06 supplies a
+  current-only completion policy; Track 07 owns retention activation, canonical
+  backfill, and later dual-consumer completion.
+- The queue, snapshot store, worker, request-facing stats service, and health router
+  remain narrow feature-owned components. No SQLAlchemy global commit listener,
+  Track 07 table, history route, or second aggregation path is authorized.
+
+Stop and return to primary/ADR review if the implementation cannot preserve the same
+request session for dirty marking, uses read-then-write generation updates, lets
+publication raise after commit, lacks epoch-and-generation protection, makes marker
+deletion durable before recoverable snapshot publication, shares request sessions,
+overlaps cycles, starts a daemon/import-time worker, changes the stats body/raw SQL,
+or introduces Track 07 state.
 
 The future `scripts/verify-track-06.sh` extends the delivered Track 05 mandatory
 bootstrap/gate. It uses only a disposable database created through the real Alembic
