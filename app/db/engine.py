@@ -8,6 +8,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import Engine, event
 from sqlalchemy.engine import URL, make_url
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import Session
 from sqlmodel import create_engine as sqlmodel_create_engine
@@ -94,6 +95,40 @@ def create_database_engine(
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
     """Create a caller-owned factory for short-lived synchronous SQLModel sessions."""
     return sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
+
+
+def begin_sqlite_read_snapshot(session: Session) -> None:
+    """Start one SQLite read snapshot without taking ownership of session completion.
+
+    SQLAlchemy can consider a session transaction active after a read even while
+    SQLite's DB-API connection has not started a real read transaction.  Statistics
+    callers use this explicit seam before their first aggregate read so later
+    statements observe the same SQLite snapshot.
+    """
+    connection = session.connection()
+    if connection.dialect.name != "sqlite":
+        msg = "SQLite read snapshots require a SQLite connection"
+        raise RuntimeError(msg)
+
+    try:
+        driver_connection = connection.connection.driver_connection
+    except AttributeError as error:
+        msg = "SQLite read snapshots require a sqlite3 driver connection"
+        raise RuntimeError(msg) from error
+    if not isinstance(driver_connection, sqlite3.Connection):
+        msg = "SQLite read snapshots require a sqlite3 driver connection"
+        raise RuntimeError(msg)
+    if driver_connection.in_transaction:
+        return
+
+    try:
+        connection.exec_driver_sql("BEGIN DEFERRED")
+    except SQLAlchemyError as error:
+        msg = "SQLite read snapshot could not begin"
+        raise RuntimeError(msg) from error
+    if not driver_connection.in_transaction:
+        msg = "SQLite read snapshot did not start a driver transaction"
+        raise RuntimeError(msg)
 
 
 @contextmanager

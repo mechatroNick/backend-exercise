@@ -210,7 +210,7 @@ def test_bookmark_operations_have_bounded_openapi_contracts_and_runtime_schema_b
     assert set(operations) == {"get", "post"}
     for path, method, accepted in (
         ("/api/bookmarks", "post", {"201", "401", "422", "500"}),
-        ("/api/bookmarks", "get", {"200", "401", "500"}),
+        ("/api/bookmarks", "get", {"200", "401", "422", "500"}),
         ("/api/bookmarks/{bookmark_id}", "get", {"200", "401", "404", "422", "500"}),
         ("/api/bookmarks/{bookmark_id}", "patch", {"200", "401", "404", "422", "500"}),
         ("/api/bookmarks/{bookmark_id}", "delete", {"204", "401", "404", "422", "500"}),

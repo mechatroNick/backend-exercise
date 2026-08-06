@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from typing import Protocol, cast
 
 from pydantic import AnyHttpUrl
@@ -41,6 +41,24 @@ def normalize_tag_membership(values: object) -> tuple[str, ...]:
 def canonical_url(value: AnyHttpUrl | str) -> str:
     """Return the Pydantic canonical string form used for persistence and comparison."""
     return str(value)
+
+
+def utc_midnight_lower_bound(value: date) -> datetime:
+    """Return the inclusive UTC midnight beginning a calendar date."""
+    return datetime.combine(value, time.min, tzinfo=UTC)
+
+
+def utc_midnight_upper_bound(value: date) -> datetime | None:
+    """Return the exclusive next UTC midnight, or ``None`` beyond ``date.max``."""
+    if value == date.max:
+        return None
+    return utc_midnight_lower_bound(value + timedelta(days=1))
+
+
+def literal_like_pattern(value: str) -> str:
+    """Build a bound SQL LIKE pattern that treats percent, underscore, and slash literally."""
+    escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,7 +143,10 @@ __all__ = [
     "MaterialPatch",
     "canonical_url",
     "classify_patch",
+    "literal_like_pattern",
     "next_updated_at",
     "normalize_tag_membership",
     "normalize_tag_name",
+    "utc_midnight_lower_bound",
+    "utc_midnight_upper_bound",
 ]

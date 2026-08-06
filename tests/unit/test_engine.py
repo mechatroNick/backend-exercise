@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 from typing import cast
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import event, text
+from sqlalchemy.exc import OperationalError
 from sqlmodel import Session
 
 from app.core.config import Settings
 from app.db.engine import (
     SessionFactory,
     _connection_policy,
+    begin_sqlite_read_snapshot,
     create_database_engine,
     create_session_factory,
     session_dependency,
@@ -151,6 +155,188 @@ def test_session_factory_returns_short_lived_sqlmodel_sessions() -> None:
             assert session.execute(text("SELECT 1")).scalar_one() == 1
     finally:
         engine.dispose()
+
+
+def test_read_snapshot_promotes_legacy_logical_read_to_a_real_sqlite_transaction() -> None:
+    engine = create_database_engine(
+        database_url="sqlite:///:memory:", busy_timeout_milliseconds=1_000
+    )
+    session = Session(engine)
+    statements: list[str] = []
+
+    def record_statement(
+        _connection: object,
+        _cursor: object,
+        statement: str,
+        _parameters: object,
+        _context: object,
+        _executemany: bool,
+    ) -> None:
+        statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", record_statement)
+    try:
+        connection = session.connection()
+        driver_connection = connection.connection.driver_connection
+        assert isinstance(driver_connection, sqlite3.Connection)
+
+        assert session.execute(text("SELECT 1")).scalar_one() == 1
+        assert session.in_transaction() is True
+        assert driver_connection.in_transaction is False
+
+        statements.clear()
+        begin_sqlite_read_snapshot(session)
+
+        assert driver_connection.in_transaction is True
+        assert statements == ["BEGIN DEFERRED"]
+
+        statements.clear()
+        begin_sqlite_read_snapshot(session)
+
+        assert statements == []
+        assert driver_connection.in_transaction is True
+    finally:
+        event.remove(engine, "before_cursor_execute", record_statement)
+        session.close()
+        engine.dispose()
+
+
+def test_read_snapshot_reuses_an_existing_real_transaction_without_issuing_sql() -> None:
+    engine = create_database_engine(
+        database_url="sqlite:///:memory:", busy_timeout_milliseconds=1_000
+    )
+    session = Session(engine)
+    statements: list[str] = []
+
+    def record_statement(
+        _connection: object,
+        _cursor: object,
+        statement: str,
+        _parameters: object,
+        _context: object,
+        _executemany: bool,
+    ) -> None:
+        statements.append(statement)
+
+    event.listen(engine, "before_cursor_execute", record_statement)
+    try:
+        connection = session.connection()
+        driver_connection = connection.connection.driver_connection
+        assert isinstance(driver_connection, sqlite3.Connection)
+        connection.exec_driver_sql("BEGIN DEFERRED")
+        assert driver_connection.in_transaction is True
+
+        statements.clear()
+        begin_sqlite_read_snapshot(session)
+
+        assert statements == []
+        assert driver_connection.in_transaction is True
+    finally:
+        event.remove(engine, "before_cursor_execute", record_statement)
+        session.close()
+        engine.dispose()
+
+
+def test_read_snapshot_does_not_complete_the_transaction_and_session_close_clears_it() -> None:
+    engine = create_database_engine(
+        database_url="sqlite:///:memory:", busy_timeout_milliseconds=1_000
+    )
+    session = Session(engine)
+    transaction_events: list[str] = []
+    event.listen(engine, "commit", lambda _connection: transaction_events.append("commit"))
+    event.listen(engine, "rollback", lambda _connection: transaction_events.append("rollback"))
+    try:
+        connection = session.connection()
+        driver_connection = connection.connection.driver_connection
+        assert isinstance(driver_connection, sqlite3.Connection)
+
+        begin_sqlite_read_snapshot(session)
+
+        assert driver_connection.in_transaction is True
+        assert transaction_events == []
+        session.close()
+        assert driver_connection.in_transaction is False
+        assert transaction_events == ["rollback"]
+    finally:
+        if session.is_active:
+            session.close()
+        engine.dispose()
+
+
+@pytest.mark.parametrize(
+    ("connection", "message"),
+    [
+        (
+            SimpleNamespace(dialect=SimpleNamespace(name="postgresql")),
+            "require a SQLite connection",
+        ),
+        (
+            SimpleNamespace(
+                dialect=SimpleNamespace(name="sqlite"),
+                connection=SimpleNamespace(driver_connection=object()),
+            ),
+            "require a sqlite3 driver connection",
+        ),
+        (
+            SimpleNamespace(dialect=SimpleNamespace(name="sqlite"), connection=object()),
+            "require a sqlite3 driver connection",
+        ),
+    ],
+)
+def test_read_snapshot_rejects_unsupported_dialects_and_drivers(
+    connection: object, message: str
+) -> None:
+    class FakeSession:
+        def connection(self) -> object:
+            return connection
+
+    with pytest.raises(RuntimeError, match=message):
+        begin_sqlite_read_snapshot(cast(Session, FakeSession()))
+
+
+def test_read_snapshot_wraps_a_driver_begin_failure() -> None:
+    driver_connection = sqlite3.connect(":memory:")
+
+    class FakeConnection:
+        dialect = SimpleNamespace(name="sqlite")
+        connection = SimpleNamespace(driver_connection=driver_connection)
+
+        def exec_driver_sql(self, statement: str) -> None:
+            assert statement == "BEGIN DEFERRED"
+            raise OperationalError(statement, {}, RuntimeError("driver unavailable"))
+
+    class FakeSession:
+        def connection(self) -> FakeConnection:
+            return FakeConnection()
+
+    try:
+        with pytest.raises(RuntimeError, match="could not begin") as error:
+            begin_sqlite_read_snapshot(cast(Session, FakeSession()))
+    finally:
+        driver_connection.close()
+
+    assert isinstance(error.value.__cause__, OperationalError)
+
+
+def test_read_snapshot_fails_closed_when_begin_does_not_start_a_driver_transaction() -> None:
+    driver_connection = sqlite3.connect(":memory:")
+
+    class FakeConnection:
+        dialect = SimpleNamespace(name="sqlite")
+        connection = SimpleNamespace(driver_connection=driver_connection)
+
+        def exec_driver_sql(self, statement: str) -> None:
+            assert statement == "BEGIN DEFERRED"
+
+    class FakeSession:
+        def connection(self) -> FakeConnection:
+            return FakeConnection()
+
+    try:
+        with pytest.raises(RuntimeError, match="did not start"):
+            begin_sqlite_read_snapshot(cast(Session, FakeSession()))
+    finally:
+        driver_connection.close()
 
 
 def test_session_scope_rolls_back_and_closes_without_committing() -> None:

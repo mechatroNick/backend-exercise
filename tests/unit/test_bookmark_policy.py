@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta, timezone
 
 import pytest
 
 from app.bookmarks.policy import (
     BookmarkSnapshot,
     classify_patch,
+    literal_like_pattern,
     next_updated_at,
     normalize_tag_membership,
     normalize_tag_name,
+    utc_midnight_lower_bound,
+    utc_midnight_upper_bound,
 )
 from app.bookmarks.schemas import BookmarkPatch
 
@@ -115,3 +118,16 @@ def test_next_updated_at_rejects_naive_datetimes() -> None:
         next_updated_at(naive, aware)
     with pytest.raises(ValueError, match="timezone-aware"):
         next_updated_at(aware, naive)
+
+
+def test_utc_midnight_bounds_are_inclusive_lower_and_exclusive_upper() -> None:
+    value = date(2026, 8, 6)
+
+    assert utc_midnight_lower_bound(value) == datetime(2026, 8, 6, tzinfo=UTC)
+    assert utc_midnight_upper_bound(value) == datetime(2026, 8, 7, tzinfo=UTC)
+    assert utc_midnight_upper_bound(date.max) is None
+
+
+def test_literal_like_pattern_escapes_only_like_metacharacters_and_backslashes() -> None:
+    assert literal_like_pattern("plain") == "%plain%"
+    assert literal_like_pattern("%_\\") == "%\\%\\_\\\\%"

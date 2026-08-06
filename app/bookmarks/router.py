@@ -4,14 +4,22 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Path, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 
 from app.api.errors import ErrorEnvelope
 from app.auth.dependencies import get_current_subject
 from app.auth.schemas import CurrentSubject
-from app.bookmarks.dependencies import get_bookmark_service
-from app.bookmarks.schemas import BookmarkCreate, BookmarkList, BookmarkPatch, BookmarkPublic
+from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_reader
+from app.bookmarks.schemas import (
+    BookmarkCreate,
+    BookmarkList,
+    BookmarkPatch,
+    BookmarkPublic,
+    BookmarkQuery,
+)
 from app.bookmarks.service import BookmarkService
+from app.bookmarks.stats.raw_sql import BookmarkStatsReader
+from app.bookmarks.stats.schemas import BookmarkStats
 
 _ERROR_EXAMPLES = {
     "authentication": {
@@ -73,6 +81,11 @@ _CREATE_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 _LIST_RESPONSES: dict[int | str, dict[str, Any]] = {
     401: _error_response("authentication"),
+    422: _error_response("validation"),
+    500: _error_response("internal"),
+}
+_STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
+    401: _error_response("authentication"),
     500: _error_response("internal"),
 }
 _DETAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -115,10 +128,25 @@ def create_bookmark(
 )
 def list_bookmarks(
     subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    query: Annotated[BookmarkQuery, Query()],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkList:
-    """Return the fixed baseline collection without public filters or pagination inputs."""
-    return service.list(subject.user_id)
+    """Return the authenticated subject's filtered, stable collection page."""
+    return service.list(subject.user_id, query)
+
+
+@router.get(
+    "/stats",
+    response_model=BookmarkStats,
+    responses=_STATS_RESPONSES,
+    summary="Read current bookmark statistics",
+)
+def get_bookmark_stats(
+    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    reader: Annotated[BookmarkStatsReader, Depends(get_bookmark_stats_reader)],
+) -> BookmarkStats:
+    """Return the current owner-scoped aggregates from one live read snapshot."""
+    return reader.read(subject.user_id)
 
 
 # Keep dynamic detail routes after collection routes so Track 04 can insert /stats first.

@@ -1,6 +1,6 @@
 # Track 04 specification: search, pagination, and canonical current statistics
 
-- Status: Planned
+- Status: Complete
 - Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
@@ -10,9 +10,10 @@
 
 ## Intent and must-preserve contracts
 
-Complete discovery and required live statistics while retaining owner isolation. Work
-is blocked until Track 03 closes with its routes, DTOs, owner predicates, publisher
-seam, clock, migrations, and tests.
+Complete discovery and required live statistics while retaining owner isolation.
+Track 03 is closed at merge `4df99c9`; its routes, DTOs, owner predicates, publisher
+seam, clock, migrations, deterministic tests, and live harness passed the T04-01
+compatibility gate without a schema or contract mismatch.
 
 - Protected `GET /api/bookmarks` supports exact normalized `tag`, case-insensitive
   title-substring `q`, `from`/`to` created-date and `updated_from`/`updated_to`

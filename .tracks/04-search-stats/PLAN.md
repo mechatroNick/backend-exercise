@@ -2,18 +2,18 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
-- Status: Planned
-- Active item: None; dependency-gated on Track 03 closure
+- Status: Complete
+- Active item: None; T04-01 through T04-07 are closed with executable evidence
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T04-01 | Verify Track 03 closure and delivered auth/error/CRUD/query seams. | Smith / implementation | Track 03 closure | Blocked | Compatibility receipt; stop on mismatch. |
-| T04-02 | Add filter DTO/date-range policy and response metadata. | Smith / implementation | T04-01 | Pending | Boundary/reversed/UTC tests. |
-| T04-03 | Implement owner-scoped ORM items/total query in one read transaction, eager strategy, pagination, literal-substring escaping, and duplicate-safe tag predicate. | Smith / implementation | T04-01, T04-02 | Pending | Shared-snapshot/predicate/order/page/query-count evidence. |
-| T04-04 | Implement isolated parameterized raw-SQL stats reader in one read transaction. | Smith / implementation | T04-01 | Pending | Empty/populated/tie/month/cross-user aggregate tests. |
-| T04-05 | Wire protected list/stats routes and operation OpenAPI; register static stats before dynamic ID. | Smith / implementation | T04-02, T04-03, T04-04 | Pending | Route/schema/status/security tests. |
-| T04-06 | Add correctness, EXPLAIN, query-count, raw-SQL-isolation regression tests, and Track 04 process-harness assertions. | Smith / implementation | T04-03, T04-04, T04-05 | Pending | Deterministic ledger, query-count, and EXPLAIN receipts; `scripts/verify-track-04.sh` proves real filter/stats HTTP flows, relevant supported DB inspection, base JSON-Line fields/safe correlation/redaction/exactly-one-owning-boundary exception behavior, ephemeral response/token handling and sentinel absence, and cleanup without claiming N+1 from process smoke alone. |
-| T04-07 | Closure validation and evidence recording. | Primary engineering thread | T04-01, T04-02, T04-03, T04-04, T04-05, T04-06 | Pending | Actual passing deterministic filter/date/pagination/query-count/raw-SQL tests, quality/diff/hygiene review, and `bash scripts/verify-track-04.sh`; TEST-REPORT records commands/results/versions/selectors/cleanup, guideline conformance, EXPLAIN/query-count evidence, gaps, and retained Track 05 boundary. |
+| T04-01 | Verify Track 03 closure and delivered auth/error/CRUD/query seams. | Primary engineering thread / Scout | Track 03 closure | Complete | Track 03 merge `4df99c9` is clean and fully evidenced; existing auth/session, CRUD DTO/repository/service/router, UTC storage, indexes, top-tag setting, and harness seams are compatible. No migration or ADR change is justified. |
+| T04-02 | Add filter DTO/date-range policy and response metadata. | Smith / implementation | T04-01 | Complete | Strict aliases, canonical dates, reversed/open ranges, pagination, literal escaping, immutable stats DTOs, and 100% branch coverage passed. |
+| T04-03 | Implement owner-scoped ORM items/total query in one read transaction, eager strategy, pagination, literal-substring escaping, and duplicate-safe tag predicate. | Smith / implementation | T04-01, T04-02 | Complete | Shared predicates, SQL total/page, correlated tag `EXISTS`, four-statement bound, deterministic WAL interleaving, and page/date/literal edges passed. |
+| T04-04 | Implement isolated parameterized raw-SQL stats reader in one read transaction. | Smith / implementation | T04-01 | Complete | Exactly three owner-scoped bound `TextClause`s; empty/populated/tie/month/mutation/cross-user and WAL snapshot evidence passed. |
+| T04-05 | Wire protected list/stats routes and operation OpenAPI; register static stats before dynamic ID. | Smith / implementation | T04-02, T04-03, T04-04 | Complete | Exact parameters, responses, security, runtime schemas, static routing, and one-connection auth-before-snapshot evidence passed. |
+| T04-06 | Add correctness, EXPLAIN, query-count, raw-SQL-isolation regression tests, and Track 04 process-harness assertions. | Smith / implementation | T04-03, T04-04, T04-05 | Complete | Populated query plans and bounded counts passed; the real-process harness proved HTTP, OpenAPI, live stats, JSONL attribution/redaction, SQLite inspection, source boundaries, descendants, and cleanup without making an N+1 process-smoke claim. |
+| T04-07 | Closure validation and evidence recording. | Primary engineering thread | T04-01, T04-02, T04-03, T04-04, T04-05, T04-06 | Complete | 427 tests and 100% statement/branch coverage passed; migrations, all Track 01--04 harnesses, static gates, hygiene, and independent Mason review passed; `TEST-REPORT.md` records the receipt. |
 
 ## Shared completion gate
 

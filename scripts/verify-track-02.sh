@@ -181,6 +181,7 @@ assert set(openapi["paths"]) == {
     "/api/auth/register",
     "/api/auth/login",
     "/api/bookmarks",
+    "/api/bookmarks/stats",
     "/api/bookmarks/{bookmark_id}",
 }
 assert openapi["components"]["securitySchemes"]["BearerAuth"] == {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
