@@ -5,11 +5,19 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from datetime import timedelta
+from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
+from fastapi.openapi.utils import get_openapi
 from sqlalchemy import Engine
 
 from app.api.errors import register_exception_handlers, unexpected_error_response
+from app.auth.passwords import PasswordHasher
+from app.auth.router import install_test_protected_route
+from app.auth.router import router as auth_router
+from app.auth.security import AccessTokenCodec
+from app.core.clock import SystemClock
 from app.core.config import Settings
 from app.core.logging import configure_logging, log_event, log_exception
 from app.db.engine import create_database_engine, create_session_factory
@@ -17,6 +25,30 @@ from app.db.engine import create_database_engine, create_session_factory
 _APPLICATION_NAME = "Bookmarks API"
 _APPLICATION_VERSION = "0.1.0"
 _RequestHandler = Callable[[Request], Awaitable[Response]]
+
+
+def _install_openapi_security_scheme(app: FastAPI) -> None:
+    """Publish the reusable bearer component without inventing a public protected route."""
+
+    def openapi() -> dict[str, object]:
+        if app.openapi_schema is None:
+            schema = get_openapi(
+                title=app.title,
+                version=app.version,
+                description=app.description,
+                routes=app.routes,
+            )
+            components = schema.setdefault("components", {})
+            security_schemes = components.setdefault("securitySchemes", {})
+            security_schemes["BearerAuth"] = {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+            }
+            app.openapi_schema = schema
+        return app.openapi_schema
+
+    app.openapi = openapi  # type: ignore[method-assign]
 
 
 @asynccontextmanager
@@ -37,6 +69,14 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         engine = create_database_engine(settings)
         app.state.engine = engine
         app.state.session_factory = create_session_factory(engine)
+        app.state.clock = SystemClock()
+        app.state.password_hasher = PasswordHasher()
+        app.state.password_hasher.dummy_hash()
+        app.state.token_codec = AccessTokenCodec(
+            secret=settings.jwt_secret,
+            ttl=timedelta(minutes=settings.access_token_ttl_minutes),
+            clock=app.state.clock,
+        )
     except Exception as error:
         log_exception(
             logger,
@@ -85,6 +125,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=_lifespan,
     )
     app.state.settings = resolved_settings
+    app.include_router(auth_router)
+    install_test_protected_route(app, resolved_settings)
+    _install_openapi_security_scheme(app)
 
     @app.middleware("http")
     async def unexpected_request_boundary(request: Request, call_next: _RequestHandler) -> Response:
@@ -105,6 +148,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 exception=error,
                 message="unexpected HTTP request exception",
                 context={"method": request.method},
+                correlation_id=str(uuid4()),
                 component="http",
             )
             return unexpected_error_response()

@@ -12,7 +12,7 @@ class RegisterRequest(BaseModel):
 
     username: str
     email: str
-    password: SecretStr
+    password: SecretStr = Field(json_schema_extra={"writeOnly": True})
 
 
 class LoginRequest(BaseModel):
@@ -21,7 +21,7 @@ class LoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     email: str
-    password: SecretStr
+    password: SecretStr = Field(json_schema_extra={"writeOnly": True})
 
 
 class PublicUser(BaseModel):

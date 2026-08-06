@@ -57,6 +57,7 @@ def test_factory_honors_injected_settings_and_openapi_without_schema_mutation(
             "description": "Foundation runtime for the Bookmarks API.",
             "version": "0.1.0",
         }
+        assert client.get("/openapi.json").json() == response.json()
         assert app.state.session_factory is not None
     assert not database_path.exists()
 
