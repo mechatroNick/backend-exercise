@@ -5,12 +5,19 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
-from sqlalchemy import Table, delete, exists, select, update
+from sqlalchemy import Table, delete, exists, func, select, update
 from sqlalchemy.engine import CursorResult
+from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import Session
 
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
-from app.bookmarks.policy import BookmarkSnapshot
+from app.bookmarks.policy import (
+    BookmarkSnapshot,
+    literal_like_pattern,
+    utc_midnight_lower_bound,
+    utc_midnight_upper_bound,
+)
+from app.bookmarks.schemas import BookmarkQuery
 
 _BOOKMARKS = cast(Table, Bookmark.__table__)  # type: ignore[attr-defined]
 _BOOKMARK_TAGS = cast(Table, BookmarkTag.__table__)  # type: ignore[attr-defined]
@@ -58,6 +65,39 @@ class BookmarkRepository:
             self._snapshot_from_values(bookmark, tag_names_by_bookmark[self._required_id(bookmark)])
             for bookmark in bookmarks
         ]
+
+    def search_owned(
+        self, user_id: int, query: BookmarkQuery
+    ) -> tuple[list[BookmarkSnapshot], int]:
+        """Return one owner-scoped page and total using exactly shared ORM predicates."""
+        predicates = self._search_predicates(user_id, query)
+        count_statement = select(func.count()).select_from(Bookmark).where(*predicates)
+        total = int(self._session.execute(count_statement).scalar_one())
+        offset = (query.page - 1) * query.page_size
+        if offset >= total:
+            return [], total
+
+        page_statement = (
+            select(Bookmark)
+            .where(*predicates)
+            .order_by(_BOOKMARKS.c.created_at.desc(), _BOOKMARKS.c.id.desc())
+            .offset(offset)
+            .limit(query.page_size)
+        )
+        bookmarks = list(self._session.execute(page_statement).scalars())
+        tag_names_by_bookmark = self._tag_names_for_bookmarks(
+            user_id,
+            [self._required_id(bookmark) for bookmark in bookmarks],
+        )
+        return (
+            [
+                self._snapshot_from_values(
+                    bookmark, tag_names_by_bookmark[self._required_id(bookmark)]
+                )
+                for bookmark in bookmarks
+            ],
+            total,
+        )
 
     def update_owned(self, user_id: int, bookmark_id: int, values: Mapping[str, object]) -> bool:
         """Apply scalar values only when the target bookmark belongs to ``user_id``."""
@@ -113,6 +153,37 @@ class BookmarkRepository:
             _BOOKMARKS.c.user_id == user_id,
         )
         return self._session.execute(statement).scalar_one_or_none() is not None
+
+    @staticmethod
+    def _search_predicates(user_id: int, query: BookmarkQuery) -> tuple[ColumnElement[bool], ...]:
+        predicates: list[ColumnElement[bool]] = [_BOOKMARKS.c.user_id == user_id]
+        if query.tag is not None:
+            tag_matches = exists(
+                select(1)
+                .select_from(_BOOKMARK_TAGS.join(_TAGS, _TAGS.c.id == _BOOKMARK_TAGS.c.tag_id))
+                .where(
+                    _BOOKMARK_TAGS.c.bookmark_id == _BOOKMARKS.c.id,
+                    _TAGS.c.name == query.tag,
+                )
+            )
+            predicates.append(tag_matches)
+        if query.q is not None:
+            predicates.append(
+                func.lower(_BOOKMARKS.c.title).like(
+                    literal_like_pattern(query.q.lower()), escape="\\"
+                )
+            )
+        for column, lower, upper in (
+            (_BOOKMARKS.c.created_at, query.created_from, query.created_to),
+            (_BOOKMARKS.c.updated_at, query.updated_from, query.updated_to),
+        ):
+            if lower is not None:
+                predicates.append(column >= utc_midnight_lower_bound(lower))
+            if upper is not None:
+                upper_bound = utc_midnight_upper_bound(upper)
+                if upper_bound is not None:
+                    predicates.append(column < upper_bound)
+        return tuple(predicates)
 
     def _snapshot(self, bookmark: Bookmark, user_id: int) -> BookmarkSnapshot:
         bookmark_id = self._required_id(bookmark)

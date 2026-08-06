@@ -24,14 +24,14 @@ from app.bookmarks.schemas import (
     BookmarkList,
     BookmarkPatch,
     BookmarkPublic,
+    BookmarkQuery,
     TagPublic,
 )
 from app.core.clock import Clock, normalize_utc
 from app.core.errors import NotFoundError
+from app.db.engine import begin_sqlite_read_snapshot
 
 _TAG_UNIQUE_MESSAGE = "UNIQUE constraint failed: tags.name"
-_BASELINE_PAGE = 1
-_BASELINE_PAGE_SIZE = 20
 
 
 def _is_tag_unique_conflict(error: IntegrityError) -> bool:
@@ -90,14 +90,16 @@ class BookmarkService:
         self._publisher.publish()
         return result
 
-    def list(self, user_id: int) -> BookmarkList:
-        """Return the accepted baseline order, its in-memory total, and first 20 items."""
-        snapshots = self._bookmarks.list_owned(user_id)
+    def list(self, user_id: int, query: BookmarkQuery | None = None) -> BookmarkList:
+        """Return one owner-scoped filtered page from a stable SQLite read snapshot."""
+        resolved_query = query or BookmarkQuery()
+        begin_sqlite_read_snapshot(self._session)
+        snapshots, total = self._bookmarks.search_owned(user_id, resolved_query)
         return BookmarkList(
-            items=tuple(_public_bookmark(snapshot) for snapshot in snapshots[:_BASELINE_PAGE_SIZE]),
-            total=len(snapshots),
-            page=_BASELINE_PAGE,
-            page_size=_BASELINE_PAGE_SIZE,
+            items=tuple(_public_bookmark(snapshot) for snapshot in snapshots),
+            total=total,
+            page=resolved_query.page,
+            page_size=resolved_query.page_size,
         )
 
     def get(self, user_id: int, bookmark_id: int) -> BookmarkPublic:

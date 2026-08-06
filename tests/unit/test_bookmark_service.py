@@ -15,7 +15,7 @@ from app.bookmarks.events import DomainEventPublisher
 from app.bookmarks.models import Bookmark, Tag
 from app.bookmarks.policy import BookmarkSnapshot
 from app.bookmarks.repository import BookmarkRepository, TagRepository
-from app.bookmarks.schemas import BookmarkCreate, BookmarkPatch
+from app.bookmarks.schemas import BookmarkCreate, BookmarkPatch, BookmarkQuery
 from app.bookmarks.service import BookmarkService, _bookmark_id, _is_tag_unique_conflict
 from app.core.clock import Clock
 from app.core.errors import NotFoundError
@@ -125,9 +125,12 @@ class FakeBookmarks:
         self.session.calls.append("bookmark.get")
         return self.snapshot if self.present else None
 
-    def list_owned(self, _user_id: int) -> list[BookmarkSnapshot]:
-        self.session.calls.append("bookmark.list")
-        return self.list_result
+    def search_owned(
+        self, _user_id: int, query: BookmarkQuery
+    ) -> tuple[list[BookmarkSnapshot], int]:
+        self.session.calls.append("bookmark.search")
+        start = (query.page - 1) * query.page_size
+        return self.list_result[start : start + query.page_size], len(self.list_result)
 
     def replace_tag_links_owned(self, user_id: int, bookmark_id: int, tag_ids: list[int]) -> bool:
         self.session.calls.append("bookmark.links")
@@ -272,7 +275,9 @@ def test_create_uses_one_instant_commits_once_and_publishes_after_the_durable_sn
     ]
 
 
-def test_reads_are_transaction_time_and_publisher_inert_and_list_is_fixed_first_twenty() -> None:
+def test_reads_are_transaction_time_and_publisher_inert_and_list_is_sql_paginated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     session = FakeSession()
     snapshots = [_snapshot(id=index, title=f"bookmark-{index}") for index in range(1, 24)]
     bookmarks = FakeBookmarks(session, snapshot=snapshots[0])
@@ -280,14 +285,20 @@ def test_reads_are_transaction_time_and_publisher_inert_and_list_is_fixed_first_
     clock = FakeClock()
     publisher = FakePublisher()
     service = _service(session, bookmarks=bookmarks, clock=clock, publisher=publisher)
+    snapshot_calls: list[Session] = []
+    monkeypatch.setattr(
+        "app.bookmarks.service.begin_sqlite_read_snapshot",
+        lambda value: snapshot_calls.append(value),
+    )
 
     assert service.get(7, 1).id == 1
-    result = service.list(7)
+    result = service.list(7, BookmarkQuery(page=2, page_size=3))
 
-    assert [item.id for item in result.items] == list(range(1, 21))
-    assert (result.total, result.page, result.page_size) == (23, 1, 20)
+    assert [item.id for item in result.items] == [4, 5, 6]
+    assert (result.total, result.page, result.page_size) == (23, 2, 3)
     assert session.commits == session.rollbacks == clock.calls == publisher.count == 0
-    assert session.calls == ["bookmark.get", "bookmark.list"]
+    assert session.calls == ["bookmark.get", "bookmark.search"]
+    assert snapshot_calls == [cast(Session, session)]
 
 
 @pytest.mark.parametrize(
