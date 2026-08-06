@@ -21,18 +21,33 @@ stop_server() {
   targets+=("$pid"); for target in "${targets[@]}"; do kill -TERM "$target" 2>/dev/null || true; done
   for _ in {1..50}; do kill -0 "$pid" 2>/dev/null || break; sleep 0.1; done
   for target in "${targets[@]}"; do kill -0 "$target" 2>/dev/null && kill -KILL "$target" 2>/dev/null || true; done
-  wait "$pid" 2>/dev/null || status=$?; [[ "$status" == 0 || "$status" == 143 || "$status" == 137 ]] || fail 'bootstrap returned an unexpected status'
-  for target in "${targets[@]}"; do kill -0 "$target" 2>/dev/null && fail 'bootstrap descendant remained'; done
+  wait "$pid" 2>/dev/null || status=$?; [[ "$status" == 0 || "$status" == 143 || "$status" == 137 ]] || return 1
+  for target in "${targets[@]}"; do kill -0 "$target" 2>/dev/null && return 1; done
   pid=""
 }
 cleanup() { local original=$? status=0; trap - EXIT; stop_server || status=1; if [[ -d "$work" && "$work" == "${prefix}"* ]]; then rm -rf -- "$work" || status=1; [[ ! -e "$work" ]] || status=1; else status=1; fi; [[ "$status" == 0 ]] && printf 'Track 05 cleanup: removed verified protected artifacts\n'; [[ "$original" == 0 ]] || exit "$original"; exit "$status"; }
 trap cleanup EXIT
+
+if [[ "${TRACK05_SELF_TEST:-0}" == "1" ]]; then
+  printf 'private cleanup sentinel' >"${work}/self-test-secret"
+  ( exit 42 ) &
+  pid="$!"
+  sleep 0.1
+  exit 97
+fi
 
 cd "$root"; [[ -d .git && -f Makefile ]] || fail 'wrong repository root'; chmod 700 "$work"
 export DATABASE_URL="sqlite:///${database_path}" APP_ENV=test
 export UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/backend-sample-uv-cache}" UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-/private/tmp/backend-sample-python}"
 export JWT_SECRET="$("$uv" run python -c 'import secrets; print(secrets.token_urlsafe(48))')"
 export COVERAGE_FILE="${work}/.coverage"
+cleanup_probe="${work}/cleanup-probe"
+mkdir -m 700 "${cleanup_probe}"
+cleanup_probe_status=0
+TMPDIR="${cleanup_probe}" TRACK05_SELF_TEST=1 bash "$0" >"${work}/cleanup-self-test.receipt" 2>&1 || cleanup_probe_status=$?
+[[ "${cleanup_probe_status}" == 97 ]] || fail 'cleanup self-test did not preserve the original failure status'
+[[ -z "$(find "${cleanup_probe}" -mindepth 1 -print -quit)" ]] || fail 'cleanup self-test retained a private workspace'
+printf 'Track 05 cleanup self-test: unexpected child status preserved and private workspace removed\n'
 port="$("$uv" run python - <<'PY'
 import socket
 with socket.socket() as s:
@@ -43,16 +58,16 @@ PY
 for track in 01 02 03 04; do
   if bash "scripts/verify-track-${track}.sh" >"${work}/upstream-${track}.receipt" 2>&1; then printf 'Track 05 upstream selector scripts/verify-track-%s.sh: passed\n' "$track"; else fail "upstream Track ${track} failed"; fi
 done
-mandatory=(tests/contract/test_runtime_contract.py tests/contract/test_schemathesis_gets.py tests/contract/test_mandatory_gate_meta.py)
+mandatory=(tests/contract/test_runtime_contract.py tests/contract/test_schemathesis_gets.py tests/contract/test_mandatory_gate_meta.py tests/contract/test_openapi_metadata.py tests/integration/test_bookmark_query_plans.py tests/integration/test_bookmark_search.py tests/integration/test_bookmark_stats_reader.py tests/unit/test_bookmark_stats_reader.py tests/unit/test_logging.py)
 "$uv" run pytest --collect-only -q -m mandatory -p tests.contract.mandatory_gate --mandatory-gate --strict-config --strict-markers "${mandatory[@]}" >"${work}/mandatory-collect.receipt"
-[[ "$(rg -c '^tests/contract/.*::' "${work}/mandatory-collect.receipt")" == 43 ]] || fail 'mandatory selector count changed'
+[[ "$(rg -c '^tests/.*::' "${work}/mandatory-collect.receipt")" == 79 ]] || fail 'mandatory selector count changed'
 "$uv" run pytest -q -m mandatory -p tests.contract.mandatory_gate --mandatory-gate --strict-config --strict-markers "${mandatory[@]}" >"${work}/mandatory-execution.receipt"
-printf 'Track 05 mandatory selector: 43 collected and executed\n'
-"$uv" run pytest -q tests/integration/test_bookmark_query_plans.py >"${work}/query-plan.receipt"
-"$uv" run pytest -q tests/integration/test_bookmark_stats_reader.py tests/unit/test_bookmark_stats_reader.py >"${work}/raw-sql.receipt"
-"$uv" run pytest -q tests/unit/test_logging.py >"${work}/logging.receipt"
-printf 'Track 05 selectors: query-plan, raw-SQL boundary, and JSON Lines logging passed\n'
-"$uv" run coverage erase; "$uv" run coverage run -m pytest -q >"${work}/coverage.receipt"; "$uv" run coverage report --fail-under=100 >>"${work}/coverage.receipt"
+! rg -q '[1-9][0-9]* (skipped|xfailed|xpassed|deselected)' "${work}/mandatory-execution.receipt" || fail 'mandatory execution summary contains a masked or deselected result'
+printf 'Track 05 mandatory selector: 79 collected and executed; query-plan, raw-SQL, and JSON Lines evidence included\n'
+"$uv" run coverage erase
+"$uv" run coverage run -m pytest -q >"${work}/coverage.receipt"
+"$uv" run coverage report --fail-under=100 >>"${work}/coverage.receipt"
+! rg -q '[1-9][0-9]* (skipped|xfailed|xpassed|deselected)' "${work}/coverage.receipt" || fail 'full coverage suite contains a masked or deselected result'
 printf 'Track 05 coverage selector: app statement and branch coverage 100%% passed\n'
 
 make bootstrap HOST=127.0.0.1 PORT="$port" >"$log_path" 2>&1 & pid="$!"

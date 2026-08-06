@@ -141,3 +141,25 @@ def test_target(abort_before_call):
     result = _run_gate(tmp_path, source, _TARGET_NODEID)
     assert result.returncode == pytest.ExitCode.TESTS_FAILED
     assert "stop before call" in result.stdout
+
+
+@pytest.mark.mandatory
+@pytest.mark.parametrize("statement", ("pytest.skip('teardown')", "pytest.xfail('teardown')"))
+def test_gate_rejects_teardown_skip_and_xfail(tmp_path: Path, statement: str) -> None:
+    source = f"""\
+import pytest
+
+
+@pytest.fixture
+def teardown_mask():
+    yield
+    {statement}
+
+
+@pytest.mark.mandatory
+def test_target(teardown_mask):
+    assert True
+"""
+    result = _run_gate(tmp_path, source, _TARGET_NODEID)
+    assert result.returncode == pytest.ExitCode.TESTS_FAILED
+    assert "mandatory test skipped or xfailed during execution" in result.stdout

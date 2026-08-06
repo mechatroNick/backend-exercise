@@ -6,6 +6,7 @@ import sqlite3
 from datetime import UTC, date, datetime, timedelta
 from threading import Event, Thread
 
+import pytest
 from sqlalchemy import Engine, event, select
 from sqlalchemy.engine import Connection
 from sqlmodel import Session
@@ -15,6 +16,8 @@ from app.bookmarks.models import Bookmark, BookmarkTag, Tag
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.schemas import BookmarkList, BookmarkQuery
 from app.bookmarks.service import BookmarkService
+
+pytestmark = pytest.mark.mandatory
 
 _NOW = datetime(2026, 8, 6, 12, 0, tzinfo=UTC)
 

@@ -9,6 +9,7 @@ import pytest
 _MANIFEST = Path(__file__).with_name("mandatory-nodeids.txt")
 _EXPECTED = pytest.StashKey[set[str]]()
 _EXECUTED = pytest.StashKey[set[str]]()
+_CALL_PASSED = pytest.StashKey[set[str]]()
 
 
 def _expected_nodeids() -> set[str]:
@@ -34,6 +35,7 @@ def pytest_configure(config: pytest.Config) -> None:
         raise pytest.UsageError("mandatory node ID manifest must not be empty")
     config.stash[_EXPECTED] = expected
     config.stash[_EXECUTED] = set()
+    config.stash[_CALL_PASSED] = set()
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -71,15 +73,19 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[object]):
         return
     if item.nodeid not in item.config.stash[_EXPECTED]:
         return
-    if report.when == "call":
-        if report.skipped or getattr(report, "wasxfail", False):
-            report.outcome = "failed"
-            report.longrepr = "mandatory test skipped or xfailed during execution"
-        elif report.passed:
-            item.config.stash[_EXECUTED].add(item.nodeid)
-    elif report.when == "setup" and report.skipped:
+    if report.skipped or getattr(report, "wasxfail", False):
         report.outcome = "failed"
-        report.longrepr = "mandatory test skipped during setup"
+        report.longrepr = "mandatory test skipped or xfailed during execution"
+        item.config.stash[_CALL_PASSED].discard(item.nodeid)
+        item.config.stash[_EXECUTED].discard(item.nodeid)
+    elif report.when == "call":
+        if report.passed:
+            item.config.stash[_CALL_PASSED].add(item.nodeid)
+    elif report.when == "teardown" and item.nodeid in item.config.stash[_CALL_PASSED]:
+        if report.passed:
+            item.config.stash[_EXECUTED].add(item.nodeid)
+        else:
+            item.config.stash[_CALL_PASSED].discard(item.nodeid)
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

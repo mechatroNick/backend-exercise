@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import pytest
+
 from app.core.config import Settings
 from app.main import create_app
+
+pytestmark = pytest.mark.mandatory
 
 
 def test_public_openapi_has_complete_fictional_metadata_without_contract_drift() -> None:

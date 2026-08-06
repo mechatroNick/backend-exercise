@@ -5,11 +5,14 @@ from __future__ import annotations
 from threading import Event, Thread
 from typing import Any
 
+import pytest
 from sqlalchemy import Engine, TextClause, event, text
 from sqlmodel import Session
 
 from app.bookmarks.stats.raw_sql import MONTHS_SQL, TOP_TAGS_SQL, TOTALS_SQL, BookmarkStatsReader
 from app.bookmarks.stats.schemas import BookmarksPerMonth, BookmarkStats, TopTag
+
+pytestmark = pytest.mark.mandatory
 
 _OWNER_ID = 1
 _OTHER_USER_ID = 2

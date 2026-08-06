@@ -17,6 +17,8 @@ from app.bookmarks.stats.raw_sql import (
     BookmarkStatsReader,
 )
 
+pytestmark = pytest.mark.mandatory
+
 
 @pytest.mark.parametrize("value", [True, False, 0, -1, 101])
 def test_reader_rejects_invalid_top_tag_limits(value: int | bool) -> None:
