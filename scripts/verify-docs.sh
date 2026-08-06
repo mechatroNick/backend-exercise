@@ -36,6 +36,12 @@ require_file .tracks/ADR/ADR-003-identity-and-token-security.md
 require_file .tracks/ADR/ADR-004-event-driven-statistics-service.md
 require_file .tracks/ADR/ADR-005-windowed-statistics-data-points.md
 require_file .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md
+require_file .tracks/07-weekly-projections/SPEC.md
+require_file .tracks/07-weekly-projections/PLAN.md
+require_file .tracks/07-weekly-projections/HISTORY.md
+require_file .tracks/08-final-handoff/SPEC.md
+require_file .tracks/08-final-handoff/PLAN.md
+require_file .tracks/08-final-handoff/HISTORY.md
 
 require_command() {
     command -v "$1" >/dev/null 2>&1 || fail "required command is unavailable: $1"
@@ -67,6 +73,29 @@ rg -q 'ADR-006-engineering-verification-and-closure-evidence\.md' .tracks/README
 
 track_dir_count="$(find .tracks -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9]-*' -print | wc -l | tr -d ' ')"
 [[ "${track_dir_count}" -eq 9 ]] || fail "expected 9 track directories; found ${track_dir_count}"
+
+rg -q 'Status: \*\*Skipped \(owner decision\)\*\*' \
+    .tracks/07-weekly-projections/SPEC.md \
+    || fail 'Track 07 specification is not explicitly skipped'
+rg -q 'Status: \*\*Skipped \(owner decision\)\*\*' \
+    .tracks/07-weekly-projections/PLAN.md \
+    || fail 'Track 07 plan is not explicitly skipped'
+[[ ! -e .tracks/07-weekly-projections/TEST-REPORT.md ]] \
+    || fail 'Track 07 must not have an implementation TEST-REPORT.md'
+[[ ! -e scripts/verify-track-07.sh ]] \
+    || fail 'Track 07 must not have an executable verification harness'
+rg -q 'Track 07 implementation is owner-skipped' \
+    .tracks/00-contract-baseline/SPEC.md \
+    || fail 'Track 00 baseline does not record the Track 07 skip'
+if rg -q 'verify-track-07\.sh|T07-09' .tracks/08-final-handoff/SPEC.md .tracks/08-final-handoff/PLAN.md; then
+    fail 'Track 08 still depends on Track 07 executable closure evidence'
+fi
+for required_bonus in 'seed data' 'Docker' 'rate limiting' 'cursor pagination'; do
+    rg -qi "${required_bonus}" .tracks/08-final-handoff/SPEC.md \
+        || fail "Track 08 specification is missing required bonus: ${required_bonus}"
+    rg -qi "${required_bonus}" .tracks/08-final-handoff/PLAN.md \
+        || fail "Track 08 plan is missing required bonus: ${required_bonus}"
+done
 
 python3 - <<'PY'
 from pathlib import Path
