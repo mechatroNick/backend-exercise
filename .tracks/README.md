@@ -53,7 +53,7 @@ flowchart LR
 | 01 | Foundation, configuration, schema, and migrations | 00 | Complete |
 | 02 | Error contract, registration, login, and JWT authentication | 01 | Complete |
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Complete |
-| 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Ready |
+| 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Complete |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
 | 07 | Weekly developing points and append-only correction revisions | 06 | Planned (implementation-gated) |
@@ -84,6 +84,7 @@ deterministic tests and real-process harness evidence.
 - [Track 04 specification](04-search-stats/SPEC.md)
 - [Track 04 execution plan](04-search-stats/PLAN.md)
 - [Track 04 history](04-search-stats/HISTORY.md)
+- [Track 04 test report](04-search-stats/TEST-REPORT.md)
 - [Track 05 specification](05-mandatory-quality-gate/SPEC.md)
 - [Track 05 execution plan](05-mandatory-quality-gate/PLAN.md)
 - [Track 05 history](05-mandatory-quality-gate/HISTORY.md)

@@ -16,8 +16,8 @@
 
 ## Next action
 
-Freeze the explicit SQLite read-snapshot design, then execute T04-02 query DTO and
-date-policy work without changing public semantics or downstream ownership.
+Track 04 is complete. Begin Track 05 only from the verified Track 04 merge and retain
+Track 05's API-wide conformance ownership.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -69,3 +69,33 @@ date-policy work without changing public semantics or downstream ownership.
 - Preserved boundaries: ordinary search remains ORM; raw SQL is isolated to canonical
   current stats; no snapshot/header/queue/worker/history behavior is introduced; and
   broad API conformance remains Track 05.
+
+## 2026-08-06 — Implementation and executable closure completed
+
+- Added strict query/date/pagination contracts, literal LIKE escaping, immutable
+  current-statistics DTOs, and an explicit SQLite read-snapshot seam that promotes
+  SQLAlchemy's logical read state to a real `BEGIN DEFERRED` transaction without
+  taking commit or rollback ownership.
+- Replaced the baseline in-memory list with owner-scoped ORM count/page/tag loading
+  from one shared predicate tuple. Exact tags use correlated `EXISTS`; ordering is
+  `created_at DESC, id DESC`; populated reads remain four feature statements including
+  transaction control; no ordinary-search raw SQL or migration was introduced.
+- Added the isolated live statistics reader with exactly three named, parameterized,
+  user-scoped `TextClause`s for totals, top tags, and chronological months. Stable WAL
+  interleaving tests prove search and statistics never mix generations.
+- Exposed exact protected list parameters and static `/api/bookmarks/stats` before the
+  dynamic ID route. Real HTTP instrumentation proves authentication, snapshot start,
+  and all feature reads use one DB-API connection in that order.
+- Populated 250 target and 250 other-user bookmarks for executable query-plan evidence;
+  delivered owner/date, tag-name, and association indexes are used. Literal substring
+  search intentionally carries no title-index claim and no schema change was justified.
+- Added the real-process Track 04 harness for literal/date/page/owner/stat/OpenAPI flows,
+  live multi-month statistics changes, JSONL attribution and redaction, guarded process
+  and credential cleanup, SQLite inspection, and source-boundary scans. Inherited Track
+  01--03 harnesses remain green after their exact route inventories were advanced.
+- Closure passed 427 tests with 1,492 application statements and 292 branches at 100%,
+  migrations, lock/static/documentation/hygiene gates, all four live harnesses, and an
+  independent Mason Medium review with no defects or blocking evidence gaps.
+- Retained boundaries: SQLite ASCII case behavior and unindexed literal substring
+  search are explicit; API-wide conformance is Track 05; queue/dirty recovery/snapshots/
+  health are Track 06; weekly history and corrections are Track 07.
