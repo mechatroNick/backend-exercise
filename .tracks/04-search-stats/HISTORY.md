@@ -10,13 +10,14 @@
 
 ## Current state
 
-- Specification: Planned
-- Plan: Planned
-- Implementation: Dependency-gated; not started
+- Specification: Ready
+- Plan: Ready
+- Implementation: Authorized; T04-01 compatibility gate complete
 
 ## Next action
 
-After Track 03 closes, run T04-01 before implementation.
+Freeze the explicit SQLite read-snapshot design, then execute T04-02 query DTO and
+date-policy work without changing public semantics or downstream ownership.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -45,3 +46,26 @@ After Track 03 closes, run T04-01 before implementation.
 - Retained deterministic query-count instrumentation and recorded `EXPLAIN QUERY PLAN`
   as the only N+1/index proof; no Track 04 test, process, migration, harness, or
   runtime validation was executed by this planning-only correction.
+
+## 2026-08-06 — Track 03 compatibility gate passed
+
+- Opened `codex/track-04-search-stats` from verified Track 03 merge `4df99c9`; the
+  worktree was clean and Track 03's 348-test, 100%-coverage, migration, review, and
+  real-process closure receipts were present.
+- Confirmed direct reuse of bearer `CurrentSubject`, request-scoped Session, strict
+  bookmark/public/list DTOs, owner-scoped repositories, deterministic list ordering,
+  UTC fixed-width timestamp storage, static-route reservation, `TOP_TAGS_LIMIT`, and
+  the disposable live-harness pattern.
+- Populated and empty-schema discovery plans used the delivered owner/date and
+  association indexes. Exact-tag `EXISTS`, owner/date ordering, and stats joins have
+  usable plans; literal substring and aggregate grouping correctly require scans or
+  temporary B-trees. No schema/index migration or ADR change is justified.
+- A disposable driver probe found an important implementation constraint: after an
+  authenticated Session `SELECT`, SQLAlchemy reports a logical transaction while the
+  Python 3.12 SQLite connection remains outside a real database transaction in legacy
+  mode. Track 04 must explicitly prove one actual read snapshot across items, total,
+  tag loads, and stats aggregates rather than equating shared Session state with
+  SQLite snapshot consistency.
+- Preserved boundaries: ordinary search remains ORM; raw SQL is isolated to canonical
+  current stats; no snapshot/header/queue/worker/history behavior is introduced; and
+  broad API conformance remains Track 05.

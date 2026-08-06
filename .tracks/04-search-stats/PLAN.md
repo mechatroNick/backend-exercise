@@ -2,12 +2,12 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
-- Status: Planned
-- Active item: None; dependency-gated on Track 03 closure
+- Status: Ready
+- Active item: T04-02 query DTO/date policy after the passed T04-01 compatibility gate
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T04-01 | Verify Track 03 closure and delivered auth/error/CRUD/query seams. | Smith / implementation | Track 03 closure | Blocked | Compatibility receipt; stop on mismatch. |
+| T04-01 | Verify Track 03 closure and delivered auth/error/CRUD/query seams. | Primary engineering thread / Scout | Track 03 closure | Complete | Track 03 merge `4df99c9` is clean and fully evidenced; existing auth/session, CRUD DTO/repository/service/router, UTC storage, indexes, top-tag setting, and harness seams are compatible. No migration or ADR change is justified. |
 | T04-02 | Add filter DTO/date-range policy and response metadata. | Smith / implementation | T04-01 | Pending | Boundary/reversed/UTC tests. |
 | T04-03 | Implement owner-scoped ORM items/total query in one read transaction, eager strategy, pagination, literal-substring escaping, and duplicate-safe tag predicate. | Smith / implementation | T04-01, T04-02 | Pending | Shared-snapshot/predicate/order/page/query-count evidence. |
 | T04-04 | Implement isolated parameterized raw-SQL stats reader in one read transaction. | Smith / implementation | T04-01 | Pending | Empty/populated/tie/month/cross-user aggregate tests. |
