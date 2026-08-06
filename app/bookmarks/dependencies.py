@@ -11,6 +11,7 @@ from app.auth.dependencies import get_session
 from app.bookmarks.events import NoOpDomainEventPublisher
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.service import BookmarkService
+from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.core.clock import Clock
 
 
@@ -29,4 +30,15 @@ def get_bookmark_service(
     )
 
 
-__all__ = ["get_bookmark_service"]
+def get_bookmark_stats_reader(
+    request: Request,
+    session: Annotated[Session, Depends(get_session)],
+) -> BookmarkStatsReader:
+    """Compose the live current-stats reader from the same request-scoped session."""
+    return BookmarkStatsReader(
+        session=session,
+        top_tags_limit=request.app.state.settings.top_tags_limit,
+    )
+
+
+__all__ = ["get_bookmark_service", "get_bookmark_stats_reader"]

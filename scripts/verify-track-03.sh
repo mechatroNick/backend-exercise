@@ -182,11 +182,11 @@ assert not_found == load("cross-get.response") == load("cross-patch.response") =
 assert load("unauthorized.response") == {"error":{"code":"authentication_failed","message":"Authentication failed.","details":None}}
 assert load("invalid-id.response")["error"]["code"] == "validation_error"
 assert load("fault.response") == {"error":{"code":"internal_error","message":"Internal server error.","details":None}}
-paths=openapi["paths"]; expected={"/api/bookmarks","/api/bookmarks/{bookmark_id}"}; assert expected <= set(paths) and "/api/bookmarks/stats" not in paths
+paths=openapi["paths"]; expected={"/api/bookmarks","/api/bookmarks/{bookmark_id}"}; assert expected <= set(paths)
 assert openapi["components"]["securitySchemes"]["BearerAuth"] == {"type":"http","scheme":"bearer","bearerFormat":"JWT"}
 assert set(paths["/api/bookmarks"]) == {"get","post"}; assert set(paths["/api/bookmarks/{bookmark_id}"]) == {"get","patch","delete"}
 assert set(paths["/api/bookmarks"]["post"]["responses"]) == {"201","401","422","500"}
-assert set(paths["/api/bookmarks"]["get"]["responses"]) == {"200","401","500"}
+assert set(paths["/api/bookmarks"]["get"]["responses"]) == {"200","401","422","500"}
 assert set(paths["/api/bookmarks/{bookmark_id}"]["get"]["responses"]) == {"200","401","404","422","500"}
 assert set(paths["/api/bookmarks/{bookmark_id}"]["patch"]["responses"]) == {"200","401","404","422","500"}
 assert set(paths["/api/bookmarks/{bookmark_id}"]["delete"]["responses"]) == {"204","401","404","422","500"}
@@ -241,10 +241,3 @@ elif [[ "${scan_status}" -ne 1 ]]; then
 fi
 
 scan_status=0
-rg -n '^[[:space:]]*"/stats"' app/bookmarks/router.py || scan_status=$?
-if [[ "${scan_status}" -eq 0 ]]; then
-  printf 'Track 03 router unexpectedly exposes /stats\n' >&2
-  exit 1
-elif [[ "${scan_status}" -ne 1 ]]; then
-  exit "${scan_status}"
-fi

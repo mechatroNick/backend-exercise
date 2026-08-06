@@ -323,6 +323,7 @@ def test_auth_runtime_bodies_validate_against_the_generated_openapi_schema(
         "/api/auth/register",
         "/api/auth/login",
         "/api/bookmarks",
+        "/api/bookmarks/stats",
         "/api/bookmarks/{bookmark_id}",
     }
     serialized = str(document)
