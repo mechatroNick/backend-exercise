@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import UTC, date, datetime, timedelta
 from threading import Event, Thread
+from uuid import UUID
 
 import pytest
 from sqlalchemy import Engine, event, select
@@ -12,14 +13,17 @@ from sqlalchemy.engine import Connection
 from sqlmodel import Session
 
 from app.auth.models import User
+from app.bookmarks.events import BookmarkStatsInvalidated, PublishOutcome
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.schemas import BookmarkList, BookmarkQuery
 from app.bookmarks.service import BookmarkService
+from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository
 
 pytestmark = pytest.mark.mandatory
 
 _NOW = datetime(2026, 8, 6, 12, 0, tzinfo=UTC)
+_CORRELATION_ID = UUID("12345678-1234-5678-9234-567812345678")
 
 
 class _Clock:
@@ -31,8 +35,10 @@ class _Publisher:
     def __init__(self) -> None:
         self.calls = 0
 
-    def publish(self) -> None:
+    def publish(self, event: BookmarkStatsInvalidated) -> PublishOutcome:
+        del event
         self.calls += 1
+        return PublishOutcome.ENQUEUED
 
 
 def _user(session: Session, name: str) -> User:
@@ -78,6 +84,8 @@ def _service(session: Session, publisher: _Publisher) -> BookmarkService:
         tags=TagRepository(session),
         clock=_Clock(),  # type: ignore[arg-type]
         publisher=publisher,  # type: ignore[arg-type]
+        dirty=BookmarkStatsDirtyRepository(session),
+        correlation_id_factory=lambda: _CORRELATION_ID,
     )
 
 

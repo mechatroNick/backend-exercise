@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from threading import Barrier
 from typing import cast
+from uuid import UUID
 
 import pytest
 from sqlalchemy import Connection, Engine, event, select
@@ -15,16 +16,23 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
 from app.auth.models import User
-from app.bookmarks.events import DomainEventPublisher
+from app.bookmarks.events import (
+    BookmarkMutationKind,
+    BookmarkStatsInvalidated,
+    DomainEventPublisher,
+    PublishOutcome,
+)
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.schemas import BookmarkCreate, BookmarkPatch
-from app.bookmarks.service import BookmarkService
+from app.bookmarks.service import BookmarkService, DirtyMarkerWriter
+from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository, DirtyReason
 from app.core.clock import Clock
 from app.core.errors import NotFoundError
 
 _NOW = datetime(2026, 8, 6, 12, 0, tzinfo=UTC)
 _LATER = _NOW + timedelta(seconds=1)
+_CORRELATION_ID = UUID("12345678-1234-5678-9234-567812345678")
 
 
 class FixedClock:
@@ -38,14 +46,47 @@ class FixedClock:
 
 
 class RecordingPublisher:
-    def __init__(self, *, failure: Exception | None = None) -> None:
-        self.failure = failure
+    def __init__(self) -> None:
         self.calls = 0
+        self.events: list[BookmarkStatsInvalidated] = []
 
-    def publish(self) -> None:
+    def publish(self, event: BookmarkStatsInvalidated) -> PublishOutcome:
         self.calls += 1
-        if self.failure is not None:
-            raise self.failure
+        self.events.append(event)
+        return PublishOutcome.ENQUEUED
+
+
+class CommitObservingPublisher:
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+        self.events: list[BookmarkStatsInvalidated] = []
+        self.visible_bookmark_counts: list[int] = []
+        self.visible_generations: list[int] = []
+
+    def publish(self, event_value: BookmarkStatsInvalidated) -> PublishOutcome:
+        with Session(self._engine) as verification:
+            self.visible_bookmark_counts.append(
+                len(verification.execute(select(Bookmark)).scalars().all())
+            )
+            marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+            self.visible_generations.append(marker.generation)
+        self.events.append(event_value)
+        return PublishOutcome.ENQUEUED
+
+
+class MarkThenFailDirty:
+    def __init__(self, session: Session) -> None:
+        self._repository = BookmarkStatsDirtyRepository(session)
+
+    def mark_dirty(
+        self,
+        user_id: int,
+        window_start: datetime,
+        reason: DirtyReason,
+        marked_at: datetime,
+    ) -> None:
+        self._repository.mark_dirty(user_id, window_start, reason, marked_at)
+        raise RuntimeError("failure after dirty upsert")
 
 
 class _WinnerInsertedAfterMissTagRepository(TagRepository):
@@ -101,16 +142,19 @@ def _add_user(session: Session, username: str) -> User:
 def _service(
     session: Session,
     clock: FixedClock,
-    publisher: RecordingPublisher | None = None,
+    publisher: DomainEventPublisher | None = None,
     *,
     tags: TagRepository | None = None,
+    dirty: DirtyMarkerWriter | None = None,
 ) -> BookmarkService:
     return BookmarkService(
         session=session,
         bookmarks=BookmarkRepository(session),
         tags=tags or TagRepository(session),
         clock=cast(Clock, clock),
-        publisher=cast(DomainEventPublisher, publisher or RecordingPublisher()),
+        publisher=publisher or RecordingPublisher(),
+        dirty=dirty or BookmarkStatsDirtyRepository(session),
+        correlation_id_factory=lambda: _CORRELATION_ID,
     )
 
 
@@ -123,6 +167,55 @@ def _create(**changes: object) -> BookmarkCreate:
     }
     values.update(changes)
     return BookmarkCreate(**values)
+
+
+def test_create_commits_canonical_state_and_marker_before_typed_publish(
+    migrated_engine: Engine,
+) -> None:
+    with Session(migrated_engine) as session:
+        user = _add_user(session, "alice")
+        assert user.id is not None
+        session.commit()
+        publisher = CommitObservingPublisher(migrated_engine)
+
+        response = _service(session, FixedClock(_NOW), publisher).create(user.id, _create())
+
+        assert publisher.visible_bookmark_counts == [1]
+        assert publisher.visible_generations == [1]
+        assert publisher.events == [
+            BookmarkStatsInvalidated(
+                user_id=user.id,
+                window_start=datetime(2026, 8, 3, tzinfo=UTC),
+                mutation_kind=BookmarkMutationKind.CREATED,
+                bookmark_id=response.id,
+                occurred_at=_NOW,
+                correlation_id=_CORRELATION_ID,
+            )
+        ]
+
+
+def test_failure_after_real_dirty_upsert_rolls_back_bookmark_marker_and_publication(
+    migrated_engine: Engine,
+) -> None:
+    with Session(migrated_engine) as session:
+        user = _add_user(session, "alice")
+        assert user.id is not None
+        session.commit()
+        publisher = RecordingPublisher()
+
+        with pytest.raises(RuntimeError, match="failure after dirty upsert"):
+            _service(
+                session,
+                FixedClock(_NOW),
+                publisher,
+                dirty=MarkThenFailDirty(session),
+            ).create(user.id, _create())
+
+        assert publisher.calls == 0
+
+    with Session(migrated_engine) as verification:
+        assert verification.execute(select(Bookmark)).scalars().all() == []
+        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
 
 
 def test_create_reuses_and_canonicalizes_tags_allows_duplicate_urls_and_returns_detached_dtos(
@@ -149,6 +242,10 @@ def test_create_reuses_and_canonicalizes_tags_allows_duplicate_urls_and_returns_
         assert first.created_at == first.updated_at == _NOW
         assert second.created_at == second.updated_at == _LATER
         assert publisher.calls == 2
+        assert [event.mutation_kind for event in publisher.events] == [
+            BookmarkMutationKind.CREATED,
+            BookmarkMutationKind.CREATED,
+        ]
     finally:
         if session.is_active:
             session.close()
@@ -160,6 +257,8 @@ def test_create_reuses_and_canonicalizes_tags_allows_duplicate_urls_and_returns_
         ]
         assert len(verification.execute(select(Bookmark)).scalars().all()) == 2
         assert len(verification.execute(select(BookmarkTag)).scalars().all()) == 3
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.generation, marker.reason) == (2, DirtyReason.CREATE)
 
 
 def test_patch_materiality_owner_concealment_rollback_and_orphan_tag_delete(
@@ -201,11 +300,19 @@ def test_patch_materiality_owner_concealment_rollback_and_orphan_tag_delete(
 
         service.delete(alice.id, created.id)
         assert publisher.calls == 3
+        assert [event.mutation_kind for event in publisher.events] == [
+            BookmarkMutationKind.CREATED,
+            BookmarkMutationKind.UPDATED,
+            BookmarkMutationKind.DELETED,
+        ]
         assert session.execute(select(BookmarkTag)).scalars().all() == []
         assert session.execute(select(Tag.name).order_by(Tag.name)).scalars().all() == [
             "async",
             "python",
         ]
+        marker = BookmarkStatsDirtyRepository(session).observe()[0]
+        assert marker.window_start == datetime(2026, 8, 3, tzinfo=UTC)
+        assert (marker.generation, marker.reason) == (3, DirtyReason.DELETE)
     finally:
         session.close()
 

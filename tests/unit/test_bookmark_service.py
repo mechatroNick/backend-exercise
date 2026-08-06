@@ -6,22 +6,35 @@ import sqlite3
 from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
 from typing import Any, cast
+from uuid import UUID
 
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
-from app.bookmarks.events import DomainEventPublisher
+from app.bookmarks.events import (
+    BookmarkMutationKind,
+    BookmarkStatsInvalidated,
+    DomainEventPublisher,
+    PublishOutcome,
+)
 from app.bookmarks.models import Bookmark, Tag
 from app.bookmarks.policy import BookmarkSnapshot
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.schemas import BookmarkCreate, BookmarkPatch, BookmarkQuery
-from app.bookmarks.service import BookmarkService, _bookmark_id, _is_tag_unique_conflict
+from app.bookmarks.service import (
+    BookmarkService,
+    DirtyMarkerWriter,
+    _bookmark_id,
+    _is_tag_unique_conflict,
+)
+from app.bookmarks.stats.dirty import DirtyReason
 from app.core.clock import Clock
 from app.core.errors import NotFoundError
 
 _NOW = datetime(2026, 8, 6, 12, 0, tzinfo=UTC)
 _LATER = _NOW + timedelta(seconds=1)
+_CORRELATION_ID = UUID("12345678-1234-5678-9234-567812345678")
 _TAG_UNIQUE_MESSAGE = "UNIQUE constraint failed: tags.name"
 
 
@@ -113,6 +126,7 @@ class FakeBookmarks:
         self.present = True
         self.update_result: bool | None = None
         self.link_result: bool | None = None
+        self.delete_result: bool | None = None
 
     def add(self, bookmark: Bookmark) -> None:
         self.session.calls.append("bookmark.add")
@@ -151,7 +165,7 @@ class FakeBookmarks:
         if self.fail_at == "bookmark.delete":
             raise RuntimeError("delete failed")
         self.deleted.append((user_id, bookmark_id))
-        return self.present
+        return self.present if self.delete_result is None else self.delete_result
 
 
 class FakeTags:
@@ -177,16 +191,46 @@ class FakeTags:
 
 
 class FakePublisher:
-    def __init__(self, *, failure: Exception | None = None, calls: list[str] | None = None) -> None:
-        self.failure = failure
+    def __init__(
+        self,
+        *,
+        outcome: PublishOutcome = PublishOutcome.ENQUEUED,
+        calls: list[str] | None = None,
+    ) -> None:
+        self.outcome = outcome
         self.calls = calls if calls is not None else []
         self.count = 0
+        self.events: list[BookmarkStatsInvalidated] = []
 
-    def publish(self) -> None:
+    def publish(self, event: BookmarkStatsInvalidated) -> PublishOutcome:
         self.calls.append("publish")
         self.count += 1
+        self.events.append(event)
+        return self.outcome
+
+
+class FakeDirty:
+    def __init__(
+        self,
+        session: FakeSession,
+        *,
+        failure: Exception | None = None,
+    ) -> None:
+        self._session = session
+        self.failure = failure
+        self.marks: list[tuple[int, datetime, DirtyReason, datetime]] = []
+
+    def mark_dirty(
+        self,
+        user_id: int,
+        window_start: datetime,
+        reason: DirtyReason,
+        marked_at: datetime,
+    ) -> None:
+        self._session.calls.append("dirty.mark")
         if self.failure is not None:
             raise self.failure
+        self.marks.append((user_id, window_start, reason, marked_at))
 
 
 def _snapshot(**changes: object) -> BookmarkSnapshot:
@@ -221,6 +265,7 @@ def _service(
     tags: FakeTags | None = None,
     clock: FakeClock | None = None,
     publisher: FakePublisher | None = None,
+    dirty: FakeDirty | None = None,
 ) -> BookmarkService:
     return BookmarkService(
         session=cast(Session, session),
@@ -228,6 +273,8 @@ def _service(
         tags=cast(TagRepository, tags or FakeTags(session)),
         clock=cast(Clock, clock or FakeClock()),
         publisher=cast(DomainEventPublisher, publisher or FakePublisher()),
+        dirty=cast(DirtyMarkerWriter, dirty or FakeDirty(session)),
+        correlation_id_factory=lambda: _CORRELATION_ID,
     )
 
 
@@ -237,9 +284,15 @@ def test_create_uses_one_instant_commits_once_and_publishes_after_the_durable_sn
     tags = FakeTags(session, existing={"async": Tag(id=22, name="async")})
     clock = FakeClock(_NOW)
     publisher = FakePublisher(calls=session.calls)
+    dirty = FakeDirty(session)
 
     response = _service(
-        session, bookmarks=bookmarks, tags=tags, clock=clock, publisher=publisher
+        session,
+        bookmarks=bookmarks,
+        tags=tags,
+        clock=clock,
+        publisher=publisher,
+        dirty=dirty,
     ).create(7, _create())
 
     assert response.model_dump(mode="json") == {
@@ -253,6 +306,17 @@ def test_create_uses_one_instant_commits_once_and_publishes_after_the_durable_sn
     }
     assert (bookmarks.added[0].created_at, bookmarks.added[0].updated_at) == (_NOW, _NOW)
     assert bookmarks.links == [(7, 11, [22, 21])]
+    assert dirty.marks == [(7, _NOW, DirtyReason.CREATE, _NOW)]
+    assert publisher.events == [
+        BookmarkStatsInvalidated(
+            user_id=7,
+            window_start=datetime(2026, 8, 3, tzinfo=UTC),
+            mutation_kind=BookmarkMutationKind.CREATED,
+            bookmark_id=11,
+            occurred_at=_NOW,
+            correlation_id=_CORRELATION_ID,
+        )
+    ]
     assert clock.calls == publisher.count == session.commits == 1
     assert session.rollbacks == 0
     assert session.calls == [
@@ -270,6 +334,7 @@ def test_create_uses_one_instant_commits_once_and_publishes_after_the_durable_sn
         "bookmark.links",
         "flush",
         "bookmark.get",
+        "dirty.mark",
         "commit",
         "publish",
     ]
@@ -284,7 +349,14 @@ def test_reads_are_transaction_time_and_publisher_inert_and_list_is_sql_paginate
     bookmarks.list_result = snapshots
     clock = FakeClock()
     publisher = FakePublisher()
-    service = _service(session, bookmarks=bookmarks, clock=clock, publisher=publisher)
+    dirty = FakeDirty(session)
+    service = _service(
+        session,
+        bookmarks=bookmarks,
+        clock=clock,
+        publisher=publisher,
+        dirty=dirty,
+    )
     snapshot_calls: list[Session] = []
     monkeypatch.setattr(
         "app.bookmarks.service.begin_sqlite_read_snapshot",
@@ -298,6 +370,7 @@ def test_reads_are_transaction_time_and_publisher_inert_and_list_is_sql_paginate
     assert (result.total, result.page, result.page_size) == (23, 2, 3)
     assert session.commits == session.rollbacks == clock.calls == publisher.count == 0
     assert session.calls == ["bookmark.get", "bookmark.search"]
+    assert dirty.marks == []
     assert snapshot_calls == [cast(Session, session)]
 
 
@@ -310,13 +383,19 @@ def test_noop_patch_does_no_clock_dml_commit_or_publication(patch: BookmarkPatch
     bookmarks = FakeBookmarks(session)
     clock = FakeClock(_LATER)
     publisher = FakePublisher()
+    dirty = FakeDirty(session)
 
-    response = _service(session, bookmarks=bookmarks, clock=clock, publisher=publisher).patch(
-        7, 11, patch
-    )
+    response = _service(
+        session,
+        bookmarks=bookmarks,
+        clock=clock,
+        publisher=publisher,
+        dirty=dirty,
+    ).patch(7, 11, patch)
 
     assert response.updated_at == _NOW
     assert session.calls == ["bookmark.get"]
+    assert dirty.marks == []
     assert session.commits == session.rollbacks == clock.calls == publisher.count == 0
 
 
@@ -325,12 +404,14 @@ def test_material_patch_updates_scalars_resolves_changed_tags_and_publishes_post
     bookmarks = FakeBookmarks(session)
     tags = FakeTags(session, existing={"async": Tag(id=22, name="async")})
     publisher = FakePublisher(calls=session.calls)
+    dirty = FakeDirty(session)
     service = _service(
         session,
         bookmarks=bookmarks,
         tags=tags,
         clock=FakeClock(_LATER),
         publisher=publisher,
+        dirty=dirty,
     )
 
     response = service.patch(7, 11, BookmarkPatch(title="Changed", tags=["async"]))
@@ -339,7 +420,9 @@ def test_material_patch_updates_scalars_resolves_changed_tags_and_publishes_post
     assert bookmarks.updates == [(7, 11, {"updated_at": _LATER, "title": "Changed"})]
     assert bookmarks.links == [(7, 11, [22])]
     assert tags.lookups == ["async"]
-    assert session.calls[-3:] == ["bookmark.get", "commit", "publish"]
+    assert session.calls[-4:] == ["bookmark.get", "dirty.mark", "commit", "publish"]
+    assert dirty.marks == [(7, _NOW, DirtyReason.UPDATE, _LATER)]
+    assert publisher.events[0].mutation_kind is BookmarkMutationKind.UPDATED
     assert session.commits == publisher.count == 1
 
 
@@ -355,6 +438,48 @@ def test_scalar_only_patch_skips_tag_resolution_and_link_replacement() -> None:
     assert tags.lookups == []
     assert bookmarks.links == []
     assert session.commits == 1
+
+
+def test_tag_only_patch_emits_one_tag_event_and_one_update_marker() -> None:
+    session = FakeSession()
+    publisher = FakePublisher(calls=session.calls)
+    dirty = FakeDirty(session)
+
+    _service(
+        session,
+        clock=FakeClock(_LATER),
+        publisher=publisher,
+        dirty=dirty,
+    ).patch(7, 11, BookmarkPatch(tags=["async"]))
+
+    assert dirty.marks == [(7, _NOW, DirtyReason.UPDATE, _LATER)]
+    assert len(publisher.events) == 1
+    assert publisher.events[0].mutation_kind is BookmarkMutationKind.TAGS_UPDATED
+    assert session.calls.count("dirty.mark") == session.calls.count("publish") == 1
+
+
+@pytest.mark.parametrize("operation", ["create", "patch", "delete"])
+def test_dirty_failure_rolls_back_and_publishes_nothing(operation: str) -> None:
+    session = FakeSession()
+    publisher = FakePublisher()
+    dirty = FakeDirty(session, failure=RuntimeError("dirty mark failed"))
+    service = _service(
+        session,
+        clock=FakeClock(_LATER),
+        publisher=publisher,
+        dirty=dirty,
+    )
+
+    with pytest.raises(RuntimeError, match="dirty mark failed"):
+        if operation == "create":
+            service.create(7, _create(tags=["python"]))
+        elif operation == "patch":
+            service.patch(7, 11, BookmarkPatch(title="Changed"))
+        else:
+            service.delete(7, 11)
+
+    assert session.rollbacks == 1
+    assert session.commits == publisher.count == 0
 
 
 @pytest.mark.parametrize("failure_at", ["bookmark.add", "flush", "bookmark.links", "commit"])
@@ -394,33 +519,49 @@ def test_material_patch_rolls_back_exactly_once_without_publishing(failure_at: s
     assert publisher.count == 0
 
 
-def test_delete_is_owner_scoped_transactional_and_publisher_failure_does_not_roll_back() -> None:
+def test_delete_uses_original_window_and_unavailable_publication_does_not_roll_back() -> None:
     session = FakeSession()
-    bookmarks = FakeBookmarks(session)
-    publisher = FakePublisher(failure=RuntimeError("publisher failed"), calls=session.calls)
+    original = _snapshot(created_at=datetime(2026, 7, 30, 12, tzinfo=UTC))
+    bookmarks = FakeBookmarks(session, snapshot=original)
+    publisher = FakePublisher(outcome=PublishOutcome.UNAVAILABLE, calls=session.calls)
+    dirty = FakeDirty(session)
 
-    with pytest.raises(RuntimeError, match="publisher failed"):
-        _service(session, bookmarks=bookmarks, publisher=publisher).delete(7, 11)
+    _service(
+        session,
+        bookmarks=bookmarks,
+        publisher=publisher,
+        dirty=dirty,
+        clock=FakeClock(_LATER),
+    ).delete(7, 11)
 
     assert bookmarks.deleted == [(7, 11)]
-    assert session.calls == ["bookmark.delete", "flush", "commit", "publish"]
+    assert dirty.marks == [(7, original.created_at, DirtyReason.DELETE, _LATER)]
+    assert publisher.events[0].window_start == datetime(2026, 7, 27, tzinfo=UTC)
+    assert publisher.events[0].mutation_kind is BookmarkMutationKind.DELETED
+    assert session.calls == [
+        "bookmark.get",
+        "bookmark.delete",
+        "dirty.mark",
+        "flush",
+        "commit",
+        "publish",
+    ]
     assert session.commits == publisher.count == 1
     assert session.rollbacks == 0
 
 
 @pytest.mark.parametrize("operation", ["create", "patch"])
-def test_publisher_failure_follows_each_other_durable_mutation_without_rollback(
+def test_safe_failed_publication_outcome_preserves_each_committed_mutation(
     operation: str,
 ) -> None:
     session = FakeSession()
-    publisher = FakePublisher(failure=RuntimeError("publisher failed"), calls=session.calls)
+    publisher = FakePublisher(outcome=PublishOutcome.UNAVAILABLE, calls=session.calls)
     service = _service(session, clock=FakeClock(_LATER), publisher=publisher)
 
-    with pytest.raises(RuntimeError, match="publisher failed"):
-        if operation == "create":
-            service.create(7, _create(tags=["python"]))
-        else:
-            service.patch(7, 11, BookmarkPatch(title="Changed"))
+    if operation == "create":
+        service.create(7, _create(tags=["python"]))
+    else:
+        service.patch(7, 11, BookmarkPatch(title="Changed"))
 
     assert session.commits == publisher.count == 1
     assert session.rollbacks == 0
@@ -465,7 +606,7 @@ def test_missing_or_other_user_resources_use_one_generic_not_found(operation: st
         assert session.rollbacks == 0
 
 
-@pytest.mark.parametrize("operation", ["create", "update", "links"])
+@pytest.mark.parametrize("operation", ["create", "update", "links", "delete"])
 def test_owner_scoped_mutation_false_results_become_not_found_and_roll_back(operation: str) -> None:
     session = FakeSession()
     bookmarks = FakeBookmarks(session)
@@ -481,11 +622,17 @@ def test_owner_scoped_mutation_false_results_become_not_found_and_roll_back(oper
         def invoke() -> None:
             _service(session, bookmarks=bookmarks).patch(7, 11, BookmarkPatch(title="Changed"))
 
-    else:
+    elif operation == "links":
         bookmarks.link_result = False
 
         def invoke() -> None:
             _service(session, bookmarks=bookmarks).patch(7, 11, BookmarkPatch(tags=["async"]))
+
+    else:
+        bookmarks.delete_result = False
+
+        def invoke() -> None:
+            _service(session, bookmarks=bookmarks).delete(7, 11)
 
     with pytest.raises(NotFoundError):
         invoke()

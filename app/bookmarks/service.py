@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import builtins
 import sqlite3
-from typing import cast
+from collections.abc import Callable
+from datetime import datetime
+from typing import Protocol, cast
+from uuid import UUID
 
 from pydantic import AnyHttpUrl
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session
 
-from app.bookmarks.events import DomainEventPublisher
+from app.bookmarks.events import (
+    BookmarkMutationKind,
+    BookmarkStatsInvalidated,
+    DomainEventPublisher,
+)
 from app.bookmarks.models import Bookmark, Tag
 from app.bookmarks.policy import (
     BookmarkPatchValues,
@@ -27,11 +34,25 @@ from app.bookmarks.schemas import (
     BookmarkQuery,
     TagPublic,
 )
+from app.bookmarks.stats.dirty import DirtyReason, utc_monday
 from app.core.clock import Clock, normalize_utc
 from app.core.errors import NotFoundError
 from app.db.engine import begin_sqlite_read_snapshot
 
 _TAG_UNIQUE_MESSAGE = "UNIQUE constraint failed: tags.name"
+
+
+class DirtyMarkerWriter(Protocol):
+    """Stage one durable invalidation in the caller-owned transaction."""
+
+    def mark_dirty(
+        self,
+        user_id: int,
+        window_start: datetime,
+        reason: DirtyReason,
+        marked_at: datetime,
+    ) -> None:
+        """Insert or atomically increment one dirty generation."""
 
 
 def _is_tag_unique_conflict(error: IntegrityError) -> bool:
@@ -55,12 +76,16 @@ class BookmarkService:
         tags: TagRepository,
         clock: Clock,
         publisher: DomainEventPublisher,
+        dirty: DirtyMarkerWriter,
+        correlation_id_factory: Callable[[], UUID],
     ) -> None:
         self._session = session
         self._bookmarks = bookmarks
         self._tags = tags
         self._clock = clock
         self._publisher = publisher
+        self._dirty = dirty
+        self._correlation_id_factory = correlation_id_factory
 
     def create(self, user_id: int, data: BookmarkCreate) -> BookmarkPublic:
         """Create one bookmark, its canonical tag links, and then notify after commit."""
@@ -82,12 +107,20 @@ class BookmarkService:
                 raise NotFoundError()
             self._session.flush()
             snapshot = self._required_snapshot(user_id, bookmark_id)
+            result = _public_bookmark(snapshot)
+            event = self._event(
+                user_id=user_id,
+                bookmark_id=bookmark_id,
+                window_value=snapshot.created_at,
+                mutation_kind=BookmarkMutationKind.CREATED,
+                occurred_at=created_at,
+            )
+            self._dirty.mark_dirty(user_id, snapshot.created_at, DirtyReason.CREATE, created_at)
             self._session.commit()
         except Exception:
             self._session.rollback()
             raise
-        result = _public_bookmark(snapshot)
-        self._publisher.publish()
+        self._publisher.publish(event)
         return result
 
     def list(self, user_id: int, query: BookmarkQuery | None = None) -> BookmarkList:
@@ -131,25 +164,67 @@ class BookmarkService:
                     raise NotFoundError()
             self._session.flush()
             snapshot = self._required_snapshot(user_id, bookmark_id)
+            result = _public_bookmark(snapshot)
+            mutation_kind = (
+                BookmarkMutationKind.TAGS_UPDATED
+                if target.changed_fields == frozenset({"tags"})
+                else BookmarkMutationKind.UPDATED
+            )
+            event = self._event(
+                user_id=user_id,
+                bookmark_id=bookmark_id,
+                window_value=current.created_at,
+                mutation_kind=mutation_kind,
+                occurred_at=updated_at,
+            )
+            self._dirty.mark_dirty(user_id, current.created_at, DirtyReason.UPDATE, updated_at)
             self._session.commit()
         except Exception:
             self._session.rollback()
             raise
-        result = _public_bookmark(snapshot)
-        self._publisher.publish()
+        self._publisher.publish(event)
         return result
 
     def delete(self, user_id: int, bookmark_id: int) -> None:
         """Delete an owner-visible bookmark and notify only after the durable commit."""
         try:
+            current = self._required_snapshot(user_id, bookmark_id)
+            occurred_at = normalize_utc(self._clock.now())
             if not self._bookmarks.delete_owned(user_id, bookmark_id):
                 raise NotFoundError()
+            event = self._event(
+                user_id=user_id,
+                bookmark_id=bookmark_id,
+                window_value=current.created_at,
+                mutation_kind=BookmarkMutationKind.DELETED,
+                occurred_at=occurred_at,
+            )
+            self._dirty.mark_dirty(user_id, current.created_at, DirtyReason.DELETE, occurred_at)
             self._session.flush()
             self._session.commit()
         except Exception:
             self._session.rollback()
             raise
-        self._publisher.publish()
+        self._publisher.publish(event)
+
+    def _event(
+        self,
+        *,
+        user_id: int,
+        bookmark_id: int,
+        window_value: datetime,
+        mutation_kind: BookmarkMutationKind,
+        occurred_at: datetime,
+    ) -> BookmarkStatsInvalidated:
+        """Build the complete safe event before the mutation commit."""
+        return BookmarkStatsInvalidated(
+            user_id=user_id,
+            window_start=utc_monday(window_value),
+            mutation_kind=mutation_kind,
+            bookmark_id=bookmark_id,
+            occurred_at=normalize_utc(occurred_at),
+            correlation_id=self._correlation_id_factory(),
+        )
 
     def _resolve_tag_ids(self, names: tuple[str, ...]) -> builtins.list[int]:
         """Return IDs for sorted canonical names, creating only known-race-safe rows."""
@@ -215,4 +290,4 @@ def _public_bookmark(snapshot: BookmarkSnapshot) -> BookmarkPublic:
     )
 
 
-__all__ = ["BookmarkService"]
+__all__ = ["BookmarkService", "DirtyMarkerWriter"]

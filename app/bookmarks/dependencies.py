@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import Depends, Request
 from sqlmodel import Session
 
 from app.auth.dependencies import get_session
-from app.bookmarks.events import NoOpDomainEventPublisher
+from app.bookmarks.events import DomainEventPublisher, NoOpDomainEventPublisher
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.service import BookmarkService
+from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.core.clock import Clock
 
@@ -21,12 +23,19 @@ def get_bookmark_service(
 ) -> BookmarkService:
     """Compose the bookmark use case from request-scoped and application-owned state."""
     clock: Clock = request.app.state.clock
+    publisher: DomainEventPublisher = getattr(
+        request.app.state,
+        "bookmark_stats_publisher",
+        NoOpDomainEventPublisher(),
+    )
     return BookmarkService(
         session=session,
         bookmarks=BookmarkRepository(session),
         tags=TagRepository(session),
         clock=clock,
-        publisher=NoOpDomainEventPublisher(),
+        publisher=publisher,
+        dirty=BookmarkStatsDirtyRepository(session),
+        correlation_id_factory=uuid4,
     )
 
 
