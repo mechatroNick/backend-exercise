@@ -9,14 +9,14 @@
 
 ## Current state
 
-- Specification: Ready
-- Plan: Ready
-- Implementation: Authorized; T05-01 compatibility gate complete
+- Specification: Complete
+- Plan: Complete
+- Implementation: Complete with executable closure evidence
 
 ## Next action
 
-Complete the mandatory evidence inventory, repair bounded OpenAPI metadata, then pin
-and execute the contract gate without changing product semantics.
+Merge the verified Track 05 branch to `main`, revalidate the merge, then reassess
+Track 06 from that committed quality-gate boundary.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -83,3 +83,32 @@ and execute the contract gate without changing product semantics.
   process harness passed after advancing its exact parameter-schema expectations.
 - T05-02 and T05-03 are complete. The pinned contract runner, 34-pair real-instance
   matrix, mandatory no-masking gate, Track 05 harness, and closure report remain open.
+
+## 2026-08-06 — Mandatory quality gate implemented and closed
+
+- Exactly pinned Schemathesis 4.24.3 and restricted generated execution to three
+  authenticated, non-mutating bookmark GET operations with a fixed seed, positive
+  generation, and an exact runtime ledger.
+- Added controlled real application responses for all eight operations and all 34
+  documented statuses. Every JSON response passes Schemathesis and Draft 2020-12
+  validation; the 204 response is bodyless, has no content type, and documents no
+  content schema.
+- Added an exact 79-node mandatory manifest covering API metadata, the 34-pair matrix,
+  safe generated GETs, query counts/plans, raw-SQL/snapshot behavior, and complete
+  JSON Lines/redaction evidence. Adversarial subprocess tests prove missing, extra,
+  deselected, skipped, xfailed, early-terminated, unrun, and teardown-masked nodes fail.
+- Added the Track 05 real-process harness. It directly invokes all four upstream
+  harnesses, enforces the 79-node selector and 100% statement/branch coverage, starts
+  a clean migrated server, and validates auth, ownership, CRUD/tag mutation,
+  pagination/search, canonical live stats, errors, docs/OpenAPI, JSONL attribution,
+  complete exception evidence, redaction, and cleanup.
+- Kept passwords, JWTs, request/response bodies, OpenAPI, and docs in one verifier
+  process rather than filesystem artifacts. An injected unexpected child status
+  proves the original failure is preserved while the nested private workspace is
+  still deleted.
+- Independent advisory review initially found incomplete mandatory scope, abnormal-
+  cleanup retention, and teardown-skip bypasses. All three were fixed; the expanded
+  gate and complete harness passed again afterward.
+- Closure passed the locked/static/type/full/coverage/documentation/migration gates.
+  No critical or high defect remains. Track 06 is unblocked only after this verified
+  branch is merged and the merge itself is revalidated.

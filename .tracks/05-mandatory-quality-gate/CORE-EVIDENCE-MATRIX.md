@@ -56,11 +56,11 @@ substitute for Track 05's current mandatory automation gate.
 
 | Row | Classification | Direct evidence required in Track 05 | Current state |
 | --- | --- | --- | --- |
-| API-01 | Required | Real `/docs` and OpenAPI 3.1 retrieval plus schema/operation inventory | Open |
-| API-02 | Required | API-wide metadata audit; fictional request/success/query/path/error examples; exact statuses/security/content/204 | Metadata fixed at `730ecec`; runtime gate open |
-| TEST-01 | Required | Checked-in mandatory node manifest, exact collected count >=10, no skip/xfail/deselection/masking/unrun | Open |
-| TEST-02 | Required | Controlled 34 operation/status runtime instances through Schemathesis and Draft 2020-12 validation plus safe generated GETs | Open |
-| QUAL-01 | Accepted | Locked sync, static/type/full/coverage/query/migration/bootstrap/harness commands with actual results | Open |
+| API-01 | Required | Real `/docs` and OpenAPI 3.1 retrieval plus schema/operation inventory | Passed; 79-node gate and real-process harness |
+| API-02 | Required | API-wide metadata audit; fictional request/success/query/path/error examples; exact statuses/security/content/204 | Passed; metadata and all 34 runtime pairs validated |
+| TEST-01 | Required | Checked-in mandatory node manifest, exact collected count >=10, no skip/xfail/deselection/masking/unrun | Passed; exact 79 nodes plus adversarial gate meta-tests |
+| TEST-02 | Required | Controlled 34 operation/status runtime instances through Schemathesis and Draft 2020-12 validation plus safe generated GETs | Passed; 34 controlled pairs and three safe GET subtests |
+| QUAL-01 | Accepted | Locked sync, static/type/full/coverage/query/migration/bootstrap/harness commands with actual results | Passed; see `TEST-REPORT.md` |
 
 ## Track 08 obligations deliberately retained as open
 
