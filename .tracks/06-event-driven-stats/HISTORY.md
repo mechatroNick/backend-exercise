@@ -1,5 +1,30 @@
 # Track 06 history
 
+## 2026-08-07 — T06-06 health/readiness checkpoint complete
+
+- Stabilized the exact public health surface in commit `5b4e489`: static
+  unauthenticated `/health/live` and database/service-aware `/health/ready`, both
+  cache-disabled and limited to fixed redacted response bodies.
+- Readiness now fails closed across database/probe/session cleanup, missing or
+  malformed worker/publisher state, startup and shutdown failures, dead/stuck/overdue
+  work, never-successful or stale reconciliation, consecutive failures, reconciliation
+  suspicion, dirty backlog count/age, and future-clock evidence. Disabled refresh
+  intentionally requires the database only.
+- Added transition-only low-cardinality JSON readiness logs plus distinct refresher
+  started/retrying events with lifecycle instance, interval, queue/count/age, and
+  failure telemetry. No user, resource, content, SQL, path, credential, token, or raw
+  exception detail is returned or added to the new log contexts.
+- Expanded the controlled public contract to 10 operations and 37 documented status
+  pairs, including runtime schema validation for ready `200`/`503` and explicit
+  unauthenticated OpenAPI evidence.
+- Primary validation passed: Ruff format/check, strict `mypy app`, 601 tests plus
+  three generated subtests, 2,461 statements and 516 branches at 100%, and
+  `git diff --check`. Independent Scout review returned PASS with no critical, high,
+  or medium finding; its fractional-time hardening observation was fixed and
+  independently rechecked before commit.
+- T06-07 is now active. The real-process harness, complete deterministic ledger,
+  migration lifecycle, cleanup evidence, and final Track 06 report remain open.
+
 ## 2026-08-06 — T06-04 and T06-05 serving/lifecycle checkpoints complete
 
 - Stabilized bounded invalidation and immutable serving in commits `38539c8` and
