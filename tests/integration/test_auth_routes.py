@@ -319,7 +319,12 @@ def test_auth_runtime_bodies_validate_against_the_generated_openapi_schema(
     ):
         validate(path, str(response.status_code), response.json())
 
-    assert set(document["paths"]) == {"/api/auth/register", "/api/auth/login"}
+    assert set(document["paths"]) == {
+        "/api/auth/register",
+        "/api/auth/login",
+        "/api/bookmarks",
+        "/api/bookmarks/{bookmark_id}",
+    }
     serialized = str(document)
     assert "password" not in str(document["components"]["schemas"]["AuthResponse"])
     assert "writeOnly" in serialized
