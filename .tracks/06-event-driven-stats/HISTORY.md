@@ -1,5 +1,31 @@
 # Track 06 history
 
+## 2026-08-06 — T06-04 and T06-05 serving/lifecycle checkpoints complete
+
+- Stabilized bounded invalidation and immutable serving in commits `38539c8` and
+  `58eaa08`. Publication invalidates a per-user epoch before one nonblocking enqueue,
+  overflow/failure remains total and recoverable, snapshot reads are atomic, and
+  every untrusted source falls back to the unchanged canonical raw-SQL body.
+- Stabilized the lifecycle-owned refresher in commit `3de2c76`: one exact named
+  non-daemon thread, interruptible cadence, one session per non-overlapping cycle,
+  bounded user cursor and dirty backlog, epoch-conditional reconciliation
+  acknowledgment, generation-safe delete/CAS/commit ordering, and deferred engine
+  disposal after a join timeout.
+- Added deterministic and migrated-SQLite evidence for lost/duplicate hints, baseline
+  generation zero, multi-batch backlog, reconciliation-epoch and generation races,
+  CAS rejection, compute/publication/commit/rollback/close failure, prior-snapshot
+  retention, lifecycle startup/stop, and disabled live-only composition.
+- Closed the independent gate's backlog-acknowledgment, prior-snapshot retention,
+  shutdown resource-ordering, and CAS-test findings. The post-fix verdict is **PASS**
+  with no critical/high/medium issue in T06-05 scope.
+- Actual final checkpoint evidence: 556 tests plus three generated subtests passed;
+  repository statement and branch coverage both remained 100%; Ruff format/check,
+  mypy, and diff checks passed. The sole warning remains the known Starlette
+  TestClient/httpx deprecation.
+- Marked T06-04 and T06-05 **Complete** and advanced T06-06 to **In progress**. Health
+  routes/readiness decisions, their JSON-Line audit, and the process harness remain
+  explicit unclosed gates.
+
 ## 2026-08-06 — Track 07 skip incorporated
 
 - Replaced the staged future historical-consumer handoff with terminal current-only
