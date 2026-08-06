@@ -324,6 +324,7 @@ class StatsRefresher:
                 else:
                     self._consecutive_failures += 1
                     self._last_error_code = "cycle_failed"
+                consecutive_failures = self._consecutive_failures
             self._cycle_lock.release()
 
         context: dict[str, _SafeValue] = {
@@ -331,7 +332,7 @@ class StatsRefresher:
             "affected_user_count": affected_user_count,
             "marker_count": marker_count,
             "full_reconciliation": full_requested,
-            "failure_count": 0 if success else 1,
+            "failure_count": consecutive_failures,
         }
         if success:
             self._log_event(
@@ -428,10 +429,22 @@ class StatsRefresher:
             with self._state_lock:
                 self._initial_success = initial_success
             self._initial_event.set()
+            self._log_event(
+                logging.INFO if initial_success else logging.WARNING,
+                "bookmark_stats.refresher_started",
+                outcome="success" if initial_success else "degraded",
+                message="statistics refresher started",
+                context={
+                    "initial_success": initial_success,
+                    "failure_count": 0 if initial_success else 1,
+                    "interval_seconds": self._interval_seconds,
+                },
+            )
             while not self._stop_event.wait(self._interval_seconds):
                 now = self._safe_now(self._last_cycle_completed_at or datetime.now(UTC))
                 with self._state_lock:
                     last_full = self._last_full_reconciliation_at
+                    consecutive_failures = self._consecutive_failures
                 full_due = last_full is None or now - last_full >= timedelta(
                     seconds=self._full_reconciliation_seconds
                 )
@@ -439,6 +452,14 @@ class StatsRefresher:
                     reconciliation_required = self._publisher.state().reconciliation_required
                 except Exception:
                     reconciliation_required = True
+                if consecutive_failures > 0:
+                    self._log_event(
+                        logging.WARNING,
+                        "bookmark_stats.refresh_retrying",
+                        outcome="degraded",
+                        message="statistics refresh retrying after failure",
+                        context={"failure_count": consecutive_failures},
+                    )
                 self.run_cycle(full=full_due or reconciliation_required)
         finally:
             with self._state_lock:

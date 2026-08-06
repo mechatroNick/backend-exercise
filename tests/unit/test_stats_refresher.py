@@ -223,8 +223,12 @@ def test_worker_loop_uses_interruptible_wait_without_sleeping() -> None:
     scripted = _ScriptedStop()
     value._stop_event = scripted  # type: ignore[assignment]
     callbacks: list[str] = []
+    events: list[tuple[str, dict[str, Any] | None]] = []
     value._thread = _AliveThread()
     value.defer_until_stopped(lambda: callbacks.append("deferred"))
+    value._log_event = (  # type: ignore[method-assign]
+        lambda _level, event, **kwargs: events.append((event, kwargs.get("context")))
+    )
 
     value._run()
 
@@ -233,6 +237,49 @@ def test_worker_loop_uses_interruptible_wait_without_sleeping() -> None:
     assert value.state().total_cycles == 2
     assert value.state().consecutive_failures == 2
     assert value.state().initial_completed
+    assert events == [
+        (
+            "bookmark_stats.refresher_started",
+            {"initial_success": False, "failure_count": 1, "interval_seconds": 1},
+        ),
+        ("bookmark_stats.refresh_retrying", {"failure_count": 1}),
+    ]
+
+
+def test_worker_loop_logs_successful_start_without_a_retry_transition() -> None:
+    value = _refresher()
+    scripted = _ScriptedStop()
+    value._stop_event = scripted  # type: ignore[assignment]
+    cycles: list[bool] = []
+    events: list[tuple[str, dict[str, Any] | None]] = []
+
+    def run_cycle(*, full: bool = False) -> bool:
+        cycles.append(full)
+        return True
+
+    def record_event(
+        _level: int,
+        event: str,
+        *,
+        outcome: str = "success",
+        message: str,
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        del outcome, message
+        events.append((event, context))
+
+    value.run_cycle = run_cycle  # type: ignore[method-assign]
+    value._log_event = record_event  # type: ignore[method-assign]
+
+    value._run()
+
+    assert cycles == [True, True]
+    assert events == [
+        (
+            "bookmark_stats.refresher_started",
+            {"initial_success": True, "failure_count": 0, "interval_seconds": 1},
+        )
+    ]
 
 
 def test_clock_logger_and_outer_adapter_failures_fail_closed() -> None:

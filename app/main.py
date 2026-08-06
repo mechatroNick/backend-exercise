@@ -13,6 +13,8 @@ from fastapi.openapi.utils import get_openapi
 from sqlalchemy import Engine
 
 from app.api.errors import register_exception_handlers, unexpected_error_response
+from app.api.health import ReadinessEvaluator
+from app.api.health import router as health_router
 from app.auth.passwords import PasswordHasher
 from app.auth.router import install_test_protected_route
 from app.auth.router import router as auth_router
@@ -70,11 +72,13 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     )
     engine: Engine | None = None
     refresher: StatsRefresher | None = None
+    publisher: StatsInvalidationPublisher | None = None
     try:
         engine = create_database_engine(settings)
         app.state.engine = engine
         app.state.session_factory = create_session_factory(engine)
         app.state.clock = SystemClock()
+        service_instance_id = uuid4()
         app.state.password_hasher = PasswordHasher()
         app.state.password_hasher.dummy_hash()
         app.state.token_codec = AccessTokenCodec(
@@ -83,7 +87,6 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             clock=app.state.clock,
         )
         if settings.stats_refresh_enabled:
-            service_instance_id = uuid4()
             store = StatsSnapshotStore()
             publisher = StatsInvalidationPublisher(
                 store=store,
@@ -109,6 +112,15 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             app.state.bookmark_stats_snapshot_healthy = refresher.snapshot_healthy
             refresher.start()
             refresher.wait_initial(settings.stats_initial_refresh_timeout_seconds)
+        app.state.readiness_evaluator = ReadinessEvaluator(
+            settings=settings,
+            session_factory=app.state.session_factory,
+            clock=app.state.clock,
+            refresher=refresher,
+            publisher=publisher,
+            logger=logger,
+            service_instance_id=service_instance_id,
+        )
     except Exception as error:
         log_exception(
             logger,
@@ -169,6 +181,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=_lifespan,
     )
     app.state.settings = resolved_settings
+    app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(bookmarks_router)
     install_test_protected_route(app, resolved_settings)

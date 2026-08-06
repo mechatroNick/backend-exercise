@@ -13,6 +13,11 @@ from referencing import Registry, Resource
 from referencing.jsonschema import DRAFT202012
 from sqlalchemy import Engine
 
+from app.api.health import (
+    ReadinessReason,
+    ReadinessSnapshot,
+    get_readiness_evaluator,
+)
 from app.auth.dependencies import get_auth_service
 from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_service
 from app.core.config import Settings
@@ -20,6 +25,8 @@ from app.main import create_app
 
 _PASSWORD = "contract-safe-password"
 _INVENTORY = {
+    ("/health/live", "GET"): {200},
+    ("/health/ready", "GET"): {200, 503},
     ("/api/auth/register", "POST"): {201, 409, 422, 500},
     ("/api/auth/login", "POST"): {200, 401, 422, 500},
     ("/api/bookmarks", "POST"): {201, 401, 422, 500},
@@ -85,7 +92,7 @@ def _validate(document: dict[str, Any], app: Any, path: str, method: str, respon
 
 
 @pytest.mark.mandatory
-def test_documented_inventory_is_exactly_eight_operations_and_34_status_pairs(
+def test_documented_inventory_is_exactly_ten_operations_and_37_status_pairs(
     contract_client: TestClient,
 ) -> None:
     document = contract_client.get("/openapi.json").json()
@@ -95,7 +102,7 @@ def test_documented_inventory_is_exactly_eight_operations_and_34_status_pairs(
         for method, operation in methods.items()
     }
     assert observed == _INVENTORY
-    assert sum(len(statuses) for statuses in observed.values()) == 34
+    assert sum(len(statuses) for statuses in observed.values()) == 37
 
 
 @pytest.mark.mandatory
@@ -119,7 +126,16 @@ def test_documented_status_pair_has_a_controlled_runtime_response(
         headers = {}
     elif status == 422:
         request_path = path.replace("{bookmark_id}", "0")
-    if status == 500:
+    if status == 503:
+        snapshot = ReadinessSnapshot(
+            ready=False,
+            reason=ReadinessReason.DATABASE_UNAVAILABLE,
+            refresh_enabled=False,
+        )
+        contract_client.app.dependency_overrides[get_readiness_evaluator] = lambda: type(
+            "UnavailableEvaluator", (), {"evaluate": lambda self: snapshot}
+        )()
+    elif status == 500:
         dependency = (
             get_auth_service
             if path.startswith("/api/auth/")

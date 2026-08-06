@@ -20,8 +20,8 @@ def test_public_openapi_has_complete_fictional_metadata_without_contract_drift()
         for method, operation in item.items()
         if method in {"get", "post", "patch", "delete"}
     ]
-    assert len(operations) == 8
-    assert len({operation["operationId"] for _, _, operation in operations}) == 8
+    assert len(operations) == 10
+    assert len({operation["operationId"] for _, _, operation in operations}) == 10
     for _, method, operation in operations:
         assert operation["tags"] and operation["summary"] and operation.get("description")
         for parameter in operation.get("parameters", []):
@@ -36,6 +36,8 @@ def test_public_openapi_has_complete_fictional_metadata_without_contract_drift()
                 assert response["content"]["application/json"]["examples"]
     assert document["paths"]["/api/auth/register"]["post"].get("security") in (None, [])
     assert document["paths"]["/api/auth/login"]["post"].get("security") in (None, [])
+    assert document["paths"]["/health/live"]["get"].get("security") in (None, [])
+    assert document["paths"]["/health/ready"]["get"].get("security") in (None, [])
     for path in ("/api/bookmarks", "/api/bookmarks/stats", "/api/bookmarks/{bookmark_id}"):
         for operation in document["paths"][path].values():
             assert operation["security"] == [{"BearerAuth": []}]
@@ -49,6 +51,8 @@ def test_public_openapi_has_complete_fictional_metadata_without_contract_drift()
         "BookmarkPublic",
         "BookmarkList",
         "BookmarkStats",
+        "LiveHealthResponse",
+        "ReadyHealthResponse",
     ):
         assert schemas[name].get("examples")
     for path in ("/api/auth/register", "/api/auth/login", "/api/bookmarks"):
@@ -59,6 +63,11 @@ def test_public_openapi_has_complete_fictional_metadata_without_contract_drift()
                 ]
                 assert schemas[schema_ref.rsplit("/", 1)[-1]]["examples"]
     assert schemas["RegisterRequest"]["properties"]["password"]["writeOnly"] is True
+    assert schemas["LiveHealthResponse"]["examples"] == [{"status": "live"}]
+    assert schemas["ReadyHealthResponse"]["examples"] == [
+        {"status": "ready"},
+        {"status": "not_ready"},
+    ]
     delete = document["paths"]["/api/bookmarks/{bookmark_id}"]["delete"]["responses"]["204"]
     assert delete["description"] == "Bookmark deleted successfully; the response has no body."
     assert "content" not in delete

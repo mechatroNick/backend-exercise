@@ -330,6 +330,8 @@ def test_auth_runtime_bodies_validate_against_the_generated_openapi_schema(
         "/api/bookmarks",
         "/api/bookmarks/stats",
         "/api/bookmarks/{bookmark_id}",
+        "/health/live",
+        "/health/ready",
     }
     serialized = str(document)
     assert "password" not in str(document["components"]["schemas"]["AuthResponse"])

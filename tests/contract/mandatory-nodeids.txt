@@ -1,4 +1,7 @@
-tests/contract/test_runtime_contract.py::test_documented_inventory_is_exactly_eight_operations_and_34_status_pairs
+tests/contract/test_runtime_contract.py::test_documented_inventory_is_exactly_ten_operations_and_37_status_pairs
+tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/health/live-GET-200]
+tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/health/ready-GET-200]
+tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/health/ready-GET-503]
 tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/api/auth/register-POST-201]
 tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/api/auth/register-POST-409]
 tests/contract/test_runtime_contract.py::test_documented_status_pair_has_a_controlled_runtime_response[/api/auth/register-POST-422]
