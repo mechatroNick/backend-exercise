@@ -1,10 +1,10 @@
 # Track 03 specification: protected bookmark CRUD, normalized tags, and ownership isolation
 
-- Status: Planned
+- Status: Complete
 - Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
-- Depends on: Track 02 implementation and closure; Track 01 implementation and closure; Track 00 (Complete)
+- Depends on: Track 02 (Complete); Track 01 (Complete); Track 00 (Complete)
 - Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
 - Assessment requirements: BKM-01, BKM-02, BKM-03, ISO-01, TAG-01, TIME-01; AUTH-04 dependency
 
@@ -14,9 +14,9 @@ Deliver the smallest protected bookmark capability that later discovery/statisti
 tracks can trust: owner-scoped CRUD, canonical many-to-many tags, exact timestamps,
 and a post-commit invalidation seam without a worker.
 
-Planning follows committed Track 02 (`6dd4deb`). Implementation is dependency-gated
-until Track 02 closes with bearer-auth, error-boundary, route, Settings, clock,
-persistence, and test evidence.
+Planning followed the earlier Track 02 planning baseline. Implementation is now
+authorized from Track 02 completion merge `adb0e8c`, whose closure report supplies
+bearer-auth, error-boundary, route, Settings, clock, persistence, and test evidence.
 
 ## 2. Must-preserve contracts
 
@@ -102,8 +102,11 @@ post-commit-only publication, or Track 04--06 ownership.
 | ADR-001/002/004 | Accepted | ORM/DTO, CRUD/tag/timestamp, and publisher-seam contracts. |
 | ADR-006 | Accepted | Governs evidence and closure only; it does not change CRUD, tag, timestamp, no-op publisher, or downstream contracts. |
 
-Track 03 is **Planned**, not Ready, until Track 02 closure supplies actual evidence.
-Revise before code if delivered interfaces materially differ.
+Track 03 is **Ready**. The T03-01 compatibility checkpoint verified Track 01/02
+closure receipts and exercised the delivered models/migration, clock, session,
+current-subject dependency, error boundary, and route seams with 48 passing focused
+tests. No migration, ADR change, or compatibility workaround is required. Stop and
+revise before code if later implementation reveals a material contradiction.
 
 ## 7. Acceptance evidence threshold
 

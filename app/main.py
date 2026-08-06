@@ -17,6 +17,7 @@ from app.auth.passwords import PasswordHasher
 from app.auth.router import install_test_protected_route
 from app.auth.router import router as auth_router
 from app.auth.security import AccessTokenCodec
+from app.bookmarks.router import router as bookmarks_router
 from app.core.clock import SystemClock
 from app.core.config import Settings
 from app.core.logging import configure_logging, log_event, log_exception
@@ -126,6 +127,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = resolved_settings
     app.include_router(auth_router)
+    app.include_router(bookmarks_router)
     install_test_protected_route(app, resolved_settings)
     _install_openapi_security_scheme(app)
 
