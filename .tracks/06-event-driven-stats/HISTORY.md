@@ -1,5 +1,26 @@
 # Track 06 history
 
+## 2026-08-06 — T06-02 durable invalidation checkpoint complete
+
+- Stabilized commit `bf7546f` with the sole Track 06 dirty-marker migration, matching
+  SQLModel metadata, and a caller-session-owned repository. The atomic SQLite upsert
+  increments generation without read-then-write, preserves the first mark, and
+  updates only bounded reason and the final mark.
+- Added fixed-width UTC timestamps, schema-enforced Monday-midnight windows, strict
+  corruption handling, composite-key and generation-conditional completion, typed
+  bounded observations/backlog, cascade behavior, and query-shape indexes.
+- Closed independent audit findings for fractional-second lexical misordering,
+  persisted-key normalization, stale-generation deletion, conditional-delete
+  rollback, and restart recovery. The post-fix independent verdict is **PASS** with
+  no critical/high/medium blocker.
+- Actual focused evidence: Ruff and mypy passed; 22 migration/repository/metadata
+  tests passed; upgrade from an existing core schema, downgrade to `0001`, re-upgrade,
+  and `alembic check` passed in a disposable database. Full coverage execution passed
+  484 tests plus three generated subtests at 100% statements and branches.
+- Marked T06-02 **Complete** and advanced T06-03 to **In progress**. No event,
+  publisher, worker, snapshot, health, or Track 07 behavior is claimed by this
+  checkpoint.
+
 ## 2026-08-06 — Dependency gate closed and implementation authorized
 
 - Verified Track 05 Complete on merged `main` at `001056c`. Its report records 473

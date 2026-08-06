@@ -3,7 +3,7 @@
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Status: Ready (implementation authorized)
-- Active item: T06-02 — dirty-marker migration and transaction-safe repository
+- Active item: T06-03 — typed invalidation and mutation transaction integration
 
 ## Dependency gate and intent check
 
@@ -17,8 +17,8 @@ not adapt a public or durable-state contract silently.
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
 | T06-01 | Verify Track 05 closure receipts and delivered core seams; confirm the staged Track 07 marker-completion handoff is represented in the implementation design. | Smith / implementation | Track 05 Complete | Complete | Compatibility/gate receipt at `001056c`; mandatory core proof remains intact and the accepted cleanup handoff is traceable. |
-| T06-02 | Create/review Alembic dirty-marker migration and transaction-safe atomic upsert/reconciliation repository operations. | Smith / implementation | T06-01 | In progress | New/existing DB upgrade, FK/cascade/unique/index inspection, rollback, downgrade/re-upgrade, generation atomicity, and recovery receipt. |
-| T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | Pending | Create/material scalar/tag/delete ordering and safe-field tests; reads/no-op/rollback absence; delete-window proof. |
+| T06-02 | Create/review Alembic dirty-marker migration and transaction-safe atomic upsert/reconciliation repository operations. | Smith / implementation | T06-01 | Complete | Commit `bf7546f`; exact migrated DDL/metadata/indexes, atomic upsert, rollback, generation race, restart recovery, downgrade/re-upgrade, 484-test full suite, and 100% coverage passed. |
+| T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | In progress | Create/material scalar/tag/delete ordering and safe-field tests; reads/no-op/rollback absence; delete-window proof. |
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | Pending | Overflow preserves request/marker; duplicate/reordered/lost events harmless; atomic readers and snapshot/live parity proof. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Pending | One non-daemon instance, manual-cycle/fake-clock, own session/non-overlap, restart, retry, post-commit-crash, concurrent-increment, and join-timeout evidence. |
 | T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; parsed JSON Lines enforce complete base fields, ADR-004 instance/applicable duration/count/generation fields, safe correlation, redaction, no raw indexed exception text, and exact-once final-owning-boundary causal exception evidence. |
