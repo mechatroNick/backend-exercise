@@ -1,5 +1,25 @@
 # Track 06 history
 
+## 2026-08-06 — T06-03 transaction and typed-event checkpoint complete
+
+- Stabilized commit `4768ceb` with the frozen, content-free
+  `BookmarkStatsInvalidated` DTO, bounded mutation/publication enums, typed total
+  publisher port, and deterministic UUID-correlation factory injection.
+- Integrated one dirty upsert into the request-owned transaction for material create,
+  scalar/tag/mixed patch, and delete; each path builds its detached result/event,
+  commits once, then makes exactly one typed publication attempt. Reads and semantic
+  no-ops remain inert, and delete uses the pre-delete creation window.
+- Added real migrated-SQLite proof that a publisher observes committed canonical state
+  and its marker from another session, and that failure after a real dirty upsert
+  rolls both bookmark and marker back with no publication. Safe unavailable outcomes
+  preserve the successful result.
+- Focused Ruff, mypy, and 73 tests passed. Full coverage execution passed 509 tests
+  plus three generated subtests at 100% statements and branches. Independent post-fix
+  audit is **PASS** with no critical/high/medium defect.
+- Marked T06-03 **Complete** and advanced T06-04 to **In progress**. Concrete queue
+  totality, overflow logging/reconciliation, snapshot invalidation, and lifespan
+  installation remain explicit T06-04/T06-05 gates.
+
 ## 2026-08-06 — T06-02 durable invalidation checkpoint complete
 
 - Stabilized commit `bf7546f` with the sole Track 06 dirty-marker migration, matching
