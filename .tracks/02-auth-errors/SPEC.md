@@ -1,10 +1,11 @@
 # Track 02 specification: error contract, registration, login, and JWT authentication
 
-- Status: Planned
+- Status: Complete
 - Specification version: 1.1
 - Planned: 2026-08-05
+- Completed: 2026-08-06
 - Owner: Primary engineering thread
-- Depends on: Track 01 implementation and closure; Track 00 (Complete)
+- Depends on: Track 01 (Complete); Track 00 (Complete)
 - Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006
 - Assessment requirements: AUTH-01, AUTH-02, AUTH-03, AUTH-04, ERR-01, SEC-01
 
@@ -113,9 +114,13 @@ schema, or the authentication failure-disclosure policy.
 | ADR-003 | Accepted | Fixes identity, password, Argon2, JWT, secret, and non-enumeration contracts. |
 | ADR-006 | Accepted | Governs evidence and closure only; it does not change authentication, error, or Track 05 OpenAPI semantics. |
 
-Track 02 remains **Planned**, not Ready, until the Track 01 closure gate supplies
-actual implementation evidence. If that implementation differs materially from
-Track 01's planned extension seams, revise this plan before writing auth code.
+Track 01 closed on 2026-08-06 with actual deterministic, migration, coverage, and
+real-process evidence. The T02-01 compatibility checkpoint confirmed the delivered
+Settings, clock, session factory, migrated `users` table, inert application factory,
+central logging boundary, and Alembic-only test fixtures match this specification.
+Track 02 is **Complete**. The compatibility checkpoint found no material difference
+in the delivered seams, and [TEST-REPORT.md](TEST-REPORT.md) records the passing
+deterministic, migration, real-process, security, and cleanup evidence.
 
 ## 7. Acceptance evidence threshold
 
@@ -140,7 +145,7 @@ environment demonstrate all of the following:
 - focused unit/integration/endpoint tests plus format, lint, type-check, and full
   suite commands pass; logs/DTOs/test output are reviewed for credential leakage;
 - deterministic unit, integration, and auth-operation contract tests pass, and the
-  planned `scripts/verify-track-02.sh` real-process harness extends Track 01's
+  delivered `scripts/verify-track-02.sh` real-process harness extends Track 01's
   delivered bootstrap using a disposable migrated database and dynamic isolated port;
 - that harness starts the actual server, bounded-polls its delivered observable seam,
   performs real HTTP registration/login and protected-success flows plus a
