@@ -177,7 +177,12 @@ assert json.load(open(f"{root}/protected.response", encoding="utf-8")) == {"user
 assert json.load(open(f"{root}/duplicate.response", encoding="utf-8"))["error"]["code"] == "identity_conflict"
 assert json.load(open(f"{root}/invalid.response", encoding="utf-8"))["error"]["code"] == "authentication_failed"
 openapi = json.load(open(f"{root}/openapi.json", encoding="utf-8"))
-assert set(openapi["paths"]) == {"/api/auth/register", "/api/auth/login"}
+assert set(openapi["paths"]) == {
+    "/api/auth/register",
+    "/api/auth/login",
+    "/api/bookmarks",
+    "/api/bookmarks/{bookmark_id}",
+}
 assert openapi["components"]["securitySchemes"]["BearerAuth"] == {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
 registry = Registry().with_resource("urn:track02:openapi", Resource.from_contents(openapi, default_specification=DRAFT202012))
 def validate(path, status, payload):
