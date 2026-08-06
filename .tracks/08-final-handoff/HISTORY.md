@@ -1,5 +1,26 @@
 # Track 08 history
 
+## 2026-08-06 — Track 07 skipped and all bonus scope required
+
+- Removed Track 07 completion, `TEST-REPORT.md`, and harness from the Track 08 gate.
+  Track 08 now requires completed Tracks 01–06 plus the explicit Track 07 skip record
+  and absence of weekly projection artifacts.
+- Replaced the optional bonus go/no-go with an owner decision to implement the full
+  documented bonus set after mandatory evidence is green: deterministic seed data,
+  Docker setup, rate limiting, and cursor pagination.
+- Made T08-08 and its focused/combined regression evidence mandatory for Track 08
+  closure. No bonus may be silently declined or used to weaken mandatory evidence.
+- Preserved the no-public-history boundary, FUT-01 documentation-only scope, and the
+  repository owner's exclusive authority over external submission actions.
+
+## Current state
+
+- Specification: Planned, version 1.2
+- Plan: T08-01 blocked on remaining Track 06 closure; Tracks 01–05 are Complete and
+  Track 07 is Skipped
+- Bonus disposition: all selected for implementation in Track 08 after mandatory green
+- Implementation: Not started
+
 ## 2026-08-05 — Final verification-gate planning clarified
 
 - Added planning for `scripts/verify-track-08.sh` as the final disposable-clean-clone
@@ -36,7 +57,7 @@
 - Primary review made the clean-clone rehearsal verify the committed Python 3.12 pin
   instead of creating or repairing that tracked configuration during the proof.
 
-## Current state
+## Historical state before the 2026-08-06 scope decision
 
 - Specification: Planned, version 1.1
 - Plan: Planned; T08-01 Blocked on T01-08, T02-07, T03-08, T04-07, T05-07, T06-08,
@@ -45,7 +66,7 @@
 - Material product questions: None known; final commands, port, audit tooling, and
   exact documentation details must come from delivered implementation evidence
 
-## Next action
+## Historical next action
 
 After every upstream track closes, execute T08-01. Compare each closure report to the
 actual repository and ADR contracts before attempting any clean-clone rehearsal or

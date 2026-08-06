@@ -7,6 +7,10 @@
   substring semantics, canonical live raw-SQL statistics, consistent SQLite read
   snapshots, protected HTTP/OpenAPI contracts, query plans, and process verification
 
+> **Later scope note (2026-08-06):** References below to weekly projections as future
+> Track 07 work describe this report's closure boundary. The owner subsequently
+> skipped Track 07; this report's Track 04 executable results are unchanged.
+
 ## Acceptance matrix
 
 | Requirement | Executable evidence | Result |

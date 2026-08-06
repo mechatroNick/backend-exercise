@@ -109,5 +109,5 @@ or any request for Track 05--07 behavior.
 | SQL-03 | T04-REQ-02,04,05 | Query-count, eager-loading, EXPLAIN, and raw-SQL isolation review. |
 | ISO-01 stats | T04-REQ-02,03,04,05 | Two-user list/stats tests. |
 
-Track 05 owns API-wide conformance; Track 06 owns snapshots/queue/markers/worker;
-Track 07 owns history. Track 04 proves only its operations.
+Track 05 owns API-wide conformance; Track 06 owns snapshots/queue/markers/worker.
+Track 07 history is owner-skipped. Track 04 proves only its operations.

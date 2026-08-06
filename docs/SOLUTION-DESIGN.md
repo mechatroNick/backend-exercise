@@ -7,7 +7,9 @@ This document describes the intended solution for the Bookmarks API assessment. 
 The design has two layers:
 
 1. the mandatory assessment solution: authenticated bookmark management, search, pagination, and a raw-SQL current-statistics endpoint;
-2. a deliberately bounded engineering extension: loosely coupled invalidation events, a background statistics refresher, health reporting, and weekly historical statistics revisions.
+2. a deliberately bounded engineering extension: loosely coupled invalidation events,
+   a background current-statistics refresher, and health reporting. Weekly historical
+   revisions are an archived design whose Track 07 implementation is skipped.
 
 The mandatory API remains correct without the extension. The extension must improve freshness and observability without becoming the sole path to correct responses.
 
@@ -194,9 +196,6 @@ erDiagram
     BOOKMARK ||--o{ BOOKMARK_TAG : has
     TAG ||--o{ BOOKMARK_TAG : labels
     USER ||--o{ STATS_DIRTY_WINDOW : invalidates
-    USER ||--o{ WEEKLY_STATS_POINT : develops
-    USER ||--o{ WEEKLY_STATS_REVISION : archives
-    WEEKLY_STATS_REVISION o|--o| WEEKLY_STATS_REVISION : supersedes
 
     USER {
         int id PK
@@ -230,28 +229,11 @@ erDiagram
         datetime first_marked_at
         datetime last_marked_at
     }
-    WEEKLY_STATS_POINT {
-        int user_id PK_FK
-        datetime window_start PK
-        datetime window_end
-        json payload
-        string content_hash
-        datetime calculated_at
-    }
-    WEEKLY_STATS_REVISION {
-        int id PK
-        int user_id FK
-        datetime window_start
-        datetime window_end
-        int revision
-        int supersedes_id FK
-        json payload
-        string content_hash
-        datetime calculated_at
-    }
 ```
 
-The initial core migration contains users, bookmarks, tags, and `bookmark_tags`. The durable dirty-window table arrives with the Track 06 event service. Developing and developed projection tables arrive with Track 07, keeping the mandatory data model easy to review while ensuring durable recovery exists from the first event-driven checkpoint.
+The initial core migration contains users, bookmarks, tags, and `bookmark_tags`. The
+durable dirty-window table arrives with the Track 06 event service. Track 07 is
+skipped, so no developing/developed projection tables or correction schema is added.
 
 Important constraints and indexes include:
 
@@ -264,8 +246,7 @@ Important constraints and indexes include:
 - `ON DELETE CASCADE` from user to owned bookmarks and from bookmark/tag parents to association rows;
 - indexes supporting `bookmarks(user_id, created_at, id)` and `bookmarks(user_id, updated_at, id)`;
 - an index supporting case-insensitive title lookup where SQLite's query plan benefits from it;
-- uniqueness of `(user_id, window_start)` for developing weekly points;
-- uniqueness of `(user_id, window_start, revision)` for developed revisions.
+- a composite `(user_id, window_start)` dirty-marker key with generation-safe cleanup.
 
 Every SQLite connection executes `PRAGMA foreign_keys=ON`. Tests prove actual constraint failures; schema declarations alone are not accepted as evidence. Alembic is the only application schema-creation mechanism.
 
@@ -353,7 +334,6 @@ sequenceDiagram
     Note over API,Q: Event contains identifiers and metadata, never bookmark content
     W->>Q: drain and coalesce every configured interval
     W->>DB: read durable dirty state and canonical data
-    W->>DB: persist projection updates
     W-->>W: atomically publish current snapshot
 ```
 
@@ -382,43 +362,23 @@ Every `STATS_REFRESH_INTERVAL_SECONDS` (default `10`) it:
 
 1. drains queued invalidations up to configured limits;
 2. reads durable dirty markers;
-3. coalesces current-statistics work by user and historical work by `(user_id, window_start)`;
+3. coalesces current-statistics work by user and durable markers by `(user_id, window_start)`;
 4. computes canonical results using the raw SQL reader;
-5. once the Track 07 projection is installed, persists weekly projection changes in a transaction;
+5. atomically swaps immutable current snapshot objects;
 6. removes a dirty marker only if the generation still equals the value observed at cycle start;
-7. atomically swaps immutable current snapshot objects;
-8. records cycle timing, success, and failure state.
+7. records cycle timing, success, and failure state.
 
 Generation comparison prevents a concurrent mutation from being erased by an older refresh cycle.
 
-## 12. Weekly event-time statistics projection
+## 12. Skipped weekly event-time projection
 
-Weekly data points are separate from the current stats endpoint. They summarize bookmarks whose immutable `created_at` belongs to a UTC week. A week is the half-open range `[Monday 00:00:00Z, next Monday 00:00:00Z)`.
+Track 07 is skipped by owner decision. The repository does not implement weekly
+developing points, immutable developed revisions, late corrections, historical
+backfill, a historical consumer, or a public history endpoint.
 
-This is the confirmed event-time definition in [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md). The rejected alternative was an audit snapshot of all current system state observed at the end of a week.
-
-```mermaid
-stateDiagram-v2
-    [*] --> Developing: first work in current UTC week
-    Developing --> Developing: material change within the week
-    Developing --> DevelopedR1: boundary final recomputation
-    DevelopedR1 --> DevelopedR2: late delete or tag correction
-    DevelopedR2 --> DevelopedR3: another material correction
-```
-
-### 12.1 Developing point
-
-The current week's point is mutable and replaceable. Every refresh recomputes it from canonical bookmarks whose `created_at` belongs to the window. The ten-second setting is refresh cadence, not historical granularity.
-
-### 12.2 Developed revisions
-
-At the weekly boundary, the worker performs a final canonical recomputation, appends immutable revision 1 for the completed window, and creates or refreshes the next developing point atomically.
-
-A late material change to a completed window does not edit revision 1. It appends revision `N+1` with `supersedes_id` pointing to the previous effective revision. Readers treat the highest valid revision as effective while retaining the full correction chain.
-
-A deterministic content hash makes retries idempotent: if recomputation produces the already-effective content, no duplicate correction revision is appended.
-
-All revisions are retained for this local assessment. No public history endpoint is added because the exercise does not request one. User deletion may cascade the user's history as an explicit privacy/lifecycle exception to immutability.
+[ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) remains an archived
+design reference if this feature is ever reconsidered. It is not part of the delivered
+data model or runtime. Track 06 current-only generation completion is final.
 
 ## 13. Configuration
 
@@ -457,7 +417,7 @@ Readiness considers:
 - consecutive failures;
 - queue depth and overflow count;
 - durable dirty backlog size and oldest age;
-- overdue weekly windows.
+- durable dirty backlog thresholds.
 
 Structured application logs include at least:
 
@@ -486,7 +446,8 @@ SQLite write contention is managed by:
 - bounded batch sizes;
 - no long-running transaction while sleeping or waiting on the queue.
 
-The design does not claim exactly-once event processing. It provides at-least-eventual recomputation from durable invalidations with idempotent projection writes.
+The design does not claim exactly-once event processing. It provides at-least-eventual
+current-statistics recomputation from durable invalidations.
 
 ## 16. Test architecture
 
@@ -497,10 +458,9 @@ Tests are organized by the behavior they prove, not only by source file.
 - normalization and validation;
 - password hashing/token expiry and invalid-token handling;
 - controllable-clock timestamp rules;
-- weekly window boundary calculations;
+- UTC dirty-window normalization;
 - material-change detection;
 - event redaction and coalescing;
-- content hashing and revision selection;
 - settings cross-validation.
 
 ### 16.2 Integration tests
@@ -517,7 +477,7 @@ Tests are organized by the behavior they prove, not only by source file.
 - queue overflow still leaves durable work recoverable;
 - worker restart replays dirty work;
 - generation-safe cleanup under a concurrent invalidation;
-- developing weekly replacement, boundary finalization, and late correction revision;
+- explicit absence of weekly projection tables, routes, and consumers;
 - readiness degradation and recovery.
 
 ### 16.3 Contract tests
@@ -553,7 +513,9 @@ The repository will expose one documented local bootstrap command. It will:
 5. emit service-attributed startup logs;
 6. stop the refresher cooperatively on shutdown.
 
-Direct `uvicorn` execution remains possible for development, but it does not silently create schema. Docker may be included as a bonus; it is not required to run or validate the solution.
+Direct `uvicorn` execution remains possible for development, but it does not silently
+create schema. Track 08 must additionally deliver and verify a reproducible Docker
+workflow after the mandatory core gate is green.
 
 ## 18. Security considerations
 
@@ -568,7 +530,12 @@ Direct `uvicorn` execution remains possible for development, but it does not sil
 - Avoid exposing SQLite paths or stack traces through error details.
 - Keep dependency versions reviewable and run dependency/security checks where locally available.
 
-Rate limiting is a bonus and must not displace core correctness.
+Track 08 also delivers rate limiting and cursor pagination after the mandatory core
+gate. Rate limiting must be bounded and ownership-safe with an exact documented 429
+contract. Cursor pagination must preserve deterministic ordering, owner isolation,
+and malformed/tampered cursor handling while retaining existing page pagination where
+the final public contract requires compatibility. Deterministic seed data must be
+idempotent and must never contain or emit real credentials.
 
 ## 19. Evolution beyond the exercise
 
@@ -594,6 +561,6 @@ The goal is not to simulate distributed infrastructure in a take-home. It is to 
 | API semantics, normalization, pagination, timestamp behavior | [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) |
 | Identity validation, Argon2, JWT behavior | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) |
 | Event invalidation, queue, worker lifecycle, health, logging | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) |
-| Weekly event-time points and append-only correction revisions | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) |
+| Weekly event-time points and append-only correction revisions (archived design; implementation skipped) | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) |
 
 The ADRs are authoritative when this overview is intentionally concise. Any implementation pressure to violate an accepted decision requires updating the ADR first, including consequences and migration impact.

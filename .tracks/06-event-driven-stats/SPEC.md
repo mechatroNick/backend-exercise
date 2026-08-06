@@ -1,7 +1,7 @@
 # Track 06 specification: event-driven current statistics, durable recovery, and operations
 
 - Status: Ready (implementation authorized)
-- Specification version: 1.1
+- Specification version: 1.2
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Track 05 **Complete**, including its core quality-gate receipts and no known critical/high defect
@@ -125,19 +125,16 @@ work coalesces by `(user_id, window_start)`. A cycle reads durable markers even 
 received no event; startup reconciles current stats before normal scheduling; a
 configurable full reconciliation is defense in depth for overflow/suspected drift.
 
-### 4.3 Staged consumer completion
+### 4.3 Terminal current-only completion
 
-ADR-004 and ADR-005 use one staged installed-consumer rule. Before Track 07 exists, a
-successful canonical current-stat recomputation may clear a generation-matching marker
-after atomically publishing the relevant snapshot. This is current completion only;
-Track 06 does not claim to have produced historical points.
+Track 07 is skipped. A successful canonical current-stat recomputation may clear a
+generation-matching marker after atomically publishing the relevant snapshot. This
+current-only completion is the terminal installed-consumer policy: no historical
+consumer, backfill, retention cutover, or dual-consumer completion will be installed.
 
-Track 07 must perform a canonical initial historical backfill and must not treat rows
-previously cleared by Track 06 as historical evidence. After the historical consumer
-is installed, marker removal requires both current-snapshot and historical-projection
-completion for the observed generation. A concurrent increment remains pending. The
-initial backfill is the bridge between pre-projection cleanup and multi-consumer
-completion.
+The generation predicate remains mandatory so a concurrent increment stays pending.
+Track 06 does not claim to produce historical points, weekly projections, or
+correction revisions.
 
 ## 5. Worker, snapshots, and serving
 
@@ -263,11 +260,10 @@ remain.
   broker and independently supervised worker or shared cache/materialized view.
 - SQLite has bounded local contention only; keep transactions/batches short and do
   not claim multi-process throughput or exactly-once delivery.
-- Track 07 owns historical working/developed tables, correction revisions, public
-  history decisions, canonical initial historical backfill, and the confirmed
-  multi-consumer marker-completion extension described above.
-- Track 08 owns final README/process narrative, deployment design, seed data, and
-  optional bonuses. Primary engineering owns closure review and the required
+- Track 07 is skipped. Historical working/developed tables, correction revisions,
+  backfill, dual-consumer completion, and public history remain absent.
+- Track 08 owns final README/process narrative, deployment design, seed data, Docker,
+  rate limiting, and cursor pagination. Primary engineering owns closure review and the required
   `TEST-REPORT.md` evidence receipt.
 
 ## 10. Traceability

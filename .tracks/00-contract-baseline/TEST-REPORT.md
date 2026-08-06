@@ -4,6 +4,13 @@
 - Date: 2026-08-05
 - Scope: Documentation contract, ADR consistency, traceability, and reader comprehension
 
+> **Scope addendum (2026-08-06):** The original closure evidence below remains a
+> historical receipt. The owner later skipped Track 07, archived ADR-005's weekly
+> implementation design, and selected deterministic seed data, Docker setup, rate
+> limiting, and cursor pagination for Track 08. `bash -n scripts/verify-docs.sh` and
+> `bash scripts/verify-docs.sh` both exited `0` after that documentation-only
+> reconciliation; no new product-runtime claim is made.
+
 ## Acceptance matrix
 
 | Requirement | Evidence | Result |

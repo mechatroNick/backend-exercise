@@ -1,6 +1,6 @@
 # Track 00 plan: contract and architecture baseline
 
-- Specification: [SPEC.md](SPEC.md), version 1.1
+- Specification: [SPEC.md](SPEC.md), version 1.2
 - Status: Complete
 - Active item: None
 
@@ -19,6 +19,7 @@
 | T00-09 | Adopt and index the shared engineering verification guideline and its documentation-only checker. | Complete | `docs/ENGINEERING-VERIFICATION-GUIDELINE.md` is indexed; `bash scripts/verify-docs.sh` passed and is recorded in `TEST-REPORT.md`. |
 | T00-10 | Accept ADR-006 and revalidate the expanded documentation gate. | Complete | ADR-006 binds evidence and closure process without changing product semantics; the six-ADR documentation gate is revalidated and recorded in `TEST-REPORT.md`. |
 | T00-11 | Reconcile the final cross-track governance audit. | Complete | The live delivery Definition of Done covers all six accepted ADRs, stale Track 01 next-step text is resolved, and the documentation gate is revalidated. |
+| T00-12 | Reconcile the owner decision to skip Track 07 and require all four Track 08 bonuses. | Complete | The baseline preserves ADR-005 as archived design, removes weekly implementation as an active invariant, and points final delivery to current-only Track 06 plus the full Track 08 bonus set. |
 
 ## Validation commands
 
@@ -29,7 +30,8 @@ The exact portable commands and results are recorded in `TEST-REPORT.md`. Valida
 - Markdown links to local files;
 - ADR status/ownership consistency;
 - track numbering consistency;
-- key terminology: current statistics, event-time week, developing point, developed revision, dirty generation, and live fallback;
+- key terminology and scope: current statistics, dirty generation, live fallback,
+  the Track 07 skip, and the complete Track 08 bonus set;
 - fresh-reader comprehension and contradictions.
 - the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and its documentation-only verifier; no runtime proof is implied for Track 00.
 

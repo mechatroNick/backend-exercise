@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 01, 03, 04, 06, 07, 08
+- Affected tracks: 01, 03, 04, 06, 08; Track 07 skip record
 - Affected SPEC versions: Baseline
 - Supersedes: Earlier discussion of request-only statistics computation
 - Superseded by: None
@@ -18,8 +18,8 @@ generate statistics data points. The service must start with the API without Doc
 produce attributable logs, and contribute meaningful readiness state.
 
 The background execution, queueing, lifecycle, and current-snapshot decisions are
-independent from the lifecycle of historical statistics data points. Windowed
-developing and developed data points are governed by ADR-005.
+independent from historical statistics data points. Track 07 is skipped, so ADR-005
+is retained only as an archived design and no historical consumer is installed.
 
 ## Decision
 
@@ -162,8 +162,8 @@ developing and developed data points are governed by ADR-005.
 
 ### Follow-up
 
-- Implement windowed historical data points in Track 07 according to accepted
-  ADR-005; Track 06 first establishes the shared durable dirty-marker mechanism.
+- Keep Track 06 current-only and generation-safe. Track 07 historical points are
+  skipped; do not add their tables, backfill, consumer, or correction revisions.
 - Create deterministic lifecycle, queue, concurrency, fallback, health, logging, and
   shutdown tests without real ten-second sleeps.
 - Document a future durable-outbox and external-worker evolution without

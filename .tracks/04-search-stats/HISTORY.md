@@ -1,5 +1,11 @@
 # Track 04 history
 
+## 2026-08-06 — Later Track 07 scope disposition recorded
+
+- Track 04's completed current-statistics evidence is unchanged.
+- References below to weekly history as later Track 07 work are historical. The owner
+  subsequently skipped Track 07, so no weekly implementation handoff remains active.
+
 ## 2026-08-05 — Sequential planning started
 
 - Planned Track 04 after committed Track 03 (`f0dd994`), preserving ORM search,

@@ -1,5 +1,18 @@
 # Track 00 history
 
+## 2026-08-06 — Scope baseline reconciled after Track 07 skip
+
+- Bumped the completed baseline to specification version 1.2 without reopening its
+  implementation gate.
+- Reclassified ADR-005 as an accepted archived design whose Track 07 implementation
+  is owner-skipped; Track 06 current-only statistics are the terminal runtime policy.
+- Removed weekly projections from active must-preserve behavior and recorded that
+  reviving them requires a new explicit owner decision.
+- Recorded all four owner-selected Track 08 bonuses after mandatory green:
+  deterministic seed data, Docker setup, rate limiting, and cursor pagination.
+- This is a documentation-only scope reconciliation. It does not claim Track 07
+  runtime evidence or modify product behavior.
+
 ## 2026-08-05 — Assessment discovery
 
 - Inspected the repository and the supplied six-page technical assessment.

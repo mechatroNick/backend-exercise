@@ -1,5 +1,16 @@
 # Track 06 history
 
+## 2026-08-06 — Track 07 skip incorporated
+
+- Replaced the staged future historical-consumer handoff with terminal current-only
+  generation completion after the owner skipped Track 07.
+- Confirmed that Track 06 will not add weekly working/developed tables, backfill,
+  dual-consumer completion, correction revisions, or a history API.
+- Changed the closure handoff to Track 08, which consumes Track 06 evidence plus the
+  explicit Track 07 skip/absence record.
+- This control-plane update does not change Track 06's current statistics body,
+  raw-SQL authority, event ordering, worker topology, or verification threshold.
+
 ## 2026-08-06 — T06-03 transaction and typed-event checkpoint complete
 
 - Stabilized commit `4768ceb` with the frozen, content-free
@@ -79,7 +90,7 @@
   health, and logs to Track 06. Kept working/developed weekly data, corrections, and
   history APIs out of scope for Track 07.
 
-## ADR-005 staged consumer clarification
+## ADR-005 staged consumer clarification (superseded by Track 07 skip)
 
 Reconciled ADR-004 current cleanup with ADR-005 historical projection using an
 installed-consumer rule. Track 06 may complete a generation after successful canonical
@@ -88,14 +99,14 @@ canonical historical backfill, then require both current and historical consumer
 complete the observed generation before cleanup. This changes no public statistics or
 weekly event-time semantics and prevents unbounded inert markers before Track 07.
 
-## Current state
+## Historical state at 2026-08-05 planning
 
 - Specification: Planned, version 1.1
 - Plan: Planned; T06-01 Blocked on Track 05 closure
 - Implementation: Not started; dependency-gated
 - Material product questions: None known
 
-## Next action
+## Historical next action
 
 After Track 05 closes with actual `TEST-REPORT.md` evidence, execute T06-01 to compare
 delivered publisher, transaction, raw-SQL, Settings, lifespan, and logging seams and

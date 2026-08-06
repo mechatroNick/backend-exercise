@@ -21,7 +21,7 @@ assessment. Durable execution state and architecture decisions live under
 - [ADR-002: API contract and timestamps](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md)
 - [ADR-003: Identity and token security](../.tracks/ADR/ADR-003-identity-and-token-security.md)
 - [ADR-004: Event-driven statistics service](../.tracks/ADR/ADR-004-event-driven-statistics-service.md)
-- [ADR-005: Windowed statistics data points](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
+- [ADR-005: Archived windowed-statistics design; implementation skipped](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
 - [ADR-006: Engineering verification and closure evidence](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 - [Track 00: closed contract baseline](../.tracks/00-contract-baseline/SPEC.md)
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
@@ -37,12 +37,14 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 05: mandatory quality-gate execution plan](../.tracks/05-mandatory-quality-gate/PLAN.md)
 - [Track 06: event-driven statistics specification](../.tracks/06-event-driven-stats/SPEC.md)
 - [Track 06: event-driven statistics execution plan](../.tracks/06-event-driven-stats/PLAN.md)
-- [Track 07: weekly projections specification](../.tracks/07-weekly-projections/SPEC.md)
-- [Track 07: weekly projections execution plan](../.tracks/07-weekly-projections/PLAN.md)
+- [Track 07: skipped weekly-projections scope](../.tracks/07-weekly-projections/SPEC.md)
+- [Track 07: skipped-work plan](../.tracks/07-weekly-projections/PLAN.md)
 - [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 
-Detailed downstream artifacts may be planned sequentially after upstream plan review;
+Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
+Track 08 implements the full selected bonus set: seed data, Docker, rate limiting,
+and cursor pagination. Other downstream artifacts may be planned sequentially after upstream plan review;
 their presence does not make implementation ready until each stated dependency closes
 with the required evidence.
 

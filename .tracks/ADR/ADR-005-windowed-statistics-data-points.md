@@ -3,10 +3,15 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 06, 07, 08
+- Affected tracks: 06, 08; Track 07 skip record
 - Affected SPEC versions: Baseline
 - Supersedes: ADR-004 open question about snapshot versus historical persistence
 - Superseded by: None
+- Implementation disposition: **Not selected; Track 07 skipped by owner on 2026-08-06**
+
+> This ADR remains an accepted design record for possible future revival. Its weekly
+> tables, consumers, backfill, and correction revisions are not part of the delivered
+> scope. Track 06 current-only generation completion is terminal.
 
 ## Context
 
@@ -131,13 +136,11 @@ bookmark_stats_window_dirty
 - last_marked_at
 ```
 
-Unique key: `(user_id, window_start)`. Marker completion is generation-safe and
-includes every installed consumer. Before the historical projection is installed, a
-successful canonical current-snapshot recomputation may complete and remove its
-observed generation under ADR-004. Track 07 must then perform a canonical initial
-historical backfill before normal marker consumption. Once that consumer is installed,
-a marker is removed only after both current-snapshot and historical-projection work
-have completed the observed generation; a concurrent increment remains pending.
+Unique key: `(user_id, window_start)`. Marker completion is generation-safe. Because
+Track 07 is skipped, only the current-snapshot consumer is installed: successful
+canonical recomputation may complete and remove its observed generation under
+ADR-004, while a concurrent increment remains pending. The historical backfill and
+dual-consumer protocol described by this ADR are archived and not implemented.
 
 ## Rejected alternative: observation-time snapshot
 

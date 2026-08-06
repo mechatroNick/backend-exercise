@@ -14,8 +14,8 @@ flowchart LR
     T03 --> T04["04 Search and current stats"]
     T04 --> T05["05 Mandatory quality gate"]
     T05 --> T06["06 Event-driven current snapshots"]
-    T06 --> T07["07 Weekly projections and corrections"]
-    T07 --> T08["08 Final hardening and handoff"]
+    T06 --> T08["08 Final hardening and all bonuses"]
+    T07["07 Weekly projections — skipped"] -. "scope record" .-> T08
 ```
 
 Detailed execution artifacts may be created sequentially after upstream plan review
@@ -44,14 +44,14 @@ No track is considered complete based only on code presence. Completion requires
 | Track | Outcome | Depends on | State |
 | --- | --- | --- | --- |
 | 00 | Confirmed contract, ADR set, traceability, architecture, and delivery control plane | Assessment and user decisions | Complete |
-| 01 | Reproducible project foundation and migration-built constrained core schema | 00 | Ready |
-| 02 | Consistent error model plus secure registration/login/auth dependencies | 01 | Planned |
-| 03 | User-scoped bookmark CRUD with normalized many-to-many tags and timestamp invariants | 02 | Planned |
-| 04 | Search/filter/pagination and correct raw-SQL current statistics | 03 | Planned |
-| 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Planned |
-| 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Planned |
-| 07 | Weekly developing/developed points and append-only correction projections | 06 | Planned |
-| 08 | Full regression, documentation evidence, walkthrough readiness, and bounded bonuses | 07 | Planned |
+| 01 | Reproducible project foundation and migration-built constrained core schema | 00 | Complete |
+| 02 | Consistent error model plus secure registration/login/auth dependencies | 01 | Complete |
+| 03 | User-scoped bookmark CRUD with normalized many-to-many tags and timestamp invariants | 02 | Complete |
+| 04 | Search/filter/pagination and correct raw-SQL current statistics | 03 | Complete |
+| 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Complete |
+| 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Ready; implementation in progress |
+| 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
+| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Planned |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -64,7 +64,7 @@ Create a durable and internally consistent interpretation of the exercise before
 - preserve the supplied assessment in `docs/`;
 - extract a requirement-to-evidence matrix;
 - record all confirmed choices and rejected alternatives in accepted ADRs;
-- distinguish mandatory current statistics from the weekly projection extension;
+- distinguish delivered current statistics from the owner-skipped weekly projection design;
 - define system boundaries, runtime topology, data invariants, testing strategy, and delivery tracks;
 - identify any remaining material ambiguity and ask before implementation.
 
@@ -72,7 +72,8 @@ Create a durable and internally consistent interpretation of the exercise before
 
 - every assessment requirement has a stable identifier and track owner in [ASSESSMENT.md](ASSESSMENT.md);
 - [SOLUTION-DESIGN.md](SOLUTION-DESIGN.md) links every accepted ADR;
-- accepted ADRs contain the confirmed weekly event-time definition and correction rules;
+- ADR-005 retains the weekly event-time/correction design as an archived option while
+  the track records its implementation as skipped;
 - the plan puts the complete mandatory gate before optional/extended runtime behavior;
 - a reader can explain what is required, what is an extension, and how correctness will be demonstrated without consulting chat history.
 
@@ -279,36 +280,30 @@ Add the loose-coupled runtime requested by the user while retaining live raw-SQL
 
 `feat: add observable event-driven statistics refresh`
 
-## 11. Track 07 — Weekly projection and correction revisions
+## 11. Track 07 — Skipped weekly projection and correction revisions
 
 ### Outcome
 
-Implement confirmed developing and developed weekly event-time points with durable invalidation recovery and append-only corrections.
+Record the owner decision not to implement weekly developing/developed points or
+append-only corrections.
 
 ### Included
 
-- migration for developing points and developed revisions;
-- projection consumption of the Track 06 durable dirty-window markers;
-- UTC Monday-to-Monday window calculation from `bookmark.created_at`;
-- replaceable current-week recomputation;
-- atomic boundary finalization and next-window creation;
-- append-only late correction revisions with `supersedes_id`;
-- deterministic content hashes and idempotent replay;
-- restart/backlog/queue-overflow recovery and health metrics.
+- explicit Skipped status in SPEC, PLAN, HISTORY, indexes, and reader docs;
+- no weekly migration, table, consumer, backfill, route, or worker extension;
+- terminal Track 06 current-only generation completion;
+- Track 08 dependency on the skip record rather than Track 07 closure evidence.
 
 ### Acceptance evidence
 
-- a recovered dirty marker triggers the correct developing or correction projection;
-- current-week changes replace one developing point rather than append observations;
-- finalization creates immutable revision 1 from a final canonical query;
-- a late delete or tag change appends revision `N+1` and preserves earlier revisions;
-- identical replay appends no duplicate revision;
-- events around Sunday/Monday UTC are assigned to the correct half-open week;
-- current `/api/bookmarks/stats` remains independent of weekly history.
+- documentation verification confirms the explicit skip everywhere current scope is described;
+- no Track 07 product artifact or `scripts/verify-track-07.sh` exists;
+- Track 08 does not require a Track 07 `TEST-REPORT.md`;
+- current `/api/bookmarks/stats` remains the only statistics surface.
 
 ### Proposed commit
 
-`feat: add durable weekly statistics projections`
+No implementation commit. The scope decision is documentation-only.
 
 ## 12. Track 08 — Final hardening, documentation, and handoff
 
@@ -324,7 +319,8 @@ Turn the working solution into a concise, reproducible senior-level submission w
 - final test report with requirement-to-evidence links;
 - AI-assisted-development disclosure and process narrative based on actual work history;
 - walkthrough/demo script;
-- seed command and Docker only if core quality is already protected;
+- deterministic seed command, Docker setup, rate limiting, and cursor pagination,
+  each after the mandatory gate with isolated evidence;
 - bounded security/dependency review and cleanup.
 
 ### Acceptance evidence
@@ -335,23 +331,31 @@ Turn the working solution into a concise, reproducible senior-level submission w
 - all mandatory and accepted extension requirements have traceable passing evidence;
 - known limitations and production evolution are explicit;
 - git history is coherent and free of generated noise or secrets;
-- no bonus feature weakens the core solution.
+- seed behavior is deterministic/idempotent and does not expose credentials;
+- Docker migration/start/health/shutdown works from a clean environment;
+- rate limiting has deterministic 429, isolation, and recovery evidence;
+- cursor pagination has stable ordering, boundary, malformed/tampered cursor, and
+  owner-isolation evidence;
+- no bonus weakens the core solution and the combined final harness remains green.
 
 ### Proposed commits
 
 - `docs: add reproducible setup and engineering walkthrough`
-- optional isolated bonus commits only after the final core gate
+- `feat: add deterministic sample data seeding`
+- `build: add reproducible Docker workflow`
+- `feat: add bounded API rate limiting`
+- `feat: add cursor pagination`
 
 ## 13. Cross-track acceptance matrix
 
 | Quality attribute | Primary tracks | Closure evidence |
 | --- | --- | --- |
 | Functional completeness | 02–05 | Integration and contract suite mapped to requirement IDs. |
-| Data integrity | 01, 03, 07 | Migration tests, real constraint failures, transaction/concurrency tests. |
+| Data integrity | 01, 03, 06 | Migration tests, real constraint failures, transaction/concurrency tests. |
 | Security and isolation | 02, 03, 08 | Auth, ownership, secret-validation, redaction, and review evidence. |
 | API usability | 02–05, 08 | Accurate OpenAPI, examples, consistent errors, README usage. |
 | Performance discipline | 04, 06 | Bounded pagination, query-count tests, coalescing, bounded queue. |
-| Reliability | 06, 07 | Fallback path, lifecycle, durable recovery, idempotency, readiness. |
+| Reliability | 06, 08 | Fallback path, lifecycle, durable recovery, bonus edge cases, and readiness. |
 | Maintainability | all | Layer boundaries, accepted ADRs, typed code, focused commits. |
 | Reviewer experience | 00, 05, 08 | Traceability, clean bootstrap, walkthrough, honest limitations. |
 
@@ -365,9 +369,10 @@ Turn the working solution into a concise, reproducible senior-level submission w
 | User data leaks through ID lookup or statistics | Owner predicates in repositories/raw SQL and two-user tests. | 03, 04 |
 | OpenAPI exists but is inaccurate | Validate real response instances against generated schemas. | 05 |
 | Background thread creates a second source of truth | Canonical recomputation and live raw-SQL fallback. | 06 |
-| In-process event loss leaves stale current/history work | Durable dirty generation in mutation transaction. | 06 |
+| In-process event loss leaves stale current work | Durable dirty generation in mutation transaction. | 06 |
 | Worker deletes a newly dirtied marker | Generation compare-and-delete. | 06 |
-| Late historical change mutates audit history | Append correction revision with supersession link. | 07 |
+| Skipped weekly scope is accidentally reintroduced | Documentation verifier and Track 08 absence audit reject weekly artifacts. | 07, 08 |
+| Bonus work regresses the mandatory API | Isolated bonus commits plus full final harness after all bonuses. | 08 |
 | Extension consumes time while mandatory API is incomplete | Hard Track 05 gate before Track 06. | 05 |
 | Documentation overstates the implementation | Write final README process/evidence from verified repository state. | 08 |
 
@@ -376,10 +381,11 @@ Turn the working solution into a concise, reproducible senior-level submission w
 The project is done only when:
 
 - every mandatory assessment requirement has passing evidence;
-- all six accepted ADRs are implemented, adopted as governance constraints, or
-  explicitly superseded;
-- current and historical statistics semantics remain separate and tested;
+- all six accepted ADRs are implemented, adopted as governance constraints, archived
+  by an explicit owner skip, or explicitly superseded;
+- current statistics remain correct and weekly historical projections remain explicitly skipped;
 - the application bootstraps locally with all internal services visible in logs;
 - migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;
+- all selected Track 08 bonuses pass focused and combined evidence;
 - documentation describes the actual implementation, including tradeoffs and known limits;
 - no unresolved material ambiguity, secret, or high-severity defect remains.

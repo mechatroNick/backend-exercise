@@ -1,5 +1,19 @@
 # Track 07 history
 
+## 2026-08-06 — Track skipped by owner decision
+
+- Changed Track 07 from **Planned (implementation-gated)** to **Skipped (owner
+  decision)**. No weekly developing/developed table, backfill, historical consumer,
+  correction revision, route, worker extension, harness, or test report will be
+  implemented.
+- Kept all prior entries below as planning history only. They are superseded by this
+  scope decision and are not implementation authority.
+- Made Track 06 current-only dirty-marker completion the terminal runtime policy.
+- Removed Track 07 completion/report/harness as a Track 08 dependency. Track 08 now
+  consumes this skip record and verifies the absence of weekly projection artifacts.
+- This documentation decision does not claim passing Track 07 evidence and does not
+  modify product source, migrations, tests, or runtime behavior.
+
 ## 2026-08-05 — Sequential planning started
 
 - Planned Track07 after committed Track06 (92d3830) and accepted ADR-001, ADR-004,
@@ -18,7 +32,7 @@
   keeping observed dirty generations positive, prohibited blanket completion during
   migration, and required same-user/window immediate-predecessor supersession proof.
 
-## Current state
+## Historical state before the 2026-08-06 skip decision
 
 - Specification: Planned, version 1.1
 - Plan: Planned; T07-01 Blocked on Track06 closure TEST-REPORT.md
@@ -26,7 +40,7 @@
 - Material product questions: None known; private completion names/checkpoint mechanics
   remain implementation latitude after Track06 seam review
 
-## Next action
+## Historical next action
 
 After Track06 closes with real evidence, execute T07-01 to compare its delivered
 dirty-marker migration, current completion ordering, raw-SQL reader, worker cycle,

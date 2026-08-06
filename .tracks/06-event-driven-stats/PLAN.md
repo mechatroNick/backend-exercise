@@ -1,6 +1,6 @@
 # Track 06 plan: event-driven current statistics, durable recovery, and operations
 
-- Specification: [SPEC.md](SPEC.md), version 1.1
+- Specification: [SPEC.md](SPEC.md), version 1.2
 - Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
 - Status: Ready (implementation authorized)
 - Active item: T06-04 — bounded publisher, snapshots, and live source selection
@@ -11,19 +11,19 @@ Before any implementation, the primary engineering thread verifies Track 05 is
 **Complete**, its `TEST-REPORT.md` records passing mandatory core evidence, and no
 critical/high defect remains. Re-read delivered Track 03 publisher/transaction seams,
 Track 04 canonical reader/body, Track 05 contract evidence, ADR-001/004/005/006, and this
-SPEC's staged Track07 marker-completion boundary. Stop for an upstream mismatch; do
+SPEC's terminal current-only marker-completion boundary. Stop for an upstream mismatch; do
 not adapt a public or durable-state contract silently.
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T06-01 | Verify Track 05 closure receipts and delivered core seams; confirm the staged Track 07 marker-completion handoff is represented in the implementation design. | Smith / implementation | Track 05 Complete | Complete | Compatibility/gate receipt at `001056c`; mandatory core proof remains intact and the accepted cleanup handoff is traceable. |
+| T06-01 | Verify Track 05 closure receipts and delivered core seams; confirm the current-only marker-completion boundary is represented in the implementation design. | Smith / implementation | Track 05 Complete | Complete | Compatibility/gate receipt at `001056c`; mandatory core proof remains intact and the cleanup boundary is traceable. |
 | T06-02 | Create/review Alembic dirty-marker migration and transaction-safe atomic upsert/reconciliation repository operations. | Smith / implementation | T06-01 | Complete | Commit `bf7546f`; exact migrated DDL/metadata/indexes, atomic upsert, rollback, generation race, restart recovery, downgrade/re-upgrade, 484-test full suite, and 100% coverage passed. |
 | T06-03 | Define `BookmarkStatsInvalidated`, replace the Track03 no-op publisher adapter, and integrate same-transaction dirty marking plus exactly-one post-commit nonblocking publish. | Smith / implementation | T06-01, T06-02 | Complete | Commit `4768ceb`; typed safe DTO, same-session marker ordering, original delete window, rollback/no-op absence, commit-visible-before-publish, 509-test full suite, and 100% coverage passed. |
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | In progress | Overflow preserves request/marker; duplicate/reordered/lost events harmless; atomic readers and snapshot/live parity proof. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Pending | One non-daemon instance, manual-cycle/fake-clock, own session/non-overlap, restart, retry, post-commit-crash, concurrent-increment, and join-timeout evidence. |
 | T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Pending | `/health/live` independence; bounded redacted `/health/ready`; dead/stuck/never-success/stale/startup-timeout/disabled cases; parsed JSON Lines enforce complete base fields, ADR-004 instance/applicable duration/count/generation fields, safe correlation, redaction, no raw indexed exception text, and exact-once final-owning-boundary causal exception evidence. |
 | T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; barrier/fault-injection proof for generation and concurrency; full ledger, SQL/live fallback parity, migration lifecycle, contracts, ephemeral response/token assertion handling, hygiene, and actual `bash scripts/verify-track-06.sh` receipt. |
-| T06-08 | Primary closure, risk review, Track07 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; truthful actual deterministic and process-harness results, verified cleanup, safe debug-artifact disposition, and staged marker contract recorded. |
+| T06-08 | Primary closure, risk review, Track 08 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; truthful deterministic/process-harness results, verified cleanup, safe debug-artifact disposition, and terminal current-only marker contract recorded. |
 
 ## Shared completion gate
 
@@ -31,7 +31,7 @@ The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUI
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing Track 06's status, task IDs/dependencies, marker-generation
 rules, transaction/publication ordering, current-stats fallback contract, one-worker
-topology, ADR-004 log fields, or the Track 07 staged handoff. Planned, Ready, or
+topology, ADR-004 log fields, or the terminal current-only completion rule. Planned, Ready, or
 Blocked is not done. T06-08 may mark Track 06 Complete only after recorded passing
 deterministic tests, migrated-database evidence, JSON-Line/redaction evidence, and
 actual `bash scripts/verify-track-06.sh` results with cleanup; planned, skipped, or
@@ -56,19 +56,19 @@ Implementation preserves these reviewed boundaries:
   candidate may be exposed only when both that epoch and every observed durable
   generation still match during generation-safe finalization; this prevents a
   computed-before-concurrent-write snapshot from becoming observable.
-- Marker removal is not hard-coded to historical semantics. Track 06 supplies a
-  current-only completion policy; Track 07 owns retention activation, canonical
-  backfill, and later dual-consumer completion.
+- Marker removal uses current-only generation-safe completion. Track 07 is skipped,
+  so no retention activation, historical backfill, or dual-consumer completion is
+  authorized.
 - The queue, snapshot store, worker, request-facing stats service, and health router
   remain narrow feature-owned components. No SQLAlchemy global commit listener,
-  Track 07 table, history route, or second aggregation path is authorized.
+  weekly projection table, history route, or second aggregation path is authorized.
 
 Stop and return to primary/ADR review if the implementation cannot preserve the same
 request session for dirty marking, uses read-then-write generation updates, lets
 publication raise after commit, lacks epoch-and-generation protection, makes marker
 deletion durable before recoverable snapshot publication, shares request sessions,
 overlaps cycles, starts a daemon/import-time worker, changes the stats body/raw SQL,
-or introduces Track 07 state.
+or introduces weekly projection state.
 
 The future `scripts/verify-track-06.sh` extends the delivered Track 05 mandatory
 bootstrap/gate. It uses only a disposable database created through the real Alembic
@@ -97,13 +97,12 @@ never wait for a real ten-second cadence.
   Track04 raw stats reader can be reused identically by worker and live fallback.
 - Confirm Settings injection, SQLite FK/busy-timeout connection behavior, JSON logging,
   `create_app` lifespan, and no import-time side effects from Track01.
-- Preserve the accepted staged ADR-005 rule: current-only completion before Track 07;
-  canonical historical backfill at Track 07 installation; both installed consumers
-  complete the observed generation before later cleanup.
+- Preserve terminal current-only generation completion. Track 07 is skipped; do not
+  add historical retention, backfill, or a second consumer.
 
 ### T06-02/T06-03 — marker and post-commit event boundary
 
-- Add only `bookmark_stats_window_dirty`; do not pre-create Track07 working/developed
+- Add only `bookmark_stats_window_dirty`; do not create weekly working/developed
   tables. Use `(user_id, window_start)` unique grain, generation, bounded reason,
   first/last marked UTC timestamps, user FK cascade, and query-shape indexes.
 - Test `INSERT ... ON CONFLICT ... DO UPDATE` (or equivalent reviewed SQLite atomic
@@ -180,15 +179,14 @@ never wait for a real ten-second cadence.
   disposable response/token/debug state unless explicit safe debug mode applies. No
   real ten-second sleep is a valid assertion.
 
-### T06-08 — closure and Track 07 handoff
+### T06-08 — closure and Track 08 handoff
 
 - Primary records a truthful `TEST-REPORT.md` only from actual deterministic,
   migrated-database, quality, and `bash scripts/verify-track-06.sh` results, including
   versions, selectors, artifacts, selected non-sensitive port, cleanup, gaps, and
   retained debug artifacts where applicable.
-- Hand Track 07 only the confirmed canonical initial-backfill and multi-consumer
-  marker-completion contract; preserve the current-only pre-install completion rule
-  and do not claim historical points or change the accepted handoff.
+- Hand Track 08 the confirmed terminal current-only completion contract and the Track
+  07 skip/absence boundary. Do not claim historical points or weekly corrections.
 
 ## Deterministic edge-case/evidence ledger
 
@@ -203,7 +201,7 @@ never wait for a real ten-second cadence.
 | Health | Live remains independent; ready reports safe 200/503 transitions for DB failure, dead/stuck/never-success/repeated failure/stale worker, dirty backlog/age, overflow, startup and disabled states. |
 | Logging | Parse structured logs; service/event names present for startup/cycle/retry/overflow/readiness/shutdown/join timeout, while seeded IDs/content/URLs/tags/secrets/tokens are absent. |
 | Migration | Migrated SQLite empty/existing upgrade, DDL/FK/cascade/key/index inspection, atomic generation conflict, rollback, clean downgrade/re-upgrade, and restart recovery. |
-| Track07 boundary | Before Track07, only documented current completion applies. Track07 test plan must do canonical initial historical backfill, then prove both consumers complete observed generation before cleanup. |
+| Track 07 boundary | Track 07 is skipped; current-only generation completion remains final and weekly tables, consumers, backfill, and correction revisions remain absent. |
 
 ## Planned validation commands
 
@@ -237,12 +235,12 @@ passed before they run.
 
 ## Review checkpoints and commit boundary
 
-1. Gate and ADR-005 staged-completion handoff review; 2. migration/upsert/rollback review;
+1. Gate and terminal current-only completion review; 2. migration/upsert/rollback review;
 3. post-commit event safety review; 4. queue/snapshot/live-SQL equivalence review;
 5. worker generation/lifecycle review; 6. health/log redaction review; 7. primary
-closure and Track07 handoff review.
+closure and Track 08 handoff review.
 
 Preferred green-boundary commit: `feat: add observable event-driven statistics refresh`.
 Do not commit generated databases/caches/coverage, secrets, user content, tokens,
-or a failing intermediate state. Do not add Track07 historical tables/revisions,
+or a failing intermediate state. Do not add weekly historical tables/revisions,
 bonuses, or final narrative to this change.

@@ -67,11 +67,11 @@ substitute for Track 05's current mandatory automation gate.
 | Rows | Reason they are not closed by Track 05 |
 | --- | --- |
 | DEL-01 | Repository/link/archive submission, final incremental-history receipt, and external submission action belong to Track 08 and the repository owner. |
-| DEL-02, DOC-01 | Completed-architecture/setup/API/testing/deployment/trade-off documentation requires the final Tracks 06--07 design and fresh-reader review. |
+| DEL-02, DOC-01 | Completed-architecture/setup/API/testing/deployment/trade-off documentation requires final Track 06 evidence, the Track 07 skip record, and fresh-reader review. |
 | DEL-03 | AI-assisted process disclosure must reflect the completed work and remains external-authorization sensitive. |
 | FUT-01 | Final future-work boundaries are documentation-only Track 08 scope. |
-| BONUS-01, BONUS-02 | Optional bonuses are decided only after every required and accepted row is green. |
+| BONUS-01, BONUS-02 | Owner selected seed data, Docker, rate limiting, and cursor pagination for Track 08 after every mandatory/accepted core row is green. |
 
 GOV-01 is already closed by Track 00's accepted control plane and remains binding.
-Tracks 06--07 cannot begin until every Open Track 05 row above is Passed and no known
-critical or high defect remains.
+Track 06 cannot begin until every Open Track 05 row above is Passed and no known
+critical or high defect remains. Track 07 is skipped.

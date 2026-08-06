@@ -7,6 +7,11 @@
   evidence selection, query-count/raw-SQL/logging gates, full coverage, clean
   migrations, and secret-safe real-process verification
 
+> **Later scope note (2026-08-06):** References below to weekly projections as future
+> Track 07 work describe this report's closure boundary. The owner subsequently
+> skipped Track 07 and selected all four documented bonuses for Track 08; this
+> report's mandatory-core executable results are unchanged.
+
 ## Acceptance matrix
 
 | Requirement | Executable evidence | Result |

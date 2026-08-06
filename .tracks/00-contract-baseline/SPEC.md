@@ -1,7 +1,7 @@
 # Track 00 specification: contract and architecture baseline
 
 - Status: Complete
-- Specification version: 1.1
+- Specification version: 1.2
 - Started: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Supplied assessment and repository-owner clarifications
@@ -24,7 +24,9 @@ The baseline must preserve the assessment's mandatory outcomes, capture every co
 - The required `/api/bookmarks/stats` endpoint is an all-current canonical view.
 - Bookmark actions emit loosely coupled post-commit invalidations to a bounded queue once the extension is implemented.
 - A named, lifespan-managed refresher batches invalidations at a configurable default ten-second cadence and has meaningful readiness evidence.
-- Weekly historical points use bookmark `created_at` event time: a developing point is replaceable, a developed point is immutable, and late changes append correction revisions.
+- Weekly historical points and correction revisions remain an accepted archived design,
+  but their Track 07 implementation is owner-skipped. The delivered statistics
+  extension remains current-only.
 - One local bootstrap starts the API and its in-process supporting services with service-attributed logs.
 - The final README and AI-process explanation describe verified implementation evidence rather than an invented future narrative.
 
@@ -38,15 +40,16 @@ Implementation tracks may make local, reversible choices about:
 - the OpenAPI response-validation library;
 - testing fixtures and factories;
 - formatting of structured logs and internal health payload detail;
-- optional seed and Docker support after the mandatory gate passes.
+- implementation details for the owner-selected Track 08 seed, Docker, rate-limiting,
+  and cursor-pagination bonuses after the mandatory gate passes.
 
 An ADR update and repository-owner confirmation are required before changing:
 
 - public route paths, status codes, authentication model, or response semantics;
 - accepted identity/tag/date/timestamp normalization;
 - the one-worker runtime constraint for an in-process queue/cache;
-- current-versus-weekly statistics meaning;
-- weekly event-time window boundaries or append-only correction semantics;
+- current statistics meaning or the Track 07 skip boundary;
+- revival of weekly event-time windows or append-only correction semantics;
 - ORM/raw-SQL ownership boundaries;
 - a decision that materially expands submission scope.
 
@@ -66,7 +69,7 @@ An ADR update and repository-owner confirmation are required before changing:
 
 - product code, migrations, or dependency installation;
 - speculative final README claims;
-- implementation of optional bonuses;
+- implementation of the later owner-selected Track 08 bonuses;
 - external infrastructure or deployment;
 - public historical-statistics APIs.
 
@@ -94,10 +97,10 @@ Inputs:
 | --- | --- |
 | T00-REQ-01 | The assessment interpretation identifies every mandatory behavior and non-functional expectation with a stable ID, classification, owning track, and closure evidence. |
 | T00-REQ-02 | Accepted decisions are recorded as ADRs with context, decision, consequences, alternatives, and follow-up evidence. |
-| T00-REQ-03 | ADR-005 states that a weekly point summarizes bookmarks whose `created_at` falls in that UTC week and that late changes append correction revisions. |
-| T00-REQ-04 | The solution design separates all-current required statistics from weekly historical event-time points. |
+| T00-REQ-03 | ADR-005 preserves the accepted weekly event-time/correction design as an archived record and identifies Track 07 implementation as owner-skipped. |
+| T00-REQ-04 | The solution design identifies all-current statistics as the terminal delivered boundary and weekly historical points as not implemented. |
 | T00-REQ-05 | The solution design describes the complete local runtime, dependency boundaries, data model, API behavior, background lifecycle, health, security, testing, and production evolution. |
-| T00-REQ-06 | The delivery plan reaches a mandatory API quality gate before the event-driven and historical extensions. |
+| T00-REQ-06 | The delivery plan reaches a mandatory API quality gate before the current-statistics extension and the owner-selected Track 08 bonuses; Track 07 is skipped. |
 | T00-REQ-07 | Every delivery track declares an outcome, scope, acceptance evidence, dependencies, and a proposed commit boundary. |
 | T00-REQ-08 | Material ambiguities are resolved with the repository owner rather than silently assumed. Local reversible implementation choices remain documented as decision latitude. |
 | T00-REQ-09 | A fresh-reader audit can understand the assignment, decisions, solution, and next implementation step without chat history. |

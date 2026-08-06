@@ -7,6 +7,10 @@
   atomicity, material timestamps, inert post-commit seam, bounded OpenAPI, and process
   verification
 
+> **Later scope note (2026-08-06):** References below to weekly projections as future
+> Track 07 work describe this report's closure boundary. The owner subsequently
+> skipped Track 07; this report's Track 03 executable results are unchanged.
+
 ## Acceptance matrix
 
 | Requirement | Executable evidence | Result |

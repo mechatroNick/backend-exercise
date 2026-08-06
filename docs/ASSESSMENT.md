@@ -17,9 +17,10 @@ authentication, efficient SQL, a raw-SQL statistics endpoint, accurate interacti
 OpenAPI documentation, consistent errors, and meaningful automated tests.
 
 The solution must be free and self-contained. Python, SQLite, and open-source Python
-packages are sufficient. Docker is optional. The repository and its commit history
-are part of the submission, and the implementation must be explainable in a follow-up
-walkthrough.
+packages are sufficient. Docker is optional in the source assessment; the repository
+owner has selected Docker, seed data, rate limiting, and cursor pagination for Track
+08 after the mandatory core gate. The repository and its commit history are part of
+the submission, and the implementation must be explainable in a follow-up walkthrough.
 
 The PDF says both "up to 5 days" and "7 calendar days." This schedule discrepancy
 does not affect the implementation contract; the project is being delivered over a
@@ -93,8 +94,8 @@ validation, and reviewer-explainable ownership.
 | EVT-01 | User-decided | Publish non-sensitive post-commit invalidation events for material bookmark mutations. | 06 | Transaction-order and event-content tests. |
 | EVT-02 | User-decided | Drain a bounded in-process queue every configurable 10 seconds and coalesce affected users. | 06 | Deterministic queue/clock tests without real sleeps. |
 | EVT-03 | User-decided | Recompute canonical statistics with raw SQL and atomically publish snapshots with live fallback. | 06 | Snapshot/live parity, failure, stale, and disabled-worker tests. |
-| WIN-01 | User-decided | Recalculate one developing UTC weekly event-time point per user. | 07 | Monday boundary and replacement tests. |
-| WIN-02 | User-decided | Append immutable developed points and correction revisions for late changes. | 07 | Finalization, late-delete/tag-change, and idempotency tests. |
+| WIN-01 | Owner-skipped | Recalculate one developing UTC weekly event-time point per user. | 07 | Explicit skip record; no implementation evidence claimed. |
+| WIN-02 | Owner-skipped | Append immutable developed points and correction revisions for late changes. | 07 | Explicit skip record; no implementation evidence claimed. |
 | WIN-03 | User-decided | Use durable dirty-window markers to recover queue loss and post-commit crash windows. | 06 | Restart/overflow recovery tests. |
 | OPS-01 | User-decided | Start services together, name the worker thread, expose meaningful liveness/readiness, and attribute logs by service. | 06 | Lifespan, health-state, shutdown, and log-capture tests. |
 
@@ -113,8 +114,8 @@ validation, and reviewer-explainable ownership.
 | ID | Classification | Requirement | Owning track | Closure evidence |
 | --- | --- | --- | --- | --- |
 | DOC-01 | Required support | Provide setup, migration, run, API, testing, architecture, deployment, and trade-off documentation. | 08 | Fresh-clone and fresh-reader verification. |
-| BONUS-01 | Optional | Seed script. | 08 | Deterministic sample data and documented invocation. |
-| BONUS-02 | Optional | Docker setup, rate limiting, or cursor pagination. | 08 | Implemented only after all required evidence is green. |
+| BONUS-01 | Optional in assessment; selected by owner | Seed script. | 08 | Deterministic, idempotent sample data and documented invocation after mandatory green. |
+| BONUS-02 | Optional in assessment; all selected by owner | Docker setup, rate limiting, and cursor pagination. | 08 | Each capability has isolated contract/edge evidence; combined final regression passes. |
 | FUT-01 | Future only | External worker/broker, multi-process coordination, PostgreSQL, and production infrastructure. | 08 | Documentation only; no assessment dependency. |
 
 ## Accepted decisions
@@ -125,14 +126,14 @@ validation, and reviewer-explainable ownership.
 | Explicit REST, filters, tags, and timestamp rules | [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) | Deterministic API and test behavior. |
 | Canonical identity, Argon2, and access-only JWT | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) | Proportionate local authentication without refresh-token scope. |
 | Event queue and managed statistics thread | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) | Eventual snapshot acceleration while preserving a canonical live raw-SQL path. |
-| UTC weekly event-time windows and immutable corrections | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) | Mutable open point, append-only closed revisions, durable dirty-marker recovery. |
+| UTC weekly event-time windows and immutable corrections | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design retained for reference; Track 07 implementation is owner-skipped. |
 
 ## Completion invariant
 
 Track 04 must provide a complete, current, user-scoped raw-SQL statistics endpoint,
-and Track 05 must close the mandatory quality gate before Track 06 overlays queueing,
-snapshots, or history. Disabling or failing the background extension must not break
-the core endpoint or change its response body.
+and Track 05 must close the mandatory quality gate before Track 06 overlays queueing
+and snapshots. Track 07 history is skipped. Disabling or failing the background
+extension must not break the core endpoint or change its response body.
 
 ## Non-goals
 
@@ -141,7 +142,8 @@ the core endpoint or change its response body.
 - Multiple Uvicorn workers while queue/cache state is in process.
 - Refresh-token rotation, RBAC, social login, or account-management features.
 - An external broker, distributed scheduler, or cloud deployment.
-- Treating Docker, rate limiting, or cursor pagination as prerequisites.
+- Treating Docker, rate limiting, or cursor pagination as prerequisites for the
+  mandatory core gate. They are required later by the owner's Track 08 bonus decision.
 - Inventing the final engineering-process narrative before implementation evidence
   exists.
 
