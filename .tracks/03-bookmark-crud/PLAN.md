@@ -2,22 +2,21 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
-- Status: Ready
-- Active item: T03-02 DTO and normalization-policy implementation after the passed
-  T03-01 compatibility checkpoint
+- Status: Complete
+- Active item: None; Track 03 passed closure validation and is ready to merge
 
 ## Execution plan
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
 | T03-01 | Verify Track 01/02 closure receipts and delivered sessions, models/migration, clock, auth dependency, error boundary, composition, and tests. | Primary engineering thread / Scout | Track 01 and Track 02 closure | Complete | Track 02 merge `adb0e8c`; committed Track 01/02 passing reports; existing tables/constraints, session, clock, current-subject, errors, and composition match; 48 focused compatibility tests passed with no material mismatch. |
-| T03-02 | Implement strict bookmark/tag create, PATCH, public, and compatible list DTOs plus normalization/material-change helpers. | Smith / implementation | T03-01 | Pending | DTO tests cover validation, omitted/null, equivalence, and disclosure. |
-| T03-03 | Implement explicit owner-scoped bookmark and canonical-tag repository operations without repository commits. | Smith / implementation | T03-01, T03-02 | Pending | SQLite tests prove predicate scope, tag reuse/race handling, association reads. |
-| T03-04 | Implement service-owned create/detail/baseline-list/PATCH/delete transactions with timestamp and rollback semantics. | Smith / implementation | T03-02, T03-03 | Pending | Fixed-clock integration proves atomicity, duplicate URL allowance, no-op behavior. |
-| T03-05 | Add an inert `DomainEventPublisher` injection port/no-op adapter at the explicit post-commit extension point, without a concrete event contract. | Smith / implementation | T03-04 | Pending | Composition tests prove the no-op seam cannot alter CRUD outcomes; Track 06 publication behavior remains absent. |
-| T03-06 | Add protected CRUD routes, authenticated owner injection, response/error/OpenAPI metadata, and route order review. | Smith / implementation | T03-01, T03-02, T03-04, T03-05 | Pending | Endpoint tests prove statuses, `404` concealment, `204`, bearer protection, schemas. |
-| T03-07 | Add edge-case regression, disclosure, lazy-loading boundary checks, and Track 03 process-harness assertions. | Smith / implementation | T03-02, T03-03, T03-04, T03-05, T03-06 | Pending | Deterministic DTO/domain/repository/service/endpoint ledger cases pass; list performance is explicitly deferred to Track 04; and `scripts/verify-track-03.sh` proves real CRUD/isolation/tag/timestamp/204 flows, base JSON-Line fields/safe correlation/redaction/exactly-one-owning-HTTP-boundary exception behavior, ephemeral own-user response/token handling and seeded-sentinel absence, inert no-op publisher behavior, and cleanup. |
-| T03-08 | Run closure validation and record evidence/readiness for Track 04. | Primary engineering thread | T03-01, T03-02, T03-03, T03-04, T03-05, T03-06, T03-07 | Pending | Actual passing deterministic tests, quality/operation-OpenAPI/hygiene evidence, and `bash scripts/verify-track-03.sh`; TEST-REPORT records commands/results/versions/selectors/cleanup, guideline conformance, gaps, and retained Track 04/05/06 boundaries. |
+| T03-02 | Implement strict bookmark/tag create, PATCH, public, and compatible list DTOs plus normalization/material-change helpers. | Smith / implementation | T03-01 | Complete | Strict DTO/policy matrices cover validation, omitted/null, equivalence, canonical tags, materiality, and disclosure at 100% branch coverage. |
+| T03-03 | Implement explicit owner-scoped bookmark and canonical-tag repository operations without repository commits. | Smith / implementation | T03-01, T03-02 | Complete | Migrated-SQLite tests prove owner predicates, deterministic association reads, tag reuse, rollback, cascades, and orphan retention. |
+| T03-04 | Implement service-owned create/detail/baseline-list/PATCH/delete transactions with timestamp and rollback semantics. | Smith / implementation | T03-02, T03-03 | Complete | Fixed-clock and fault tests prove atomicity, duplicate URLs, material/no-op time, native tag-conflict recovery, unrelated-integrity fail-closed behavior, and post-commit publication. |
+| T03-05 | Add an inert `DomainEventPublisher` injection port/no-op adapter at the explicit post-commit extension point, without a concrete event contract. | Smith / implementation | T03-04 | Complete | Unit/composition tests and bounded source scans prove the no-op seam is inert and no Track 06 runtime exists. |
+| T03-06 | Add protected CRUD routes, authenticated owner injection, response/error/OpenAPI metadata, and route order review. | Smith / implementation | T03-01, T03-02, T03-04, T03-05 | Complete | Endpoint tests prove bearer protection, accepted statuses, identical concealed `404`, positive IDs, exact public bodies, bodyless `204`, and bounded operation schemas. |
+| T03-07 | Add edge-case regression, disclosure, lazy-loading boundary checks, and Track 03 process-harness assertions. | Smith / implementation | T03-02, T03-03, T03-04, T03-05, T03-06 | Complete | The deterministic ledger passes; `scripts/verify-track-03.sh` proves the real bootstrap/CRUD/isolation/tag/timestamp/OpenAPI/log-redaction/cleanup flow without claiming Track 04 performance. |
+| T03-08 | Run closure validation and record evidence/readiness for Track 04. | Primary engineering thread | T03-01, T03-02, T03-03, T03-04, T03-05, T03-06, T03-07 | Complete | `TEST-REPORT.md` records 348 full tests, 100% application statement/branch coverage, disposable migrations, all three live harnesses, independent review/correction, hygiene, and retained downstream boundaries. |
 
 ## Work-wave detail
 

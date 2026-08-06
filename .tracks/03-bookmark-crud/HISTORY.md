@@ -15,15 +15,15 @@
 
 ## Current state
 
-- Specification: Ready
-- Plan: Ready
-- Implementation: Authorized; T03-01 compatibility gate complete
+- Specification: Complete
+- Plan: Complete
+- Implementation: Complete and independently reviewed
 - Material product questions: None known
 
 ## Next action
 
-Execute T03-02 DTO and normalization-policy work without changing public paths,
-owner concealment, schema, material timestamp semantics, or downstream ownership.
+Merge the verified Track 03 branch into `main`, then open Track 04 and rerun its
+compatibility checkpoint before search, pagination, or current-statistics work.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -75,3 +75,29 @@ owner concealment, schema, material timestamp semantics, or downstream ownership
   performance claim from Track 04, no full API-wide OpenAPI claim from Track 05,
   and no concrete event, payload, queue, dirty marker, worker, lifecycle, or
   statistics behavior from Track 06.
+
+## 2026-08-06 — Track 03 implementation and closure passed
+
+- Delivered strict bookmark DTOs and materiality policy, owner-scoped repositories,
+  transactional CRUD services, canonical global tags, fixed timestamp semantics,
+  an inert post-commit publisher seam, bearer-protected routes, and bounded operation
+  OpenAPI contracts without a schema migration or downstream runtime behavior.
+- Added deterministic unit, migrated-SQLite repository/service, endpoint, isolation,
+  rollback, disclosure, and OpenAPI evidence. The full suite passed with 348 tests and
+  100% coverage of 1,282 application statements and 234 branches.
+- Mason's first review correctly rejected the original final-state concurrency test
+  as proof that native tag-conflict recovery ran. The replacement deterministic
+  real-engine test observes the actual SQLite unique error, savepoint rollback,
+  winner reload, single outer commit, and durable bookmark/tag/link; a second real
+  constraint test proves unrelated integrity errors remain unmasked. Mason's focused
+  re-review passed the correction.
+- Delivered and ran `scripts/verify-track-03.sh` against the actual bootstrap. It
+  proved two-user authenticated CRUD, canonical tags, material/no-op timestamps,
+  concealed `404`, bodyless `204`, bounded schemas, JSON-Line attribution/redaction,
+  exactly one owning fault, and deletion of all disposable credentials and state.
+- Re-ran the Track 01 and corrected Track 02 inherited harnesses, a disposable
+  Alembic upgrade/check/downgrade/upgrade lifecycle, lock/sync checks, Ruff, mypy,
+  documentation verification, source scans, and repository-hygiene checks.
+- [TEST-REPORT.md](TEST-REPORT.md) records exact commands, versions, incremental
+  receipts, review findings/correction, cleanup, the one upstream TestClient warning,
+  and retained Track 04/05/06 boundaries.

@@ -1,6 +1,6 @@
 # Track 03 specification: protected bookmark CRUD, normalized tags, and ownership isolation
 
-- Status: Ready
+- Status: Complete
 - Specification version: 1.1
 - Planned: 2026-08-05
 - Owner: Primary engineering thread

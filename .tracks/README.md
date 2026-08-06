@@ -52,7 +52,7 @@ flowchart LR
 | 00 | Contract and ADR baseline | None | Complete |
 | 01 | Foundation, configuration, schema, and migrations | 00 | Complete |
 | 02 | Error contract, registration, login, and JWT authentication | 01 | Complete |
-| 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Ready |
+| 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Complete |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
@@ -80,6 +80,7 @@ deterministic tests and real-process harness evidence.
 - [Track 03 specification](03-bookmark-crud/SPEC.md)
 - [Track 03 execution plan](03-bookmark-crud/PLAN.md)
 - [Track 03 history](03-bookmark-crud/HISTORY.md)
+- [Track 03 test report](03-bookmark-crud/TEST-REPORT.md)
 - [Track 04 specification](04-search-stats/SPEC.md)
 - [Track 04 execution plan](04-search-stats/PLAN.md)
 - [Track 04 history](04-search-stats/HISTORY.md)
