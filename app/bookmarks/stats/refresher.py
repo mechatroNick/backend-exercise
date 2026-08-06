@@ -509,7 +509,7 @@ class StatsRefresher:
                 message=message,
                 context=self._safe_context(context),
                 component="bookmark_stats_refresher",
-                stacklevel=3,
+                stacklevel=2,
             )
 
     def _log_failure(
@@ -528,7 +528,7 @@ class StatsRefresher:
                 message="statistics refresh cycle failed",
                 context=self._safe_context(context),
                 component="bookmark_stats_refresher",
-                stacklevel=3,
+                stacklevel=2,
             )
 
 

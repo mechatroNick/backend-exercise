@@ -230,14 +230,3 @@ for raw in (raw_output, raw_logs):
     for internal in ("Authorization", "Bearer", "$argon2", "password_hash", "sqlite:///"): assert internal not in raw
 print("Track 03 process evidence: real CRUD, ownership concealment, canonical tags, timestamps, bodyless delete, bounded OpenAPI, redacted owning fault")
 PY
-
-scan_status=0
-rg -n 'queue\.Queue|bookmark-stats-refresher|StatsDirty|dirty\.marker|stats_snapshot|weekly_projection|projection' app/bookmarks tests || scan_status=$?
-if [[ "${scan_status}" -eq 0 ]]; then
-  printf 'Track 03 source scan found later-track behavior\n' >&2
-  exit 1
-elif [[ "${scan_status}" -ne 1 ]]; then
-  exit "${scan_status}"
-fi
-
-scan_status=0

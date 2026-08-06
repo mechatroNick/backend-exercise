@@ -37,7 +37,7 @@ if [[ "${TRACK05_SELF_TEST:-0}" == "1" ]]; then
 fi
 
 cd "$root"; [[ -d .git && -f Makefile ]] || fail 'wrong repository root'; chmod 700 "$work"
-export DATABASE_URL="sqlite:///${database_path}" APP_ENV=test
+export DATABASE_URL="sqlite:///${database_path}" APP_ENV=test STATS_REFRESH_ENABLED=false
 export UV_CACHE_DIR="${UV_CACHE_DIR:-/private/tmp/backend-sample-uv-cache}" UV_PYTHON_INSTALL_DIR="${UV_PYTHON_INSTALL_DIR:-/private/tmp/backend-sample-python}"
 export JWT_SECRET="$("$uv" run python -c 'import secrets; print(secrets.token_urlsafe(48))')"
 export COVERAGE_FILE="${work}/.coverage"
@@ -60,10 +60,11 @@ for track in 01 02 03 04; do
 done
 mandatory=(tests/contract/test_runtime_contract.py tests/contract/test_schemathesis_gets.py tests/contract/test_mandatory_gate_meta.py tests/contract/test_openapi_metadata.py tests/integration/test_bookmark_query_plans.py tests/integration/test_bookmark_search.py tests/integration/test_bookmark_stats_reader.py tests/unit/test_bookmark_stats_reader.py tests/unit/test_logging.py)
 "$uv" run pytest --collect-only -q -m mandatory -p tests.contract.mandatory_gate --mandatory-gate --strict-config --strict-markers "${mandatory[@]}" >"${work}/mandatory-collect.receipt"
-[[ "$(rg -c '^tests/.*::' "${work}/mandatory-collect.receipt")" == 79 ]] || fail 'mandatory selector count changed'
+mandatory_count="$(rg -c '^tests/.*::' tests/contract/mandatory-nodeids.txt)"
+[[ "$(rg -c '^tests/.*::' "${work}/mandatory-collect.receipt")" == "${mandatory_count}" ]] || fail 'mandatory selector count changed'
 "$uv" run pytest -q -m mandatory -p tests.contract.mandatory_gate --mandatory-gate --strict-config --strict-markers "${mandatory[@]}" >"${work}/mandatory-execution.receipt"
 ! rg -q '[1-9][0-9]* (skipped|xfailed|xpassed|deselected)' "${work}/mandatory-execution.receipt" || fail 'mandatory execution summary contains a masked or deselected result'
-printf 'Track 05 mandatory selector: 79 collected and executed; query-plan, raw-SQL, and JSON Lines evidence included\n'
+printf 'Track 05 mandatory selector: %s collected and executed; query-plan, raw-SQL, and JSON Lines evidence included\n' "${mandatory_count}"
 "$uv" run coverage erase
 "$uv" run coverage run -m pytest -q >"${work}/coverage.receipt"
 "$uv" run coverage report --fail-under=100 >>"${work}/coverage.receipt"

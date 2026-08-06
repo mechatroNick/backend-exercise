@@ -300,8 +300,8 @@ require(owner_before == {"total_bookmarks": 4, "total_tags": 4, "top_tags": [{"n
 require(owner_after == {"total_bookmarks": 3, "total_tags": 3, "top_tags": [{"name": "alpha", "count": 2}, {"name": "gamma", "count": 2}, {"name": "beta", "count": 1}], "bookmarks_per_month": [{"month": "2026-01", "count": 1}, {"month": "2026-02", "count": 2}]}, "live stats mismatch")
 require(other_stats == {"total_bookmarks": 1, "total_tags": 1, "top_tags": [{"name": sentinels["tag"], "count": 1}], "bookmarks_per_month": [{"month": other_stats["bookmarks_per_month"][0]["month"], "count": 1}]}, "cross-user stats mismatch")
 stats_headers = (root / "owner-before.headers").read_text(encoding="utf-8").lower()
-for forbidden_header in ("x-stats-source:", "x-stats-generated-at:", "etag:", "cache-control:"):
-    require(forbidden_header not in stats_headers, "future statistics header appeared")
+for forbidden_header in ("etag:", "cache-control:"):
+    require(forbidden_header not in stats_headers, "unsupported statistics cache header appeared")
 
 paths = openapi["paths"]
 bookmarks = paths["/api/bookmarks"]["get"]

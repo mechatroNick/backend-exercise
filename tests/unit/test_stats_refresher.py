@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+import json
 import logging
 from datetime import UTC, datetime
 from threading import Thread, current_thread
@@ -11,6 +13,8 @@ from uuid import UUID, uuid4
 import pytest
 
 from app.bookmarks.stats.refresher import StatsRefresher
+from app.core.config import Settings
+from app.core.logging import configure_logging
 
 
 class _Clock:
@@ -280,6 +284,31 @@ def test_worker_loop_logs_successful_start_without_a_retry_transition() -> None:
             {"initial_success": True, "failure_count": 0, "interval_seconds": 1},
         )
     ]
+
+
+def test_worker_retry_json_logs_keep_application_source_and_safe_context() -> None:
+    stream = io.StringIO()
+    logger = configure_logging(
+        Settings(app_env="test", stats_refresh_enabled=False),
+        stream=stream,
+        component="bookmark_stats_refresher",
+    )
+    value = _refresher(logger=logger, publisher=_FailingStatePublisher())
+    value._stop_event = _ScriptedStop()  # type: ignore[assignment]
+
+    value._run()
+
+    records = [json.loads(line) for line in stream.getvalue().splitlines()]
+    events = [record["event"] for record in records]
+    assert "bookmark_stats.refresher_started" in events
+    assert "bookmark_stats.refresh_retrying" in events
+    assert all(record["source"]["package"].startswith("app") for record in records)
+    assert all(record["source"]["module"].startswith("app.") for record in records)
+    retry = next(
+        record for record in records if record["event"] == "bookmark_stats.refresh_retrying"
+    )
+    assert retry["context"]["failure_count"] == 1
+    assert "private-state-sentinel" not in stream.getvalue()
 
 
 def test_clock_logger_and_outer_adapter_failures_fail_closed() -> None:

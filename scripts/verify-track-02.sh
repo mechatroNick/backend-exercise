@@ -183,6 +183,8 @@ assert set(openapi["paths"]) == {
     "/api/bookmarks",
     "/api/bookmarks/stats",
     "/api/bookmarks/{bookmark_id}",
+    "/health/live",
+    "/health/ready",
 }
 assert openapi["components"]["securitySchemes"]["BearerAuth"] == {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
 registry = Registry().with_resource("urn:track02:openapi", Resource.from_contents(openapi, default_specification=DRAFT202012))
