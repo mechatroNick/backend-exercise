@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 from typing import cast
 
@@ -14,6 +14,7 @@ from app.bookmarks.schemas import (
     BookmarkList,
     BookmarkPatch,
     BookmarkPublic,
+    BookmarkQuery,
     TagPublic,
     _validate_url,
 )
@@ -205,3 +206,88 @@ def test_public_bookmark_id_must_be_positive() -> None:
 def test_public_list_numeric_bounds_are_enforced(kwargs: dict[str, int]) -> None:
     with pytest.raises(ValidationError):
         BookmarkList(items=(), **({"total": 0} | kwargs))
+
+
+def test_query_defaults_aliases_canonical_tag_and_literal_query_content() -> None:
+    query = BookmarkQuery.model_validate(
+        {
+            "tag": " Python ",
+            "q": " %_\\ ",
+            "from": "2026-08-01",
+            "to": "2026-08-31",
+            "updated_from": "2026-07-01",
+            "updated_to": "2026-07-31",
+            "page": "2",
+            "page_size": "100",
+        }
+    )
+
+    assert query.tag == "python"
+    assert query.q == " %_\\ "
+    assert query.created_from == date(2026, 8, 1)
+    assert query.created_to == date(2026, 8, 31)
+    assert query.page == 2
+    assert query.page_size == 100
+    assert query.model_dump(by_alias=True)["from"] == date(2026, 8, 1)
+    assert "created_from" not in query.model_dump(by_alias=True)
+    assert BookmarkQuery(created_from=date(2026, 8, 1)).created_from == date(2026, 8, 1)
+    assert BookmarkQuery(page=2, page_size=3).page_size == 3
+    assert BookmarkQuery().model_dump() == {
+        "tag": None,
+        "q": None,
+        "created_from": None,
+        "created_to": None,
+        "updated_from": None,
+        "updated_to": None,
+        "page": 1,
+        "page_size": 20,
+    }
+    with pytest.raises(ValidationError):
+        query.page = 3  # type: ignore[misc]
+
+
+@pytest.mark.parametrize("value", ["", 1, "x" * 201])
+def test_query_rejects_invalid_literal_query_values(value: object) -> None:
+    with pytest.raises(ValidationError):
+        BookmarkQuery.model_validate({"q": value})
+
+
+@pytest.mark.parametrize("tag", ["   ", "x" * 51, 1])
+def test_query_reuses_canonical_tag_validation(tag: object) -> None:
+    with pytest.raises(ValidationError):
+        BookmarkQuery.model_validate({"tag": tag})
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"from": "2026-8-01"},
+        {"from": "2026-08-1"},
+        {"from": "2026-08-01T00:00:00Z"},
+        {"from": datetime(2026, 8, 1, tzinfo=UTC)},
+        {"from": "2026-02-30"},
+        {"from": "２０２６-０８-０１"},
+        {"from": "2026-08-02", "to": "2026-08-01"},
+        {"updated_from": "2026-08-02", "updated_to": "2026-08-01"},
+    ],
+)
+def test_query_rejects_noncanonical_or_reversed_dates(payload: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        BookmarkQuery.model_validate(payload)
+
+
+def test_query_accepts_open_date_ranges_and_forbids_extras() -> None:
+    assert BookmarkQuery.model_validate({"from": "2026-08-01"}).created_to is None
+    assert BookmarkQuery.model_validate({"updated_to": "2026-08-01"}).updated_from is None
+    with pytest.raises(ValidationError):
+        BookmarkQuery.model_validate({"unknown": "value"})
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [{"page": value} for value in [True, 1.0, "1.0", "1e1", "", " ", "١", "０", "-1", "0"]]
+    + [{"page_size": value} for value in [True, 1.0, "1e1", "", " ", "١", "101", "0"]],
+)
+def test_query_rejects_coercive_or_out_of_range_pagination(payload: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        BookmarkQuery.model_validate(payload)
