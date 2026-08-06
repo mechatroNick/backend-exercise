@@ -51,8 +51,8 @@ flowchart LR
 | --- | --- | --- | --- |
 | 00 | Contract and ADR baseline | None | Complete |
 | 01 | Foundation, configuration, schema, and migrations | 00 | Complete |
-| 02 | Error contract, registration, login, and JWT authentication | 01 | Ready |
-| 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Planned (implementation-gated) |
+| 02 | Error contract, registration, login, and JWT authentication | 01 | Complete |
+| 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Ready for compatibility review |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Planned (implementation-gated) |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |

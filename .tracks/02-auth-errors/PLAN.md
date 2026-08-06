@@ -2,21 +2,20 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006
-- Status: Ready
-- Active item: T02-02 and T02-03 design/implementation handoff after dependency
-  selection from current primary documentation
+- Status: Complete
+- Active item: None; T02-01 through T02-07 are complete
 
 ## Execution plan
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
 | T02-01 | Verify the Track 01 closure receipt and inspect delivered composition, Settings, clock, session, users schema, migrations, and tests before auth changes. | Primary engineering thread | Track 01 closure | Complete | Track 01 merge `8fa39b0` and its passing `TEST-REPORT.md` provide every required seam; no contradiction or schema change is required. |
-| T02-02 | Define application-owned expected errors, stable error DTOs/codes, and the one centralized FastAPI HTTP translation boundary. | Smith / implementation | T02-01 | Pending | Error matrix tests prove envelope/status behavior for validation, auth, conflict, not-found, and redacted unexpected failures. |
-| T02-03 | Add identity/password normalization, Argon2 hashing, and injected-clock access-only JWT security primitives. | Smith / implementation | T02-01 | Pending | Deterministic unit tests prove username/email policy, NFC handling, Argon2 verify, required claims, expiry, and secret-safe behavior. |
-| T02-04 | Add auth repository/service operations for register, generic login failure, canonical user lookup, and race-safe uniqueness translation with transaction rollback. | Smith / implementation | T02-02, T02-03 | Pending | Integration tests prove canonical duplicate conflicts, no user enumeration, rollback, and public/persistence separation. |
-| T02-05 | Add JSON auth routes, bearer authenticated-user dependency, composition wiring, and scoped auth-operation OpenAPI metadata. | Smith / implementation | T02-02, T02-03, T02-04 | Pending | Endpoint tests prove `201` register, `200` login, standard `401`s, current-subject resolution, and generated-schema agreement for auth operations. |
-| T02-06 | Add the focused auth/error test matrix, credential-redaction regression checks, and Track 02 process-harness assertions. | Smith / implementation | T02-02, T02-03, T02-04, T02-05 | Pending | Deterministic unit/integration/contract cases cover the edge-case ledger; test output and ordinary logs contain no credential-bearing values; and `scripts/verify-track-02.sh` proves real registration/login, protected success, representative generic auth/error failure, base JSON-Line fields/safe correlation/redaction/exactly-one-owning-HTTP-boundary exception behavior, seeded-sentinel absence from all receipt surfaces, token-safe protected flow, and cleanup against the actual server. |
-| T02-07 | Run Track 02 closure validation, inspect the diff/OpenAPI, record evidence, and determine readiness of Track 03. | Primary engineering thread | T02-01, T02-02, T02-03, T02-04, T02-05, T02-06 | Pending | Actual passing deterministic tests, quality commands, auth-operation schema validation, and `bash scripts/verify-track-02.sh`; TEST-REPORT records exact commands/results/versions/selectors/cleanup, guideline conformance, hygiene review, and gaps. Full cross-operation OpenAPI conformance remains Track 05. |
+| T02-02 | Define application-owned expected errors, stable error DTOs/codes, and the one centralized FastAPI HTTP translation boundary. | Smith / implementation | T02-01 | Complete | Error matrix tests pass for validation, authentication, conflict, not-found, and one redacted unexpected boundary. |
+| T02-03 | Add identity/password normalization, Argon2 hashing, and injected-clock access-only JWT security primitives. | Smith / implementation | T02-01 | Complete | Boundary/NFC/Argon2/JWT unit matrix passes, including malformed claims, expiry, algorithms, and backend failures. |
+| T02-04 | Add auth repository/service operations for register, generic login failure, canonical user lookup, and race-safe uniqueness translation with transaction rollback. | Smith / implementation | T02-02, T02-03 | Complete | Real migrated-SQLite tests pass for canonical conflicts, duplicate race, non-enumeration, rollback/reuse, and unrelated integrity failures. |
+| T02-05 | Add JSON auth routes, bearer authenticated-user dependency, composition wiring, and scoped auth-operation OpenAPI metadata. | Smith / implementation | T02-02, T02-03, T02-04 | Complete | Endpoint/OpenAPI tests pass for register/login, current subject, invalid/deleted subjects, exact response schemas, and test-only protected seam isolation. |
+| T02-06 | Add the focused auth/error test matrix, credential-redaction regression checks, and Track 02 process-harness assertions. | Smith / implementation | T02-02, T02-03, T02-04, T02-05 | Complete | 109 focused tests and the live Track 02 harness pass; sentinels stay absent and cleanup removes verified disposable resources. |
+| T02-07 | Run Track 02 closure validation, inspect the diff/OpenAPI, record evidence, and determine readiness of Track 03. | Primary engineering thread | T02-01, T02-02, T02-03, T02-04, T02-05, T02-06 | Complete | [TEST-REPORT.md](TEST-REPORT.md) records 236 full-suite tests, 100% statement/branch coverage, static/migration/process gates, independent review, cleanup, hygiene, and the retained Track 05 boundary. |
 
 ## Work-wave detail
 
@@ -140,10 +139,10 @@ planned, skipped, or blocked commands never count as pass.
 | Compatibility | Auth routes keep accepted JSON paths, statuses, public response shape, and envelope; no bookmark endpoint is introduced. | T02-05 OpenAPI/route-manifest and response tests. |
 | Cleanup/hygiene | No secret/hash/token/header in DTOs, ordinary logs, test fixtures/output, or repository status. | T02-06 redaction tests, review scan, and status check. |
 
-## Planned validation commands
+## Closure validation commands
 
-Exact command spelling is inherited from the delivered Track 01 toolchain and must
-be recorded when implementation is authorized. The closure interface must include:
+Exact executed commands and results are recorded in [TEST-REPORT.md](TEST-REPORT.md).
+The closure interface included:
 
 ```text
 uv sync --locked
@@ -176,14 +175,9 @@ Track 05.
 
 ## Commit boundary
 
-Preferred single-track commit after the closure gate:
-
-`feat: add secure authentication and error contracts`
-
-If reviewability benefits from two commits, split only at a green boundary:
-
-1. `feat: add typed API error contracts`
-2. `feat: add secure registration and JWT authentication`
+Track 02 used incremental green commits for error contracts, security primitives,
+service/persistence behavior, import inertness, transport/harness behavior, and
+closure evidence. Their exact hashes are recorded in [TEST-REPORT.md](TEST-REPORT.md).
 
 Do not commit a usable secret, password/hash/token/header fixture, generated database,
 cache, coverage output, or a failing intermediate state.

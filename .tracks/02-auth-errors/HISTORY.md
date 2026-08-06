@@ -16,16 +16,15 @@
 
 ## Current state
 
-- Specification: Ready
-- Plan: Ready
-- Implementation: Authorized; T02-01 compatibility gate complete
+- Specification: Complete
+- Plan: Complete
+- Implementation: Complete and independently reviewed
 - Material product questions: None known
 
 ## Next action
 
-Complete the current primary-source dependency check, then execute T02-02 and T02-03
-without changing the accepted routes, envelope, normalization, Argon2, or HS256
-contracts.
+Merge the verified Track 02 branch into `main`, then open Track 03 and rerun its
+compatibility checkpoint before bookmark implementation.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -72,3 +71,33 @@ contracts.
   mappings or duplicate exception records.
 - No schema migration, compatibility workaround, ADR change, or Track 03 behavior is
   required. T02-01 is Complete and Track 02 is Ready for implementation.
+
+## 2026-08-06 — Track 02 implementation and closure passed
+
+- Delivered typed application errors, one HTTP translation boundary, canonical
+  identities, NFC-aware Argon2 password handling, strict injected-clock HS256 access
+  tokens, transactional auth persistence, JSON register/login routes, reusable bearer
+  subject resolution, and bounded auth-operation OpenAPI contracts.
+- Preserved database-authoritative uniqueness and fail-closed translation: only the
+  exact native SQLite username/email uniqueness failures become `409`; unrelated
+  integrity faults roll back, reach the owning unexpected boundary, log once with
+  redaction, and return the generic `500` envelope.
+- Added deterministic unit, migrated-SQLite integration, endpoint, generated-schema,
+  concurrency, malformed-input, non-enumeration, token/subject, rollback, and
+  no-disclosure evidence. The full suite passed with 236 tests and 100% coverage of
+  866 statements and 166 branches.
+- Delivered and ran `scripts/verify-track-02.sh` against the actual `make bootstrap`
+  process. It proved registration/login/protected/error flows, response schemas,
+  JSON-Line attribution/correlation/redaction, exactly one owning fault record, and
+  removal of the verified disposable database, logs, responses, token config, and
+  process state.
+- Re-ran Track 01's inherited process harness and a disposable Alembic
+  upgrade/downgrade/upgrade lifecycle. Both passed and cleaned up, preserving inert
+  imports, Alembic-only schema ownership, and one-worker lifecycle behavior.
+- Mason's cross-layer review passed requirements, security/redaction, 100% branch
+  coverage, harness process safety, and Track 01 preservation. Its initial
+  changes-required verdict concerned only the then-unwritten closure report and stale
+  statuses; this closure update resolves that documentary finding.
+- [TEST-REPORT.md](TEST-REPORT.md) records exact commands, versions, receipts,
+  independent review, hygiene scans, the one upstream TestClient warning, and the
+  retained Track 05 full-OpenAPI boundary.
