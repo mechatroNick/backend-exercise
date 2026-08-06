@@ -3,13 +3,13 @@
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006; ADR-004/005 excluded extension boundaries
 - Status: Ready
-- Active item: T05-02 mandatory evidence inventory after the passed T05-01 compatibility gate
+- Active item: T05-04 pinned contract harness after the completed evidence inventory and metadata audit
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
 | T05-01 | Verify closure receipts and current contracts for Tracks 01--04. | Smith / implementation | Tracks 01--04 closure | Complete | Verified Track 04 merge `8534e98`, passed Track 01--04 reports, current eight-operation OpenAPI inventory, 427 collected tests, query/raw-SQL/logging seams, and bounded metadata/tooling gaps. |
-| T05-02 | Build the core requirement-to-evidence inventory and separate still-open Track 08 delivery obligations. | Smith / implementation | T05-01 | Pending | Every required/accepted core row owned by Tracks 01--05 maps to evidence; no delivery-only row is falsely closed. |
-| T05-03 | Audit/fix operation OpenAPI metadata and `/docs`. | Smith / implementation | T05-01, T05-02 | Pending | Security/schema/status/example/content-type/204 audit. |
+| T05-02 | Build the core requirement-to-evidence inventory and separate still-open Track 08 delivery obligations. | Smith / implementation | T05-01 | Complete | `CORE-EVIDENCE-MATRIX.md` maps all 28 core rows owned by Tracks 01--05 and preserves DEL/DOC/FUT/bonus scope for Track 08. |
+| T05-03 | Audit/fix operation OpenAPI metadata and `/docs`. | Smith / implementation | T05-01, T05-02 | Complete | Eight-operation OpenAPI audit passed; fictional reusable request/success/query/path examples and an explicit bodyless-204 description were added without runtime contract drift. |
 | T05-04 | Select/pin contract harness and validate real responses/errors. | Smith / implementation | T05-03 | Pending | Generated-schema instance evidence. |
 | T05-05 | Add deterministic integration/performance/raw-SQL boundary matrix, real-instance contract suite, and logging schema/redaction audit. | Smith / implementation | T05-02, T05-04 | Pending | Exact collected mandatory-test count >=10 and selector/suite scope; fail any mandatory skip/xfail/deselection/masking/unrun case; record owner/reason for intentional nonmandatory skips; pinned contract-tool command, deterministic query-count suite, coverage-record command, OpenAPI real-instance validation, N+1/query-count/parameterization evidence, and complete base JSON Lines/causal-exception evidence. |
 | T05-06 | Clean migration, bootstrap, mandatory-core process harness, coverage recording, and quality rehearsal. | Smith / implementation | T05-05 | Pending | `scripts/verify-track-05.sh` starts the actual server from disposable clean/migrated state on a dynamic port; directly invokes `scripts/verify-track-01.sh` through `scripts/verify-track-04.sh`, or a named in-repo orchestrator that invokes each; fails missing/stale/unrun/nonzero upstream receipts and records every selector/result; validates auth/CRUD/search/canonical-live-stats/errors/docs/OpenAPI, base JSON Lines/redaction/exception ownership, safe ephemeral assertions, and cleanup. |

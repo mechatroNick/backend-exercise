@@ -69,3 +69,17 @@ and execute the contract gate without changing product semantics.
   closure TEST-REPORT are also intentionally absent.
 - No product route, body, status, security, migration, extension behavior, dependency,
   or test was changed by this read-only gate. Track 06 remains blocked until T05 closes.
+
+## 2026-08-06 — Mandatory inventory and OpenAPI metadata completed
+
+- Added `CORE-EVIDENCE-MATRIX.md`, mapping 28 required or accepted core rows owned by
+  Tracks 01--05 to direct evidence or an explicit Open Track 05 gate. DEL/DOC/FUT and
+  optional-bonus responsibilities remain visibly open for Track 08.
+- Audited the generated OpenAPI 3.1 document across eight operations and five paths.
+  Added clearly fictional reusable request/success examples, examples for every query
+  and path parameter, and an accurate no-body `204` description. Existing error media
+  examples, statuses, schemas, security, content types, and runtime bodies are unchanged.
+- Metadata, route/auth integration, full-suite, typing/lint, and the inherited Track 04
+  process harness passed after advancing its exact parameter-schema expectations.
+- T05-02 and T05-03 are complete. The pinned contract runner, 34-pair real-instance
+  matrix, mandatory no-masking gate, Track 05 harness, and closure report remain open.

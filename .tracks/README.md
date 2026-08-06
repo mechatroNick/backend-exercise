@@ -88,6 +88,7 @@ deterministic tests and real-process harness evidence.
 - [Track 05 specification](05-mandatory-quality-gate/SPEC.md)
 - [Track 05 execution plan](05-mandatory-quality-gate/PLAN.md)
 - [Track 05 history](05-mandatory-quality-gate/HISTORY.md)
+- [Track 05 mandatory core evidence matrix](05-mandatory-quality-gate/CORE-EVIDENCE-MATRIX.md)
 - [Track 06 specification](06-event-driven-stats/SPEC.md)
 - [Track 06 execution plan](06-event-driven-stats/PLAN.md)
 - [Track 06 history](06-event-driven-stats/HISTORY.md)
