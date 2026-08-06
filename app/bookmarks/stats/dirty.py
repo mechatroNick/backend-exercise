@@ -1,0 +1,233 @@
+"""Caller-session-owned durable statistics invalidation markers."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import Any, cast
+
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    PrimaryKeyConstraint,
+    String,
+    text,
+)
+from sqlalchemy.engine import CursorResult
+from sqlmodel import Field, Session, SQLModel
+
+from app.db.types import UTCDateTime
+
+_UTC_TEXT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+
+class DirtyReason(StrEnum):
+    """Low-cardinality causes permitted in durable invalidation state."""
+
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    RECONCILE = "reconcile"
+
+
+class BookmarkStatsWindowDirty(SQLModel, table=True):
+    __tablename__ = "bookmark_stats_window_dirty"
+    __table_args__ = (
+        PrimaryKeyConstraint("user_id", "window_start", name="pk_stats_dirty_user_window"),
+        ForeignKeyConstraint(
+            ["user_id"], ["users.id"], name="fk_stats_dirty_user", ondelete="CASCADE"
+        ),
+        CheckConstraint("generation > 0", name="ck_stats_dirty_generation_positive"),
+        CheckConstraint(
+            "length(reason) > 0 AND length(reason) <= 32", name="ck_stats_dirty_reason_bounded"
+        ),
+        CheckConstraint(
+            "reason IN ('create', 'update', 'delete', 'reconcile')",
+            name="ck_stats_dirty_reason_known",
+        ),
+        CheckConstraint(
+            "length(window_start) = 27 "
+            "AND substr(window_start, 11) = 'T00:00:00.000000Z' "
+            "AND strftime('%w', window_start) = '1'",
+            name="ck_stats_dirty_window_monday_utc",
+        ),
+        CheckConstraint(
+            "length(first_marked_at) = 27 AND substr(first_marked_at, 27, 1) = 'Z'",
+            name="ck_stats_dirty_first_marked_utc",
+        ),
+        CheckConstraint(
+            "length(last_marked_at) = 27 AND substr(last_marked_at, 27, 1) = 'Z'",
+            name="ck_stats_dirty_last_marked_utc",
+        ),
+        Index("ix_stats_dirty_window_user", "window_start", "user_id"),
+        Index(
+            "ix_stats_dirty_last_marked_user_window",
+            "last_marked_at",
+            "user_id",
+            "window_start",
+        ),
+    )
+    user_id: int = Field(sa_column=Column(Integer, nullable=False, primary_key=True))
+    window_start: datetime = Field(
+        sa_column=Column(UTCDateTime(), nullable=False, primary_key=True)
+    )
+    generation: int = Field(sa_column=Column(Integer, nullable=False))
+    reason: str = Field(sa_column=Column(String(32), nullable=False))
+    first_marked_at: datetime = Field(sa_column=Column(UTCDateTime(), nullable=False))
+    last_marked_at: datetime = Field(sa_column=Column(UTCDateTime(), nullable=False))
+
+
+def _positive(value: int, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def _utc(value: datetime) -> datetime:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("timestamps must be timezone-aware")
+    return value.astimezone(UTC)
+
+
+def utc_monday(value: datetime) -> datetime:
+    """Normalize an aware timestamp to its UTC Monday midnight window."""
+    value = _utc(value)
+    return (value - timedelta(days=value.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class DirtyMarker:
+    user_id: int
+    window_start: datetime
+    generation: int
+    reason: DirtyReason
+    first_marked_at: datetime
+    last_marked_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class DirtyBacklog:
+    count: int
+    oldest_marked_at: datetime | None
+
+
+def _encoded(value: datetime) -> str:
+    return _utc(value).strftime(_UTC_TEXT_FORMAT)
+
+
+def _decoded(value: str) -> datetime:
+    try:
+        return datetime.strptime(value, _UTC_TEXT_FORMAT).replace(tzinfo=UTC)
+    except ValueError as error:
+        raise ValueError("persisted dirty timestamp is not canonical UTC") from error
+
+
+def _marker(row: dict[str, Any]) -> DirtyMarker:
+    window_start = _decoded(row["window_start"])
+    if window_start != utc_monday(window_start):
+        raise ValueError("persisted dirty window is not UTC Monday midnight")
+    return DirtyMarker(
+        user_id=_positive(row["user_id"], "persisted user_id"),
+        window_start=window_start,
+        generation=_positive(row["generation"], "persisted generation"),
+        reason=DirtyReason(row["reason"]),
+        first_marked_at=_decoded(row["first_marked_at"]),
+        last_marked_at=_decoded(row["last_marked_at"]),
+    )
+
+
+class BookmarkStatsDirtyRepository:
+    """Atomic persistence only; caller owns transaction boundaries and logging."""
+
+    def __init__(self, session: Session) -> None:
+        self._session = session
+
+    def mark_dirty(
+        self,
+        user_id: int,
+        window_start: datetime,
+        reason: DirtyReason,
+        marked_at: datetime,
+    ) -> None:
+        _positive(user_id, "user_id")
+        if not isinstance(reason, DirtyReason):
+            raise TypeError("reason must be a DirtyReason")
+        window, marked = _encoded(utc_monday(window_start)), _encoded(marked_at)
+        statement = text(
+            "INSERT INTO bookmark_stats_window_dirty "
+            "(user_id, window_start, generation, reason, first_marked_at, last_marked_at) "
+            "VALUES (:user_id, :window, 1, :reason, :marked, :marked) "
+            "ON CONFLICT(user_id, window_start) DO UPDATE SET "
+            "generation = generation + 1, reason = excluded.reason, "
+            "last_marked_at = excluded.last_marked_at"
+        )
+        self._session.execute(
+            statement, {"user_id": user_id, "window": window, "reason": reason, "marked": marked}
+        )
+
+    def observe(self, limit: int = 100) -> tuple[DirtyMarker, ...]:
+        _positive(limit, "limit")
+        if limit > 100:
+            raise ValueError("limit must be at most 100")
+        statement = text(
+            "SELECT user_id, window_start, generation, reason, first_marked_at, last_marked_at "
+            "FROM bookmark_stats_window_dirty "
+            "ORDER BY last_marked_at ASC, user_id ASC, window_start ASC LIMIT :limit"
+        )
+        return tuple(
+            _marker(dict(row))
+            for row in self._session.execute(statement, {"limit": limit}).mappings()
+        )
+
+    def backlog(self) -> DirtyBacklog:
+        row = (
+            self._session.execute(
+                text(
+                    "SELECT count(*) AS count, min(first_marked_at) AS oldest_marked_at "
+                    "FROM bookmark_stats_window_dirty"
+                )
+            )
+            .mappings()
+            .one()
+        )
+        return DirtyBacklog(
+            count=row["count"],
+            oldest_marked_at=None
+            if row["oldest_marked_at"] is None
+            else _decoded(row["oldest_marked_at"]),
+        )
+
+    def complete(self, user_id: int, window_start: datetime, generation: int) -> bool:
+        _positive(user_id, "user_id")
+        _positive(generation, "generation")
+        result = cast(
+            CursorResult[Any],
+            self._session.execute(
+                text(
+                    "DELETE FROM bookmark_stats_window_dirty WHERE user_id=:user_id "
+                    "AND window_start=:window AND generation=:generation"
+                ),
+                {
+                    "user_id": user_id,
+                    "window": _encoded(utc_monday(window_start)),
+                    "generation": generation,
+                },
+            ),
+        )
+        return result.rowcount == 1
+
+
+__all__ = [
+    "BookmarkStatsDirtyRepository",
+    "BookmarkStatsWindowDirty",
+    "DirtyBacklog",
+    "DirtyMarker",
+    "DirtyReason",
+    "utc_monday",
+]

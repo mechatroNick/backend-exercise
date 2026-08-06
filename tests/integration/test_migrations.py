@@ -17,7 +17,14 @@ from app.db import engine as database_engine
 from app.db.engine import create_database_engine
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-_EXPECTED_TABLES = {"alembic_version", "bookmark_tags", "bookmarks", "tags", "users"}
+_EXPECTED_TABLES = {
+    "alembic_version",
+    "bookmark_stats_window_dirty",
+    "bookmark_tags",
+    "bookmarks",
+    "tags",
+    "users",
+}
 
 
 def test_upgrade_builds_exact_schema_and_connection_policy(migrated_engine: Engine) -> None:
@@ -34,7 +41,7 @@ def test_upgrade_builds_exact_schema_and_connection_policy(migrated_engine: Engi
         assert first_connection.execute(text("PRAGMA foreign_key_check")).all() == []
         assert (
             MigrationContext.configure(first_connection).get_current_revision()
-            == "0001_core_schema"
+            == "0002_bookmark_stats_window_dirty"
         )
 
 
@@ -48,6 +55,14 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             "ix_bookmarks_user_updated_id": ["user_id", "updated_at", "id"],
         },
         "bookmark_tags": {"ix_bookmark_tags_tag_bookmark": ["tag_id", "bookmark_id"]},
+        "bookmark_stats_window_dirty": {
+            "ix_stats_dirty_last_marked_user_window": [
+                "last_marked_at",
+                "user_id",
+                "window_start",
+            ],
+            "ix_stats_dirty_window_user": ["window_start", "user_id"],
+        },
     }
     expected_foreign_keys = {
         "bookmarks": {"fk_bookmarks_user_id_users": ("user_id", "users", "CASCADE")},
@@ -55,6 +70,7 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             "fk_bookmark_tags_bookmark_id_bookmarks": ("bookmark_id", "bookmarks", "CASCADE"),
             "fk_bookmark_tags_tag_id_tags": ("tag_id", "tags", "CASCADE"),
         },
+        "bookmark_stats_window_dirty": {"fk_stats_dirty_user": ("user_id", "users", "CASCADE")},
     }
     expected_constraint_names = {
         "users": {
@@ -81,6 +97,16 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             "fk_bookmark_tags_tag_id_tags",
             "pk_bookmark_tags",
         },
+        "bookmark_stats_window_dirty": {
+            "ck_stats_dirty_generation_positive",
+            "ck_stats_dirty_reason_bounded",
+            "ck_stats_dirty_reason_known",
+            "ck_stats_dirty_window_monday_utc",
+            "ck_stats_dirty_first_marked_utc",
+            "ck_stats_dirty_last_marked_utc",
+            "fk_stats_dirty_user",
+            "pk_stats_dirty_user_window",
+        },
     }
 
     for table_name, expected in expected_indexes.items():
@@ -104,6 +130,20 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
                 {"name": table_name},
             ).scalar_one()
             assert all(constraint_name in ddl for constraint_name in expected)
+
+    dirty_columns = inspector.get_columns("bookmark_stats_window_dirty")
+    assert [(column["name"], column["nullable"]) for column in dirty_columns] == [
+        ("user_id", False),
+        ("window_start", False),
+        ("generation", False),
+        ("reason", False),
+        ("first_marked_at", False),
+        ("last_marked_at", False),
+    ]
+    assert inspector.get_pk_constraint("bookmark_stats_window_dirty")["constrained_columns"] == [
+        "user_id",
+        "window_start",
+    ]
 
 
 def test_downgrade_removes_core_tables_and_reupgrade_restores_them(
@@ -152,7 +192,8 @@ def test_command_uses_settings_database_url_when_alembic_config_has_none(
     try:
         with engine.connect() as connection:
             assert (
-                MigrationContext.configure(connection).get_current_revision() == "0001_core_schema"
+                MigrationContext.configure(connection).get_current_revision()
+                == "0002_bookmark_stats_window_dirty"
             )
     finally:
         engine.dispose()
