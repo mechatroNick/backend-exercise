@@ -9,14 +9,14 @@
 
 ## Current state
 
-- Specification: Planned
-- Plan: Planned
-- Implementation: Dependency-gated; not started
+- Specification: Ready
+- Plan: Ready
+- Implementation: Authorized; T05-01 compatibility gate complete
 
 ## Next action
 
-After Tracks 01--04 close, execute T05-01 and create the closure TEST-REPORT only
-from actual commands and runtime evidence.
+Complete the mandatory evidence inventory, repair bounded OpenAPI metadata, then pin
+and execute the contract gate without changing product semantics.
 
 ## 2026-08-05 — Shared verification-guideline adoption
 
@@ -50,3 +50,22 @@ from actual commands and runtime evidence.
   cross-user disclosure evidence.
 - This correction is planning only: no Track 05 test, process, migration, harness,
   runtime validation, product change, or TEST-REPORT receipt was created or executed.
+
+## 2026-08-06 — Tracks 01--04 compatibility gate passed
+
+- Opened `codex/track-05-quality-gate` from verified Track 04 merge `8534e98`; the
+  worktree was clean and all four upstream TEST-REPORTs were Passed.
+- Regenerated the current OpenAPI 3.1 inventory: eight operations across five paths,
+  with the expected status sets and bearer security on every bookmark operation.
+- Mapped required and accepted core rows owned by Tracks 01--04 to direct existing
+  executable evidence. API-01, API-02, TEST-01, TEST-02, and QUAL-01 remain genuinely
+  open Track 05 rows; DEL-01--03, DOC-01, FUT-01, and bonus decisions remain Track 08.
+- Confirmed existing strong query-count, owner-scope, raw-SQL, migration, structured-
+  logging, redaction, and process seams. Current collection found 427 tests and no
+  skip/xfail markers, but Track 05 must add an enforceable mandatory selector/manifest.
+- Identified two bounded implementation gaps: success/request/query OpenAPI examples
+  are absent, and no pinned primary-docs contract runner or API-wide real-instance
+  operation/status/content-type suite exists. `scripts/verify-track-05.sh` and its
+  closure TEST-REPORT are also intentionally absent.
+- No product route, body, status, security, migration, extension behavior, dependency,
+  or test was changed by this read-only gate. Track 06 remains blocked until T05 closes.

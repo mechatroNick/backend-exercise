@@ -2,12 +2,12 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-003, ADR-006; ADR-004/005 excluded extension boundaries
-- Status: Planned
-- Active item: None; blocked until Tracks 01--04 close
+- Status: Ready
+- Active item: T05-02 mandatory evidence inventory after the passed T05-01 compatibility gate
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T05-01 | Verify closure receipts and current contracts for Tracks 01--04. | Smith / implementation | Tracks 01--04 closure | Blocked | Compatibility/mandatory-inventory checkpoint. |
+| T05-01 | Verify closure receipts and current contracts for Tracks 01--04. | Smith / implementation | Tracks 01--04 closure | Complete | Verified Track 04 merge `8534e98`, passed Track 01--04 reports, current eight-operation OpenAPI inventory, 427 collected tests, query/raw-SQL/logging seams, and bounded metadata/tooling gaps. |
 | T05-02 | Build the core requirement-to-evidence inventory and separate still-open Track 08 delivery obligations. | Smith / implementation | T05-01 | Pending | Every required/accepted core row owned by Tracks 01--05 maps to evidence; no delivery-only row is falsely closed. |
 | T05-03 | Audit/fix operation OpenAPI metadata and `/docs`. | Smith / implementation | T05-01, T05-02 | Pending | Security/schema/status/example/content-type/204 audit. |
 | T05-04 | Select/pin contract harness and validate real responses/errors. | Smith / implementation | T05-03 | Pending | Generated-schema instance evidence. |
