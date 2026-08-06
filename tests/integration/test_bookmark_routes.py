@@ -24,7 +24,9 @@ _PASSWORD = "correct-horse-battery-staple"
 def client(database_url: str, migrated_engine: Engine) -> Iterator[TestClient]:
     """Start the real composition root against a migrated disposable database."""
     del migrated_engine
-    app = create_app(Settings(app_env="test", database_url=database_url))
+    app = create_app(
+        Settings(app_env="test", database_url=database_url, stats_refresh_enabled=False)
+    )
     with TestClient(app) as value:
         yield value
 

@@ -83,6 +83,26 @@ def test_observation_backlog_bounds_order_and_generation_completion(
         assert repository.backlog().count == 2
 
 
+def test_full_reconciliation_user_cursor_is_bounded_and_stable(
+    migrated_engine: Engine,
+) -> None:
+    moment = datetime(2026, 8, 6, 12, tzinfo=UTC)
+    with Session(migrated_engine) as session:
+        _insert_users(session, moment)
+        session.commit()
+        repository = BookmarkStatsDirtyRepository(session)
+
+        assert repository.user_ids_after(limit=1) == (1,)
+        assert repository.user_ids_after(after_id=1, limit=1) == (2,)
+        assert repository.user_ids_after(after_id=2, limit=1) == ()
+        for after_id in (-1, True, "1"):
+            with pytest.raises(ValueError, match="after_id"):
+                repository.user_ids_after(after_id=after_id)  # type: ignore[arg-type]
+        for limit in (0, -1, True, 101):
+            with pytest.raises(ValueError, match="limit"):
+                repository.user_ids_after(limit=limit)
+
+
 def test_fixed_width_timestamp_ordering_handles_fractional_seconds(
     migrated_engine: Engine,
 ) -> None:

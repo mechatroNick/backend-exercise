@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from datetime import timedelta
 from uuid import uuid4
 
@@ -18,6 +18,9 @@ from app.auth.router import install_test_protected_route
 from app.auth.router import router as auth_router
 from app.auth.security import AccessTokenCodec
 from app.bookmarks.router import router as bookmarks_router
+from app.bookmarks.stats.publisher import StatsInvalidationPublisher
+from app.bookmarks.stats.refresher import StatsRefresher
+from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.clock import SystemClock
 from app.core.config import Settings
 from app.core.logging import configure_logging, log_event, log_exception
@@ -66,6 +69,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         component="lifecycle",
     )
     engine: Engine | None = None
+    refresher: StatsRefresher | None = None
     try:
         engine = create_database_engine(settings)
         app.state.engine = engine
@@ -78,6 +82,33 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             ttl=timedelta(minutes=settings.access_token_ttl_minutes),
             clock=app.state.clock,
         )
+        if settings.stats_refresh_enabled:
+            service_instance_id = uuid4()
+            store = StatsSnapshotStore()
+            publisher = StatsInvalidationPublisher(
+                store=store,
+                capacity=settings.stats_event_queue_capacity,
+                logger=logger,
+                service_instance_id=service_instance_id,
+            )
+            refresher = StatsRefresher(
+                session_factory=app.state.session_factory,
+                publisher=publisher,
+                store=store,
+                clock=app.state.clock,
+                top_tags_limit=settings.top_tags_limit,
+                interval_seconds=settings.stats_refresh_interval_seconds,
+                full_reconciliation_seconds=settings.stats_full_reconciliation_seconds,
+                batch_size=min(settings.stats_event_queue_capacity, 100),
+                logger=logger,
+                service_instance_id=service_instance_id,
+            )
+            app.state.bookmark_stats_store = store
+            app.state.bookmark_stats_publisher = publisher
+            app.state.bookmark_stats_refresher = refresher
+            app.state.bookmark_stats_snapshot_healthy = refresher.snapshot_healthy
+            refresher.start()
+            refresher.wait_initial(settings.stats_initial_refresh_timeout_seconds)
     except Exception as error:
         log_exception(
             logger,
@@ -86,7 +117,16 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             message="application startup failed",
             component="lifecycle",
         )
-        if engine is not None:
+        disposal_deferred = False
+        if refresher is not None and engine is not None:
+            stopped = False
+            with suppress(Exception):
+                stopped = refresher.stop(settings.stats_shutdown_timeout_seconds)
+            if not stopped:
+                with suppress(Exception):
+                    refresher.defer_until_stopped(engine.dispose)
+                    disposal_deferred = True
+        if engine is not None and not disposal_deferred:
             engine.dispose()
         raise
     try:
@@ -106,7 +146,10 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             message="application stopping",
             component="lifecycle",
         )
-        engine.dispose()
+        if refresher is None or refresher.stop(settings.stats_shutdown_timeout_seconds):
+            engine.dispose()
+        else:
+            refresher.defer_until_stopped(engine.dispose)
         log_event(
             logger,
             logging.INFO,

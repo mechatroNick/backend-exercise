@@ -104,7 +104,8 @@ def test_overflow_invalidates_sets_reconciliation_and_logs_once_per_episode() ->
     assert str(_INSTANCE_ID) in serialized
     assert all(value not in serialized for value in ("user_id", "bookmark_id", " 7", " 12"))
 
-    publisher.acknowledge_full_reconciliation()
+    overflow_epoch = publisher.state().reconciliation_epoch
+    assert publisher.acknowledge_full_reconciliation(overflow_epoch)
     assert not publisher.state().reconciliation_required
     assert publisher.publish(_event(14)) is PublishOutcome.QUEUE_FULL
     assert len(handler.records) == 2
@@ -181,7 +182,7 @@ def test_logging_failure_cannot_escape_the_total_publisher() -> None:
 
 def test_publisher_validates_bounds_and_explicit_reconciliation_state() -> None:
     logger, _ = _logger()
-    for capacity in (0, -1, True, 100_001):
+    for capacity in (0, -1, True, 1_000_001):
         with pytest.raises(ValueError, match="capacity"):
             StatsInvalidationPublisher(
                 store=StatsSnapshotStore(),
@@ -203,3 +204,18 @@ def test_publisher_validates_bounds_and_explicit_reconciliation_state() -> None:
             publisher.drain(limit)
     publisher.require_full_reconciliation()
     assert publisher.state().reconciliation_required
+
+
+def test_reconciliation_ack_is_epoch_conditional_and_validates_input() -> None:
+    publisher, _ = _publisher(StatsSnapshotStore(), capacity=2)
+    publisher.require_full_reconciliation()
+    observed_epoch = publisher.state().reconciliation_epoch
+    publisher.require_full_reconciliation()
+
+    assert not publisher.acknowledge_full_reconciliation(observed_epoch)
+    assert publisher.state().reconciliation_required
+    assert publisher.acknowledge_full_reconciliation(observed_epoch + 1)
+    assert not publisher.state().reconciliation_required
+    for invalid in (-1, True, "1"):
+        with pytest.raises(ValueError, match="expected_epoch"):
+            publisher.acknowledge_full_reconciliation(invalid)  # type: ignore[arg-type]

@@ -45,7 +45,11 @@ def test_factory_honors_injected_settings_and_openapi_without_schema_mutation(
     tmp_path: Path,
 ) -> None:
     database_path = tmp_path / "unmigrated.sqlite3"
-    settings = Settings(app_env="test", database_url=f"sqlite:///{database_path}")
+    settings = Settings(
+        app_env="test",
+        database_url=f"sqlite:///{database_path}",
+        stats_refresh_enabled=False,
+    )
     app = create_app(settings)
 
     assert app.state.settings is settings
@@ -59,6 +63,9 @@ def test_factory_honors_injected_settings_and_openapi_without_schema_mutation(
         }
         assert client.get("/openapi.json").json() == response.json()
         assert app.state.session_factory is not None
+        assert not hasattr(app.state, "bookmark_stats_refresher")
+        assert not hasattr(app.state, "bookmark_stats_store")
+        assert not hasattr(app.state, "bookmark_stats_publisher")
     assert not database_path.exists()
 
 
@@ -69,7 +76,10 @@ def test_lifespan_emits_json_lifecycle_events_redacts_and_disposes_engine(
     stream = io.StringIO()
     secret = "track01-secret-sentinel-do-not-emit"
     settings = Settings(
-        app_env="test", database_url=f"sqlite:///{database_path}", jwt_secret=secret
+        app_env="test",
+        database_url=f"sqlite:///{database_path}",
+        jwt_secret=secret,
+        stats_refresh_enabled=False,
     )
     app = create_app(settings)
     import app.main as main
@@ -120,7 +130,13 @@ def test_zero_argument_factory_reads_environment_only_when_called(
 
 def test_starting_against_unmigrated_database_does_not_create_tables(tmp_path: Path) -> None:
     database_path = tmp_path / "unmigrated.sqlite3"
-    app = create_app(Settings(app_env="test", database_url=f"sqlite:///{database_path}"))
+    app = create_app(
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{database_path}",
+            stats_refresh_enabled=False,
+        )
+    )
 
     with TestClient(app):
         pass
@@ -146,7 +162,11 @@ def test_test_fault_is_logged_once_and_returns_fastapis_default_500(
 
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
     app = create_app(
-        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
 
     with TestClient(app, raise_server_exceptions=False) as client:
@@ -180,7 +200,11 @@ def test_normal_responses_and_non_test_fault_header_do_not_log_unexpected_events
 
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
     app = create_app(
-        Settings(app_env="development", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="development",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
 
     with TestClient(app, raise_server_exceptions=False) as client:
@@ -209,7 +233,11 @@ def test_test_fault_returns_redacted_envelope_after_exactly_one_owning_boundary_
 
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
     app = create_app(
-        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
 
     with TestClient(app) as client:
@@ -248,7 +276,11 @@ def test_startup_initialization_failure_logs_once_and_disposes_partial_engine(
     monkeypatch.setattr(main, "create_database_engine", lambda _settings: DisposableEngine())
     monkeypatch.setattr(main, "create_session_factory", fail_session_factory)
     app = create_app(
-        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
 
     with pytest.raises(RuntimeError), TestClient(app):
@@ -281,7 +313,11 @@ def test_startup_engine_creation_failure_is_logged_once_without_partial_disposal
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
     monkeypatch.setattr(main, "create_database_engine", fail_engine_creation)
     app = create_app(
-        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
 
     with pytest.raises(RuntimeError), TestClient(app):
@@ -289,3 +325,117 @@ def test_startup_engine_creation_failure_is_logged_once_without_partial_disposal
 
     assert [record["event"] for record in _records(stream)].count("application.startup_failed") == 1
     assert "track01-secret-sentinel-do-not-emit" not in stream.getvalue()
+
+
+@pytest.mark.parametrize("stop_mode", ["stopped", "raises", "deferred"])
+def test_enabled_refresher_startup_failure_stops_before_disposing_engine(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    stop_mode: str,
+) -> None:
+    import app.main as main
+
+    operations: list[str] = []
+
+    class DisposableEngine:
+        def dispose(self) -> None:
+            operations.append("dispose")
+
+    class FailingRefresher:
+        def __init__(self, **_kwargs: object) -> None:
+            pass
+
+        def start(self) -> bool:
+            operations.append("start")
+            return True
+
+        def wait_initial(self, _timeout: int) -> bool:
+            raise RuntimeError("track01-secret-sentinel-do-not-emit")
+
+        def stop(self, _timeout: int) -> bool:
+            operations.append("stop")
+            if stop_mode == "raises":
+                raise RuntimeError("track01-stop-secret-sentinel-do-not-emit")
+            return stop_mode == "stopped"
+
+        def defer_until_stopped(self, callback: object) -> None:
+            if stop_mode != "deferred":
+                raise RuntimeError("track01-defer-secret-sentinel-do-not-emit")
+            operations.append("defer")
+            assert callable(callback)
+            callback()
+
+        def snapshot_healthy(self) -> bool:
+            return False
+
+    monkeypatch.setattr(main, "create_database_engine", lambda _settings: DisposableEngine())
+    monkeypatch.setattr(main, "create_session_factory", lambda _engine: object())
+    monkeypatch.setattr(main, "StatsRefresher", FailingRefresher)
+    app = create_app(
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=True,
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="track01-secret"), TestClient(app):
+        pass
+
+    expected = ["start", "stop"]
+    if stop_mode == "deferred":
+        expected.append("defer")
+    expected.append("dispose")
+    assert operations == expected
+
+
+def test_shutdown_timeout_defers_engine_disposal_until_worker_exit(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import app.main as main
+
+    operations: list[str] = []
+
+    class DisposableEngine:
+        def dispose(self) -> None:
+            operations.append("dispose")
+
+    class TimedOutRefresher:
+        def __init__(self, **_kwargs: object) -> None:
+            pass
+
+        def start(self) -> bool:
+            operations.append("start")
+            return True
+
+        def wait_initial(self, _timeout: int) -> bool:
+            return True
+
+        def stop(self, _timeout: int) -> bool:
+            operations.append("stop")
+            return False
+
+        def defer_until_stopped(self, callback: object) -> None:
+            operations.append("defer")
+            assert callable(callback)
+            callback()
+
+        def snapshot_healthy(self) -> bool:
+            return False
+
+    monkeypatch.setattr(main, "create_database_engine", lambda _settings: DisposableEngine())
+    monkeypatch.setattr(main, "create_session_factory", lambda _engine: object())
+    monkeypatch.setattr(main, "StatsRefresher", TimedOutRefresher)
+    app = create_app(
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=True,
+        )
+    )
+
+    with TestClient(app):
+        assert operations == ["start"]
+
+    assert operations == ["start", "stop", "defer", "dispose"]

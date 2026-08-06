@@ -17,7 +17,7 @@ def _positive_identifier(value: int) -> None:
 
 @dataclass(frozen=True, slots=True)
 class SnapshotRecord:
-    """One complete immutable aggregate generation."""
+    """One complete immutable aggregate; generation zero means no marker was observed."""
 
     stats: BookmarkStats
     generated_at: datetime
@@ -64,9 +64,9 @@ class StatsSnapshotStore:
         if (
             isinstance(source_generation, bool)
             or not isinstance(source_generation, int)
-            or source_generation <= 0
+            or source_generation < 0
         ):
-            raise ValueError("source_generation must be a positive integer")
+            raise ValueError("source_generation must be a nonnegative integer")
         if (
             isinstance(expected_epoch, bool)
             or not isinstance(expected_epoch, int)

@@ -12,7 +12,7 @@ from app.bookmarks.events import BookmarkStatsInvalidated, PublishOutcome
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.logging import log_event, log_exception
 
-_MAX_QUEUE_CAPACITY = 100_000
+_MAX_QUEUE_CAPACITY = 1_000_000
 
 
 class _PublisherBoundaryError(RuntimeError):
@@ -28,6 +28,7 @@ class PublisherState:
     enqueued_count: int
     overflow_count: int
     failure_count: int
+    reconciliation_epoch: int
 
 
 class StatsInvalidationPublisher:
@@ -46,7 +47,7 @@ class StatsInvalidationPublisher:
             or not isinstance(capacity, int)
             or not 1 <= capacity <= _MAX_QUEUE_CAPACITY
         ):
-            raise ValueError("capacity must be between 1 and 100000")
+            raise ValueError("capacity must be between 1 and 1000000")
         if not isinstance(service_instance_id, UUID) or service_instance_id.int == 0:
             raise ValueError("service_instance_id must be a non-nil UUID")
         self._store = store
@@ -60,6 +61,7 @@ class StatsInvalidationPublisher:
         self._enqueued_count = 0
         self._overflow_count = 0
         self._failure_count = 0
+        self._reconciliation_epoch = 0
 
     def publish(self, event_value: BookmarkStatsInvalidated) -> PublishOutcome:
         """Invalidate then make exactly one nonblocking queue attempt."""
@@ -104,22 +106,34 @@ class StatsInvalidationPublisher:
                 enqueued_count=self._enqueued_count,
                 overflow_count=self._overflow_count,
                 failure_count=self._failure_count,
+                reconciliation_epoch=self._reconciliation_epoch,
             )
 
-    def acknowledge_full_reconciliation(self) -> None:
-        """Clear overflow suspicion only after canonical full reconciliation."""
+    def acknowledge_full_reconciliation(self, expected_epoch: int) -> bool:
+        """Clear suspicion only if no newer failure occurred during reconciliation."""
+        if (
+            isinstance(expected_epoch, bool)
+            or not isinstance(expected_epoch, int)
+            or expected_epoch < 0
+        ):
+            raise ValueError("expected_epoch must be a nonnegative integer")
         with self._lock:
+            if self._reconciliation_epoch != expected_epoch:
+                return False
             self._reconciliation_required = False
             self._overflow_logged = False
+            return True
 
     def require_full_reconciliation(self) -> None:
         """Fail closed when a later component detects possible lost work."""
         with self._lock:
             self._reconciliation_required = True
+            self._reconciliation_epoch += 1
 
     def _record_overflow(self) -> bool:
         with self._lock:
             self._reconciliation_required = True
+            self._reconciliation_epoch += 1
             self._overflow_count += 1
             should_log = not self._overflow_logged
             self._overflow_logged = True
@@ -128,6 +142,7 @@ class StatsInvalidationPublisher:
     def _record_failure(self) -> None:
         with self._lock:
             self._reconciliation_required = True
+            self._reconciliation_epoch += 1
             self._failure_count += 1
 
     def _safe_context(self) -> dict[str, int | str | bool]:

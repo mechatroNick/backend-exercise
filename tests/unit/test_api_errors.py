@@ -39,7 +39,11 @@ def app(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> FastAPI:
 
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
     application = create_app(
-        Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
+        Settings(
+            app_env="test",
+            database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}",
+            stats_refresh_enabled=False,
+        )
     )
     application.state.test_log_stream = stream
 

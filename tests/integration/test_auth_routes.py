@@ -27,7 +27,9 @@ _PASSWORD = "correct horse battery staple"
 def client(database_url: str, migrated_engine: object) -> TestClient:
     """Start one app against an Alembic-migrated database for each transport case."""
     del migrated_engine
-    app = create_app(Settings(app_env="test", database_url=database_url))
+    app = create_app(
+        Settings(app_env="test", database_url=database_url, stats_refresh_enabled=False)
+    )
     with TestClient(app, raise_server_exceptions=False) as started:
         yield started
 
@@ -218,7 +220,9 @@ def test_unrelated_integrity_failure_is_logged_once_with_database_values_redacte
             )
 
     monkeypatch.setattr(main, "configure_logging", configure_to_stream)
-    app = create_app(Settings(app_env="test", database_url=database_url))
+    app = create_app(
+        Settings(app_env="test", database_url=database_url, stats_refresh_enabled=False)
+    )
     app.dependency_overrides[get_auth_service] = lambda: FailingService()
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.post(
@@ -257,6 +261,7 @@ def test_private_protected_route_and_openapi_are_absent_outside_test(tmp_path: P
         values: dict[str, object] = {
             "app_env": environment,
             "database_url": f"sqlite:///{tmp_path / f'{environment}.sqlite3'}",
+            "stats_refresh_enabled": False,
         }
         if secret is not None:
             values["jwt_secret"] = secret

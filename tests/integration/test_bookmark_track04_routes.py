@@ -26,7 +26,14 @@ _PASSWORD = "correct-horse-battery-staple"
 @pytest.fixture
 def client(database_url: str, migrated_engine: Engine) -> Iterator[TestClient]:
     del migrated_engine
-    app = create_app(Settings(app_env="test", database_url=database_url, top_tags_limit=1))
+    app = create_app(
+        Settings(
+            app_env="test",
+            database_url=database_url,
+            top_tags_limit=1,
+            stats_refresh_enabled=False,
+        )
+    )
     with TestClient(app, raise_server_exceptions=False) as started:
         yield started
 

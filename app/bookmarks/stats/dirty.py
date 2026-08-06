@@ -185,6 +185,19 @@ class BookmarkStatsDirtyRepository:
             for row in self._session.execute(statement, {"limit": limit}).mappings()
         )
 
+    def user_ids_after(self, after_id: int = 0, limit: int = 100) -> tuple[int, ...]:
+        """Return one bounded, stable page of users for full reconciliation."""
+        if isinstance(after_id, bool) or not isinstance(after_id, int) or after_id < 0:
+            raise ValueError("after_id must be a nonnegative integer")
+        _positive(limit, "limit")
+        if limit > 100:
+            raise ValueError("limit must be at most 100")
+        rows = self._session.execute(
+            text("SELECT id FROM users WHERE id > :after_id ORDER BY id ASC LIMIT :limit"),
+            {"after_id": after_id, "limit": limit},
+        )
+        return tuple(_positive(row[0], "persisted user_id") for row in rows)
+
     def backlog(self) -> DirtyBacklog:
         row = (
             self._session.execute(

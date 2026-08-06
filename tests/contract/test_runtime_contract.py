@@ -34,7 +34,9 @@ _INVENTORY = {
 @pytest.fixture
 def contract_client(database_url: str, migrated_engine: Engine) -> Iterator[TestClient]:
     del migrated_engine
-    app = create_app(Settings(app_env="test", database_url=database_url))
+    app = create_app(
+        Settings(app_env="test", database_url=database_url, stats_refresh_enabled=False)
+    )
     with TestClient(app, raise_server_exceptions=False) as client:
         yield client
 

@@ -83,7 +83,7 @@ def test_snapshot_store_rejects_invalid_boundaries() -> None:
         ("user_id", True, "user_id"),
         ("stats", {}, "stats"),
         ("generated_at", _NOW.replace(tzinfo=None), "timezone-aware"),
-        ("source_generation", 0, "source_generation"),
+        ("source_generation", -1, "source_generation"),
         ("source_generation", True, "source_generation"),
         ("expected_epoch", -1, "expected_epoch"),
         ("expected_epoch", True, "expected_epoch"),
