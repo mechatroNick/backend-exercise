@@ -2,14 +2,15 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing ADRs: ADR-001, ADR-002, ADR-004, ADR-006
-- Status: Planned
-- Active item: None; implementation is dependency-gated on Track 02 closure
+- Status: Ready
+- Active item: T03-02 DTO and normalization-policy implementation after the passed
+  T03-01 compatibility checkpoint
 
 ## Execution plan
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T03-01 | Verify Track 01/02 closure receipts and delivered sessions, models/migration, clock, auth dependency, error boundary, composition, and tests. | Smith / implementation | Track 01 and Track 02 closure | Blocked | Compatibility checkpoint; stop on material mismatch. |
+| T03-01 | Verify Track 01/02 closure receipts and delivered sessions, models/migration, clock, auth dependency, error boundary, composition, and tests. | Primary engineering thread / Scout | Track 01 and Track 02 closure | Complete | Track 02 merge `adb0e8c`; committed Track 01/02 passing reports; existing tables/constraints, session, clock, current-subject, errors, and composition match; 48 focused compatibility tests passed with no material mismatch. |
 | T03-02 | Implement strict bookmark/tag create, PATCH, public, and compatible list DTOs plus normalization/material-change helpers. | Smith / implementation | T03-01 | Pending | DTO tests cover validation, omitted/null, equivalence, and disclosure. |
 | T03-03 | Implement explicit owner-scoped bookmark and canonical-tag repository operations without repository commits. | Smith / implementation | T03-01, T03-02 | Pending | SQLite tests prove predicate scope, tag reuse/race handling, association reads. |
 | T03-04 | Implement service-owned create/detail/baseline-list/PATCH/delete transactions with timestamp and rollback semantics. | Smith / implementation | T03-02, T03-03 | Pending | Fixed-clock integration proves atomicity, duplicate URL allowance, no-op behavior. |
