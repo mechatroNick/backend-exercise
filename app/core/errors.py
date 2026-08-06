@@ -58,6 +58,13 @@ class ConflictError(ApplicationError):
     status_code = 409
 
 
+class IdentityConflictError(ConflictError):
+    """A deliberately generic conflict for an existing username or email."""
+
+    code = "identity_conflict"
+    message = "Username or email is already registered."
+
+
 class NotFoundError(ApplicationError):
     """Expected, concealment-safe missing resource failure."""
 
@@ -78,6 +85,7 @@ __all__ = [
     "ApplicationError",
     "AuthenticationError",
     "ConflictError",
+    "IdentityConflictError",
     "InternalServerError",
     "NotFoundError",
     "ValidationApplicationError",
