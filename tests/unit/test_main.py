@@ -195,7 +195,7 @@ def test_normal_responses_and_non_test_fault_header_do_not_log_unexpected_events
     ]
 
 
-def test_test_fault_reraises_after_exactly_one_owning_boundary_log(
+def test_test_fault_returns_redacted_envelope_after_exactly_one_owning_boundary_log(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     stream = io.StringIO()
@@ -211,9 +211,13 @@ def test_test_fault_reraises_after_exactly_one_owning_boundary_log(
         Settings(app_env="test", database_url=f"sqlite:///{tmp_path / 'unmigrated.sqlite3'}")
     )
 
-    with TestClient(app) as client, pytest.raises(RuntimeError):
-        client.get("/openapi.json", headers={"X-Track01-Harness-Fault": "1"})
+    with TestClient(app) as client:
+        response = client.get("/openapi.json", headers={"X-Track01-Harness-Fault": "1"})
 
+    assert response.status_code == 500
+    assert response.json() == {
+        "error": {"code": "internal_error", "message": "Internal server error.", "details": None}
+    }
     assert [record["event"] for record in _records(stream)].count(
         "http.request.unexpected_exception"
     ) == 1

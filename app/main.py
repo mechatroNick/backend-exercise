@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
 from sqlalchemy import Engine
 
+from app.api.errors import register_exception_handlers, unexpected_error_response
 from app.core.config import Settings
 from app.core.logging import configure_logging, log_event, log_exception
 from app.db.engine import create_database_engine, create_session_factory
@@ -106,7 +107,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 context={"method": request.method},
                 component="http",
             )
-            raise
+            return unexpected_error_response()
+
+    register_exception_handlers(app)
 
     return app
 
