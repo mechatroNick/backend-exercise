@@ -54,7 +54,7 @@ flowchart LR
 | 02 | Error contract, registration, login, and JWT authentication | 01 | Complete |
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Complete |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Complete |
-| 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Planned (implementation-gated) |
+| 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Complete |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Planned (implementation-gated) |
 | 07 | Weekly developing points and append-only correction revisions | 06 | Planned (implementation-gated) |
 | 08 | Final hardening, documentation, assessment handoff, and optional bonuses | 01, 02, 03, 04, 05, 06, 07 | Planned (implementation-gated) |
@@ -88,6 +88,8 @@ deterministic tests and real-process harness evidence.
 - [Track 05 specification](05-mandatory-quality-gate/SPEC.md)
 - [Track 05 execution plan](05-mandatory-quality-gate/PLAN.md)
 - [Track 05 history](05-mandatory-quality-gate/HISTORY.md)
+- [Track 05 mandatory core evidence matrix](05-mandatory-quality-gate/CORE-EVIDENCE-MATRIX.md)
+- [Track 05 test report](05-mandatory-quality-gate/TEST-REPORT.md)
 - [Track 06 specification](06-event-driven-stats/SPEC.md)
 - [Track 06 execution plan](06-event-driven-stats/PLAN.md)
 - [Track 06 history](06-event-driven-stats/HISTORY.md)

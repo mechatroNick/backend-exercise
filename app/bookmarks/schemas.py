@@ -68,16 +68,18 @@ class BookmarkQuery(BaseModel):
         extra="forbid", frozen=True, populate_by_name=True, validate_default=True
     )
 
-    tag: str | None = None
-    q: str | None = Field(default=None, max_length=200)
+    tag: str | None = Field(default=None, examples=["python"])
+    q: str | None = Field(default=None, max_length=200, examples=["fictional search"])
     created_from: date | None = Field(
-        default=None, validation_alias="from", serialization_alias="from"
+        default=None, validation_alias="from", serialization_alias="from", examples=["2025-01-01"]
     )
-    created_to: date | None = Field(default=None, validation_alias="to", serialization_alias="to")
-    updated_from: date | None = None
-    updated_to: date | None = None
-    page: int = Field(default=1, ge=1)
-    page_size: int = Field(default=20, ge=1, le=100)
+    created_to: date | None = Field(
+        default=None, validation_alias="to", serialization_alias="to", examples=["2025-12-31"]
+    )
+    updated_from: date | None = Field(default=None, examples=["2025-01-01"])
+    updated_to: date | None = Field(default=None, examples=["2025-12-31"])
+    page: int = Field(default=1, ge=1, examples=[1])
+    page_size: int = Field(default=20, ge=1, le=100, examples=[20])
 
     @field_validator("tag", mode="before")
     @classmethod
@@ -133,7 +135,21 @@ class BookmarkQuery(BaseModel):
 class BookmarkCreate(BaseModel):
     """Untrusted input for a new bookmark."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        strict=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "url": "https://example.invalid/fictional-bookmark",
+                    "title": "Fictional bookmark",
+                    "description": "A non-sensitive example.",
+                    "tags": ["python", "reference"],
+                }
+            ]
+        },
+    )
 
     url: AnyHttpUrl
     title: str = Field(min_length=1, max_length=200)
@@ -159,7 +175,14 @@ class BookmarkCreate(BaseModel):
 class BookmarkPatch(BaseModel):
     """Partial bookmark input, preserving omitted-versus-null field semantics."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        strict=True,
+        json_schema_extra={
+            "examples": [{"title": "Updated fictional bookmark", "tags": ["python"]}]
+        },
+    )
 
     url: AnyHttpUrl | None = None
     title: str | None = Field(default=None, min_length=1, max_length=200)
@@ -194,7 +217,9 @@ class BookmarkPatch(BaseModel):
 class TagPublic(BaseModel):
     """The public representation of a normalized tag."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(
+        extra="forbid", frozen=True, json_schema_extra={"examples": [{"name": "python"}]}
+    )
 
     name: str
 
@@ -202,7 +227,23 @@ class TagPublic(BaseModel):
 class BookmarkPublic(BaseModel):
     """The exact response shape for a bookmark; persistence fields stay private."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "id": 1,
+                    "url": "https://example.invalid/fictional-bookmark",
+                    "title": "Fictional bookmark",
+                    "description": "A non-sensitive example.",
+                    "tags": [{"name": "python"}],
+                    "created_at": "2025-01-01T00:00:00Z",
+                    "updated_at": "2025-01-01T00:00:00Z",
+                }
+            ]
+        },
+    )
 
     id: int = Field(gt=0)
     url: AnyHttpUrl
@@ -216,7 +257,30 @@ class BookmarkPublic(BaseModel):
 class BookmarkList(BaseModel):
     """Forward-compatible baseline collection response for Track 04."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "items": [
+                        {
+                            "id": 1,
+                            "url": "https://example.invalid/fictional-bookmark",
+                            "title": "Fictional bookmark",
+                            "description": "A non-sensitive example.",
+                            "tags": [{"name": "python"}],
+                            "created_at": "2025-01-01T00:00:00Z",
+                            "updated_at": "2025-01-01T00:00:00Z",
+                        }
+                    ],
+                    "total": 1,
+                    "page": 1,
+                    "page_size": 20,
+                }
+            ]
+        },
+    )
 
     items: tuple[BookmarkPublic, ...]
     total: int = Field(ge=0)

@@ -21,6 +21,8 @@ from app.core.logging import (
     redact,
 )
 
+pytestmark = pytest.mark.mandatory
+
 _SECRET = "track01-secret-sentinel-do-not-emit"
 _CONTENT = "track01-submitted-bookmark-sentinel-do-not-emit"
 

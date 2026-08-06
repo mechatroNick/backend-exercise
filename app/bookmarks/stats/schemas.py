@@ -14,7 +14,12 @@ _MONTH = re.compile(r"[0-9]{4}-[0-9]{2}\Z")
 class TopTag(BaseModel):
     """One deterministic current top-tag aggregate row."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        strict=True,
+        json_schema_extra={"examples": [{"name": "python", "count": 2}]},
+    )
 
     name: str
     count: int = Field(ge=1)
@@ -28,7 +33,12 @@ class TopTag(BaseModel):
 class BookmarksPerMonth(BaseModel):
     """One UTC calendar-month bookmark aggregate row."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        strict=True,
+        json_schema_extra={"examples": [{"month": "2025-01", "count": 2}]},
+    )
 
     month: str
     count: int = Field(ge=1)
@@ -50,7 +60,21 @@ class BookmarksPerMonth(BaseModel):
 class BookmarkStats(BaseModel):
     """Exact user-scoped current-statistics response body for Track 04."""
 
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        strict=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "total_bookmarks": 2,
+                    "total_tags": 3,
+                    "top_tags": [{"name": "python", "count": 2}],
+                    "bookmarks_per_month": [{"month": "2025-01", "count": 2}],
+                }
+            ]
+        },
+    )
 
     total_bookmarks: int = Field(ge=0)
     total_tags: int = Field(ge=0)

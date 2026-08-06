@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+import pytest
 from sqlalchemy import Engine, event, insert
 from sqlalchemy.engine import Connection
 from sqlmodel import Session
@@ -19,6 +20,8 @@ from app.bookmarks.repository import BookmarkRepository
 from app.bookmarks.schemas import BookmarkQuery
 from app.bookmarks.stats import raw_sql
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
+
+pytestmark = pytest.mark.mandatory
 
 _OWNER_ID = 1
 _OTHER_USER_ID = 2

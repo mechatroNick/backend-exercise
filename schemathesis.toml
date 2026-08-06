@@ -1,0 +1,19 @@
+seed = 20260806
+
+[phases.examples]
+enabled = false
+
+[phases.coverage]
+enabled = false
+
+[phases.fuzzing]
+enabled = true
+
+[phases.fuzzing.generation]
+mode = "positive"
+max-examples = 3
+deterministic = true
+allow-extra-parameters = false
+
+[phases.stateful]
+enabled = false

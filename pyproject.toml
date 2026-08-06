@@ -23,6 +23,7 @@ dev = [
     "mypy>=2.3.0,<2.4",
     "pytest>=9.1.1,<9.2",
     "ruff>=0.15.22,<0.16",
+    "schemathesis==4.24.3",
 ]
 
 [build-system]
@@ -48,6 +49,7 @@ files = ["app"]
 [tool.pytest.ini_options]
 addopts = "-ra"
 testpaths = ["tests"]
+markers = ["mandatory: required Track 05 closure evidence"]
 
 [tool.ruff]
 line-length = 100
