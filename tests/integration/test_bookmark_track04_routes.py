@@ -134,12 +134,19 @@ def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> 
     assert list_operation["security"] == stats_operation["security"] == [{"BearerAuth": []}]
     assert "parameters" not in stats_operation and "requestBody" not in stats_operation
     parameters = {item["name"]: item["schema"] for item in list_operation["parameters"]}
-    assert parameters["page"] == {"type": "integer", "minimum": 1, "default": 1, "title": "Page"}
+    assert parameters["page"] == {
+        "type": "integer",
+        "minimum": 1,
+        "default": 1,
+        "examples": [1],
+        "title": "Page",
+    }
     assert parameters["page_size"] == {
         "type": "integer",
         "maximum": 100,
         "minimum": 1,
         "default": 20,
+        "examples": [20],
         "title": "Page Size",
     }
     _validate(

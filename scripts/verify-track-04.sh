@@ -312,12 +312,12 @@ require(set(stats["responses"]) == {"200", "401", "500"}, "stats OpenAPI respons
 require(stats.get("parameters", []) == [], "stats acquired inputs")
 parameters = {item["name"]: item for item in bookmarks["parameters"]}
 require(set(parameters) == {"tag", "q", "from", "to", "updated_from", "updated_to", "page", "page_size"}, "list OpenAPI parameters changed")
-require(parameters["page"]["schema"] == {"type": "integer", "minimum": 1, "default": 1, "title": "Page"}, "page contract changed")
-require(parameters["page_size"]["schema"] == {"type": "integer", "maximum": 100, "minimum": 1, "default": 20, "title": "Page Size"}, "page size contract changed")
+require(parameters["page"]["schema"] == {"type": "integer", "minimum": 1, "default": 1, "examples": [1], "title": "Page"}, "page contract changed")
+require(parameters["page_size"]["schema"] == {"type": "integer", "maximum": 100, "minimum": 1, "default": 20, "examples": [20], "title": "Page Size"}, "page size contract changed")
 require(parameters["q"]["schema"]["anyOf"][0] == {"type": "string", "maxLength": 200}, "query length contract changed")
 require(all(not item.get("required", False) for item in parameters.values()), "optional list parameter became required")
 for name in ("from", "to", "updated_from", "updated_to"):
-    require(parameters[name]["schema"] == {"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}], "title": parameters[name]["schema"]["title"]}, "date parameter contract changed")
+    require(parameters[name]["schema"] == {"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}], "examples": ["2025-01-01" if name.endswith("from") or name == "from" else "2025-12-31"], "title": parameters[name]["schema"]["title"]}, "date parameter contract changed")
 validate_response(openapi, bookmarks, "200", max_page)
 validate_response(openapi, stats, "200", owner_before)
 validate_response(openapi, stats, "401", expected_auth)

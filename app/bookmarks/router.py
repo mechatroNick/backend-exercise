@@ -95,6 +95,7 @@ _DETAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
     500: _error_response("internal"),
 }
 _DELETE_RESPONSES: dict[int | str, dict[str, Any]] = {
+    204: {"description": "Bookmark deleted successfully; the response has no body."},
     401: _error_response("authentication"),
     404: _error_response("not_found"),
     422: _error_response("validation"),
@@ -157,7 +158,7 @@ def get_bookmark_stats(
     summary="Get an owned bookmark",
 )
 def get_bookmark(
-    bookmark_id: Annotated[int, Path(gt=0)],
+    bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
     subject: Annotated[CurrentSubject, Depends(get_current_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkPublic:
@@ -172,7 +173,7 @@ def get_bookmark(
     summary="Patch an owned bookmark",
 )
 def patch_bookmark(
-    bookmark_id: Annotated[int, Path(gt=0)],
+    bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
     payload: BookmarkPatch,
     subject: Annotated[CurrentSubject, Depends(get_current_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
@@ -186,9 +187,10 @@ def patch_bookmark(
     status_code=status.HTTP_204_NO_CONTENT,
     responses=_DELETE_RESPONSES,
     summary="Delete an owned bookmark",
+    description="Delete an owned bookmark and return HTTP 204 with no response body.",
 )
 def delete_bookmark(
-    bookmark_id: Annotated[int, Path(gt=0)],
+    bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
     subject: Annotated[CurrentSubject, Depends(get_current_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> Response:
