@@ -14,6 +14,8 @@ from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.service import BookmarkService
 from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
+from app.bookmarks.stats.service import CurrentStatsService
+from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.clock import Clock
 
 
@@ -50,4 +52,30 @@ def get_bookmark_stats_reader(
     )
 
 
-__all__ = ["get_bookmark_service", "get_bookmark_stats_reader"]
+def get_bookmark_stats_service(
+    request: Request,
+    reader: Annotated[BookmarkStatsReader, Depends(get_bookmark_stats_reader)],
+) -> CurrentStatsService:
+    """Compose optional snapshot acceleration around the canonical live reader."""
+    store: StatsSnapshotStore | None = getattr(request.app.state, "bookmark_stats_store", None)
+    snapshot_healthy = getattr(
+        request.app.state,
+        "bookmark_stats_snapshot_healthy",
+        lambda: False,
+    )
+    settings = request.app.state.settings
+    return CurrentStatsService(
+        reader=reader,
+        store=store,
+        clock=request.app.state.clock,
+        refresh_enabled=settings.stats_refresh_enabled,
+        stale_after_seconds=settings.stats_stale_after_seconds,
+        snapshot_healthy=snapshot_healthy,
+    )
+
+
+__all__ = [
+    "get_bookmark_service",
+    "get_bookmark_stats_reader",
+    "get_bookmark_stats_service",
+]

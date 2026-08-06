@@ -14,7 +14,7 @@ from referencing.jsonschema import DRAFT202012
 from sqlalchemy import Engine
 
 from app.auth.dependencies import get_auth_service
-from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_reader
+from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_service
 from app.core.config import Settings
 from app.main import create_app
 
@@ -121,7 +121,7 @@ def test_documented_status_pair_has_a_controlled_runtime_response(
         dependency = (
             get_auth_service
             if path.startswith("/api/auth/")
-            else get_bookmark_stats_reader
+            else get_bookmark_stats_service
             if path.endswith("/stats")
             else get_bookmark_service
         )

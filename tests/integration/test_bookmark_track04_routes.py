@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +14,9 @@ from referencing.jsonschema import DRAFT202012
 from sqlalchemy import Engine, event
 from sqlalchemy.engine import Connection
 
+from app.bookmarks.dependencies import get_bookmark_stats_service
+from app.bookmarks.stats.schemas import BookmarkStats
+from app.bookmarks.stats.service import CurrentStatsResult, StatsSource
 from app.core.config import Settings
 from app.main import create_app
 
@@ -93,7 +97,48 @@ def test_list_filters_pages_and_stats_are_owner_scoped(client: TestClient) -> No
         ]
         == 1
     )
+    assert stats.headers["x-stats-source"] == "live"
+    assert "x-stats-generated-at" not in stats.headers
     assert not {"cache-control", "etag", "x-stats-snapshot"} & set(stats.headers)
+
+
+class _SnapshotStatsService:
+    def read(self, user_id: int) -> CurrentStatsResult:
+        assert user_id > 0
+        return CurrentStatsResult(
+            stats=BookmarkStats(
+                total_bookmarks=0,
+                total_tags=0,
+                top_tags=(),
+                bookmarks_per_month=(),
+            ),
+            source=StatsSource.SNAPSHOT,
+            generated_at=datetime(2026, 8, 6, 12, tzinfo=UTC),
+        )
+
+
+def test_stats_snapshot_headers_are_transport_only_and_fixed_width(
+    client: TestClient,
+) -> None:
+    token = _token(client, "snapshot-user")
+    client.app.dependency_overrides[get_bookmark_stats_service] = _SnapshotStatsService
+    try:
+        response = client.get(
+            "/api/bookmarks/stats",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    finally:
+        client.app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "total_bookmarks": 0,
+        "total_tags": 0,
+        "top_tags": [],
+        "bookmarks_per_month": [],
+    }
+    assert response.headers["x-stats-source"] == "snapshot"
+    assert response.headers["x-stats-generated-at"] == "2026-08-06T12:00:00.000000Z"
 
 
 def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> None:
@@ -131,6 +176,11 @@ def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> 
     )
     assert set(list_operation["responses"]) == {"200", "401", "422", "500"}
     assert set(stats_operation["responses"]) == {"200", "401", "500"}
+    stats_headers = stats_operation["responses"]["200"]["headers"]
+    assert set(stats_headers) == {"X-Stats-Source", "X-Stats-Generated-At"}
+    assert stats_headers["X-Stats-Source"]["required"] is True
+    assert stats_headers["X-Stats-Source"]["schema"]["enum"] == ["snapshot", "live"]
+    assert stats_headers["X-Stats-Generated-At"]["required"] is False
     assert list_operation["security"] == stats_operation["security"] == [{"BearerAuth": []}]
     assert "parameters" not in stats_operation and "requestBody" not in stats_operation
     parameters = {item["name"]: item["schema"] for item in list_operation["parameters"]}

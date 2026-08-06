@@ -62,5 +62,7 @@ def test_public_openapi_has_complete_fictional_metadata_without_contract_drift()
     delete = document["paths"]["/api/bookmarks/{bookmark_id}"]["delete"]["responses"]["204"]
     assert delete["description"] == "Bookmark deleted successfully; the response has no body."
     assert "content" not in delete
+    stats_headers = document["paths"]["/api/bookmarks/stats"]["get"]["responses"]["200"]["headers"]
+    assert set(stats_headers) == {"X-Stats-Source", "X-Stats-Generated-At"}
     serialized = str(document)
     assert "user_id" not in serialized and "Fictional-Password-Only-123" in serialized

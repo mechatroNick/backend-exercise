@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from datetime import datetime
+from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, Path, Query, Response, status
 
 from app.api.errors import ErrorEnvelope
 from app.auth.dependencies import get_current_subject
 from app.auth.schemas import CurrentSubject
-from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_reader
+from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_service
 from app.bookmarks.schemas import (
     BookmarkCreate,
     BookmarkList,
@@ -18,8 +19,12 @@ from app.bookmarks.schemas import (
     BookmarkQuery,
 )
 from app.bookmarks.service import BookmarkService
-from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.schemas import BookmarkStats
+from app.bookmarks.stats.service import (
+    CurrentStatsService,
+    StatsSource,
+    stats_generated_at_header,
+)
 
 _ERROR_EXAMPLES = {
     "authentication": {
@@ -85,6 +90,21 @@ _LIST_RESPONSES: dict[int | str, dict[str, Any]] = {
     500: _error_response("internal"),
 }
 _STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
+    200: {
+        "description": "Current owner-scoped statistics from a snapshot or live SQL.",
+        "headers": {
+            "X-Stats-Source": {
+                "description": "The canonical body source.",
+                "required": True,
+                "schema": {"type": "string", "enum": ["snapshot", "live"]},
+            },
+            "X-Stats-Generated-At": {
+                "description": "UTC snapshot generation time; absent for live SQL.",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+        },
+    },
     401: _error_response("authentication"),
     500: _error_response("internal"),
 }
@@ -143,11 +163,18 @@ def list_bookmarks(
     summary="Read current bookmark statistics",
 )
 def get_bookmark_stats(
+    response: Response,
     subject: Annotated[CurrentSubject, Depends(get_current_subject)],
-    reader: Annotated[BookmarkStatsReader, Depends(get_bookmark_stats_reader)],
+    service: Annotated[CurrentStatsService, Depends(get_bookmark_stats_service)],
 ) -> BookmarkStats:
-    """Return the current owner-scoped aggregates from one live read snapshot."""
-    return reader.read(subject.user_id)
+    """Return exact current aggregates with transport-only source metadata."""
+    result = service.read(subject.user_id)
+    response.headers["X-Stats-Source"] = result.source.value
+    if result.source is StatsSource.SNAPSHOT:
+        response.headers["X-Stats-Generated-At"] = stats_generated_at_header(
+            cast(datetime, result.generated_at)
+        )
+    return result.stats
 
 
 # Keep dynamic detail routes after collection routes so Track 04 can insert /stats first.
