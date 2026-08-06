@@ -1,5 +1,1 @@
-"""Authentication feature persistence models."""
-
-from app.auth.models import User
-
-__all__ = ["User"]
+"""Authentication feature package with no eager import side effects."""
