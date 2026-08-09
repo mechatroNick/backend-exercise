@@ -15,6 +15,7 @@ flowchart LR
     T04 --> T05["05 Mandatory quality gate"]
     T05 --> T06["06 Event-driven current snapshots"]
     T06 --> T08["08 Final hardening and all bonuses"]
+    T08 --> T09["09 Final cleanup and reader handoff"]
     T07["07 Weekly projections — skipped"] -. "scope record" .-> T08
 ```
 
@@ -52,6 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Complete |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | **In progress** |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -346,7 +348,43 @@ Turn the working solution into a concise, reproducible senior-level submission w
 - `feat: add bounded API rate limiting`
 - `feat: add cursor pagination`
 
-## 13. Cross-track acceptance matrix
+## 13. Track 09 — Final cleanup, documentation migration, and reports
+
+### Outcome
+
+Finish the repository as a fresh-reader-friendly assessment without changing the
+accepted HTTP, persistence, security, statistics, one-worker, or Track 07 absence
+contracts. This track remains **in progress** until its clean-source and Docker gates
+have actual passing receipts.
+
+### Included
+
+- move reader documentation to `.docs` and make root `README.md` the first-stop guide;
+- replace internal/test-helper dataclasses with strict Pydantic v2 models while retaining
+  frozen/mutable, invariant, equality/hash, cursor, and concurrency behavior;
+- use a lifecycle `StrEnum`, retain FastAPI's current lifespan pattern, pin standard-mode
+  Pyright, and document narrow SQLModel typing boundaries;
+- migrate TestClient support to `httpx2` with a public Schemathesis compatibility adapter;
+- make verification scripts print standalone reports and require ordered Docker evidence.
+
+### Acceptance evidence
+
+- the unchanged OpenAPI inventory remains 10 operations and 45 status pairs, and the
+  requirement map remains 43 IDs;
+- all eight accepted ADRs and Tracks 00–09 are accurately indexed;
+- current in-progress evidence reports 740 tests plus 3 subtests and 2,953 statements /
+  618 branches at 100%, without claiming final closure;
+- `verify-docs`, Tracks 01–06, Track 08, and the new Track 09 gate emit standalone
+  terminal reports; Track 07 remains owner-skipped and has no verifier;
+- a dirty/non-clean source fails; explicit development seams and unavailable Docker are
+  nonzero incomplete, never a pass or skip; final Track 09 and merged-main evidence is
+  still required.
+
+### Proposed commit
+
+`docs: make README the first-stop Track 09 guide`
+
+## 14. Cross-track acceptance matrix
 
 | Quality attribute | Primary tracks | Closure evidence |
 | --- | --- | --- |
@@ -359,7 +397,7 @@ Turn the working solution into a concise, reproducible senior-level submission w
 | Maintainability | all | Layer boundaries, accepted ADRs, typed code, focused commits. |
 | Reviewer experience | 00, 05, 08 | Traceability, clean bootstrap, walkthrough, honest limitations. |
 
-## 14. Risk register
+## 15. Risk register
 
 | Risk | Mitigation | Track proving it |
 | --- | --- | --- |
@@ -376,16 +414,17 @@ Turn the working solution into a concise, reproducible senior-level submission w
 | Extension consumes time while mandatory API is incomplete | Hard Track 05 gate before Track 06. | 05 |
 | Documentation overstates the implementation | Write final README process/evidence from verified repository state. | 08 |
 
-## 15. Definition of done
+## 16. Definition of done
 
 The project is done only when:
 
 - every mandatory assessment requirement has passing evidence;
-- all seven accepted ADRs are implemented, adopted as governance constraints, archived
+- all eight accepted ADRs are implemented, adopted as governance constraints, archived
   by an explicit owner skip, or explicitly superseded;
 - current statistics remain correct and weekly historical projections remain explicitly skipped;
 - the application bootstraps locally with all internal services visible in logs;
 - migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;
-- all selected Track 08 bonuses pass focused and combined evidence;
+- all selected Track 08 bonuses have their recorded evidence, and Track 09's final
+  clean-source/Docker/report gate has actual passing evidence;
 - documentation describes the actual implementation, including tradeoffs and known limits;
 - no unresolved material ambiguity, secret, or high-severity defect remains.

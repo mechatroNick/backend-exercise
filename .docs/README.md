@@ -15,7 +15,7 @@ assessment. Durable execution state and architecture decisions live under
 | [Engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) | Implementer and reviewer | Shared logging, testing, harness, evidence, and closure policy |
 | [Walkthrough](WALKTHROUGH.md) | Reviewer | Safe reproducible local service demonstration |
 | [AI-assisted work disclosure](AI-ASSISTED-WORK.md) | Reviewer and owner | Evidence-bounded provenance boundary |
-| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Completed repository evidence and external-action boundary |
+| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Completed repository evidence and external-action boundary. |
 
 ## Decision and execution records
 
