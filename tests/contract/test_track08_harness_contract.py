@@ -49,6 +49,11 @@ def test_track08_harness_is_strict_clean_clone_orchestration() -> None:
         "No known vulnerabilities found",
         "bookmarks-api dependency-not-found skip",
         "TRACK08_SELF_TEST_CHILD",
+        "scripts/verification-report.sh",
+        "verification_report_start",
+        "verification_report_cleanup",
+        "verification_report_finish",
+        'export BUILDX_CONFIG="${workspace}/buildx"',
         "cleanup self-test",
         "signal_tree",
         "capture_process_tree",
@@ -150,7 +155,7 @@ def test_track08_harness_requires_real_docker_except_for_labelled_incomplete_dev
         'chmod 600 "${docker_env_file}"',
         "seq 1 400",
         'docker exec "${docker_container}" id -u',
-        "docker stop --time 10",
+        "docker stop --timeout 10",
         "Docker JSON Lines schema and shutdown lifecycle audit passed",
         'docker logs "${docker_container}"',
         "Docker container remained after SIGTERM",
@@ -163,6 +168,22 @@ def test_track08_harness_requires_real_docker_except_for_labelled_incomplete_dev
         source.index("wait_for_docker_removal") : source.index("run_cleanup_self_test")
     ]
     assert "docker inspect" not in docker_verification
+
+
+def test_track08_runs_the_exact_docker_contract_after_build_before_runtime() -> None:
+    source = _harness()
+
+    build = source.index('docker build --tag "${docker_image}"')
+    post_build_contract = source.index(
+        'run_private docker-contract-post-build "${uv_command}" run pytest -q '
+        "tests/contract/test_docker_delivery.py"
+    )
+    runtime = source.index('docker run --name "${docker_migrate_container}"')
+
+    assert build < post_build_contract < runtime
+    assert "phase=post-docker-build; exit=0" in source
+    assert "Docker command is unavailable" in source
+    assert "Docker daemon is unavailable" in source
 
 
 def test_track08_harness_discriminates_live_filter_and_patch_contracts() -> None:

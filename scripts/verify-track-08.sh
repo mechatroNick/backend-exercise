@@ -7,6 +7,15 @@ umask 077
 
 script_path="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
 source_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+report_helper="${source_root}/scripts/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: Track 08 missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-08.sh' 'Track 08 final clean-clone verification'
+verification_report_gate 'clean committed source, locked toolchain, and dependency advisory'
+verification_report_gate 'exact inherited Track 01--06 harnesses and closure provenance'
+verification_report_gate 'quality, migration, seed, runtime, hygiene, and cleanup evidence'
+verification_report_gate 'Docker build, post-build contract, and image runtime delivery'
 uv_command="${UV:-uv}"
 development_preflight="${TRACK08_DEVELOPMENT_PREFLIGHT:-0}"
 skip_docker="${TRACK08_SKIP_DOCKER:-0}"
@@ -161,9 +170,12 @@ cleanup() {
         printf 'FAIL: Track 08 cleanup verification failed\n' >&2
         cleanup_failed=1
     fi
+    verification_report_cleanup "${status}" 'verified server, container, image, volume, and private workspace removal'
     if [[ "${original_status}" -ne 0 ]]; then
+        verification_report_finish "${original_status}" "${status}"
         exit "${original_status}"
     fi
+    verification_report_finish 0 "${status}"
     exit "${status}"
 }
 trap cleanup EXIT
@@ -202,6 +214,7 @@ run_private() {
             alembic-check) safe_message 'receipt: command=uv run alembic check; exit=0' ;;
             coverage-run) safe_message 'receipt: command=uv run coverage run --branch -m pytest -q; exit=0' ;;
             coverage-report) safe_message 'receipt: command=uv run coverage report --fail-under=100; exit=0' ;;
+            docker-contract-post-build) safe_message 'receipt: command=uv run pytest -q tests/contract/test_docker_delivery.py [after docker build]; exit=0' ;;
             seed-migrate) safe_message 'receipt: command=uv run alembic upgrade head [seed SQLite]; exit=0' ;;
             seed-first) safe_message 'receipt: command=uv run python -m app.seed [explicit isolated SQLite]; exit=0' ;;
             seed-second) safe_message 'receipt: command=uv run python -m app.seed [idempotency repeat]; exit=0' ;;
@@ -743,11 +756,18 @@ wait_for_docker_removal() {
 
 verify_docker() {
     if [[ "${skip_docker}" == 1 ]]; then
+        verification_report_incomplete 'Docker execution explicitly skipped by TRACK08_SKIP_DOCKER=1'
         safe_message 'DEVELOPMENT INCOMPLETE: Docker execution explicitly skipped by TRACK08_SKIP_DOCKER=1'
         return 0
     fi
-    command -v docker >/dev/null 2>&1 || fail 'Docker is required for final Track 08 evidence'
-    docker info >/dev/null 2>&1 || fail 'Docker daemon is required for final Track 08 evidence'
+    if ! command -v docker >/dev/null 2>&1; then
+        verification_report_incomplete 'Docker command is unavailable'
+        fail 'Docker is required for final Track 08 evidence'
+    fi
+    if ! docker info >/dev/null 2>&1; then
+        verification_report_incomplete 'Docker daemon is unavailable'
+        fail 'Docker daemon is required for final Track 08 evidence'
+    fi
     local short_head
     local port
     short_head="$(git -C "${clone_root}" rev-parse --short=12 HEAD)"
@@ -755,6 +775,9 @@ verify_docker() {
     docker_container="backend-sample-track08-${short_head}-$$"
     docker_volume="backend-sample-track08-${short_head}-$$"
     docker build --tag "${docker_image}" "${clone_root}" >"${workspace}/receipts/docker-build.log" 2>&1 || fail 'Docker build failed'
+    (cd "${clone_root}" && run_private docker-contract-post-build "${uv_command}" run pytest -q tests/contract/test_docker_delivery.py)
+    assert_no_masked_test_results "${workspace}/receipts/docker-contract-post-build.log"
+    safe_message 'receipt: selector=tests/contract/test_docker_delivery.py; phase=post-docker-build; exit=0'
     [[ "$(docker image inspect --format '{{.Config.User}}' "${docker_image}")" == app ]] || fail 'Docker image is not non-root'
     docker volume create "${docker_volume}" >/dev/null
     docker_env_file="${workspace}/docker.env"
@@ -793,7 +816,7 @@ PY
     docker top "${docker_container}" -eo pid,args >"${workspace}/receipts/docker-processes.log" 2>&1
     [[ "$(rg -c 'uvicorn .*app\.main:create_app.*--workers 1' "${workspace}/receipts/docker-processes.log")" == 1 ]] \
         || fail 'Docker runtime did not retain exactly one Uvicorn worker'
-    docker stop --time 10 "${docker_container}" >/dev/null || fail 'Docker SIGTERM shutdown failed'
+    docker stop --timeout 10 "${docker_container}" >/dev/null || fail 'Docker SIGTERM shutdown failed'
     docker logs "${docker_container}" >"${workspace}/receipts/docker.jsonl" 2>&1
     (cd "${clone_root}" && "${uv_command}" run python - "${workspace}/receipts/docker.jsonl" <<'PY'
 import json
@@ -862,6 +885,8 @@ main() {
     require_clean_source
     create_workspace
     mkdir -p "${workspace}/receipts"
+    mkdir -m 700 "${workspace}/buildx"
+    export BUILDX_CONFIG="${workspace}/buildx"
     clone_committed_source
     assert_reader_documents
     if [[ "${reader_documents_ready}" -eq 0 ]]; then
@@ -882,6 +907,7 @@ main() {
     if [[ "${development_preflight}" == 1 || "${skip_docker}" == 1 ]]; then
         fail 'development seam was used; this is not a final Track 08 receipt'
     fi
+    verification_report_summary 'clean clone, inherited gates, quality, runtime, Docker post-build contract, image delivery, and hygiene completed'
     safe_message 'FINAL PASS: clean-clone Track 08 evidence complete; no external action was performed'
 }
 

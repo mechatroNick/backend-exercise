@@ -1,10 +1,19 @@
 #!/usr/bin/env bash
 # Documentation-only verifier; it does not exercise product runtime behavior.
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_root="$(cd -- "${script_dir}/.." && pwd -P)"
+report_helper="${script_dir}/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-docs.sh' 'Documentation integrity verification'
+verification_report_gate 'documentation inventory and durable control-plane files'
+verification_report_gate 'current Markdown link and repository-path resolution'
+verification_report_gate 'whitespace and Git diff hygiene'
+trap 'verification_report_finish "$?" 0' EXIT
 cd "${repo_root}"
 
 fail() {
@@ -200,5 +209,23 @@ if rg -n '[[:blank:]]$' README.md .docs .tracks; then
     fail 'trailing whitespace found'
 fi
 
+python3 - <<'PY'
+from pathlib import Path
+
+roots = (Path("README.md"), Path(".docs"), Path(".tracks"))
+paths = []
+for root in roots:
+    paths.extend((root,) if root.is_file() else root.rglob("*.md"))
+bad = []
+for path in paths:
+    contents = path.read_bytes()
+    if not contents.endswith(b"\n") or contents.endswith(b"\n\n"):
+        bad.append(str(path))
+if bad:
+    print("Markdown files must end with exactly one newline:", *bad, sep="\n")
+    raise SystemExit(1)
+PY
+
 git diff --check
+verification_report_summary '43 requirement IDs, 8 accepted ADRs, and 10 tracks verified'
 printf 'PASS: documentation-only verification (43 requirement IDs, 8 accepted ADRs, 10 tracks).\n'

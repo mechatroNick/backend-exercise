@@ -5,9 +5,17 @@ IFS=$'\n\t'
 umask 077
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+report_helper="${root}/scripts/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-06.sh' 'Track 06 event-driven statistics verification'
+verification_report_gate 'exact inherited Track 05 quality gate'
+verification_report_gate 'deterministic worker, overflow, and restart edge selectors'
+verification_report_gate 'live lifecycle, readiness, JSON Lines, and cleanup evidence'
 uv="${UV:-uv}"
 prefix="${TMPDIR:-/tmp}/backend-sample-track06."
-work="$(mktemp -d "${prefix}XXXXXX")"
+work=""
 pid=""
 port=""
 
@@ -69,10 +77,17 @@ cleanup() {
   if [[ "${cleanup_status}" == 0 ]]; then
     printf 'Track 06 cleanup: removed verified protected artifacts\n'
   fi
-  [[ "${original}" == 0 ]] || exit "${original}"
+  verification_report_cleanup "${cleanup_status}" 'verified protected artifacts and process removal'
+  if [[ "${original}" != 0 ]]; then
+    verification_report_finish "${original}" "${cleanup_status}"
+    exit "${original}"
+  fi
+  verification_report_finish 0 "${cleanup_status}"
   exit "${cleanup_status}"
 }
 trap cleanup EXIT
+
+work="$(mktemp -d "${prefix}XXXXXX")"
 
 if [[ "${TRACK06_SELF_TEST:-0}" == "1" ]]; then
   printf 'private cleanup sentinel' >"${work}/self-test-private"
@@ -575,3 +590,4 @@ print("Track 06 combined JSON Lines audit passed")
 PY
 printf 'Track 06 JSON Lines lifecycle, worker, overflow, readiness, and redaction audit: passed\n'
 printf 'Track 06 real-process closure harness: passed\n'
+verification_report_summary 'inherited quality gate, worker edges, live runtime, JSON Lines, and redaction evidence completed'

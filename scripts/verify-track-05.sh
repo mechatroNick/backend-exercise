@@ -5,11 +5,19 @@ IFS=$'\n\t'
 umask 077
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+report_helper="${root}/scripts/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-05.sh' 'Track 05 mandatory quality-gate verification'
+verification_report_gate 'exact inherited Track 01--04 real-process gates'
+verification_report_gate 'mandatory contract collection and 100 percent branch coverage'
+verification_report_gate 'live mandatory API, logging, and cleanup evidence'
 uv="${UV:-uv}"
 prefix="${TMPDIR:-/tmp}/backend-sample-track05."
-work="$(mktemp -d "${prefix}XXXXXX")"
-database_path="${work}/track05.sqlite3"
-log_path="${work}/bootstrap.jsonl"
+work=""
+database_path=""
+log_path=""
 pid="" port=""
 
 fail() { printf 'Track 05 harness failure: %s\n' "$1" >&2; exit 1; }
@@ -25,8 +33,30 @@ stop_server() {
   for target in "${targets[@]}"; do kill -0 "$target" 2>/dev/null && return 1; done
   pid=""
 }
-cleanup() { local original=$? status=0; trap - EXIT; stop_server || status=1; if [[ -d "$work" && "$work" == "${prefix}"* ]]; then rm -rf -- "$work" || status=1; [[ ! -e "$work" ]] || status=1; else status=1; fi; [[ "$status" == 0 ]] && printf 'Track 05 cleanup: removed verified protected artifacts\n'; [[ "$original" == 0 ]] || exit "$original"; exit "$status"; }
+cleanup() {
+  local original=$? status=0
+  trap - EXIT
+  stop_server || status=1
+  if [[ -d "$work" && "$work" == "${prefix}"* ]]; then
+    rm -rf -- "$work" || status=1
+    [[ ! -e "$work" ]] || status=1
+  else
+    status=1
+  fi
+  [[ "$status" == 0 ]] && printf 'Track 05 cleanup: removed verified protected artifacts\n'
+  verification_report_cleanup "${status}" 'verified protected artifacts and process removal'
+  if [[ "$original" != 0 ]]; then
+    verification_report_finish "${original}" "${status}"
+    exit "$original"
+  fi
+  verification_report_finish 0 "${status}"
+  exit "$status"
+}
 trap cleanup EXIT
+
+work="$(mktemp -d "${prefix}XXXXXX")"
+database_path="${work}/track05.sqlite3"
+log_path="${work}/bootstrap.jsonl"
 
 if [[ "${TRACK05_SELF_TEST:-0}" == "1" ]]; then
   printf 'private cleanup sentinel' >"${work}/self-test-secret"
@@ -138,3 +168,4 @@ print('Track 05 evidence: migrated live HTTP, OpenAPI/docs, auth/isolation/CRUD/
 PY
 stop_server
 printf 'Track 05 live mandatory-core harness: passed (Track 06 health/snapshot/worker behavior excluded)\n'
+verification_report_summary 'inherited gates, mandatory coverage, live API, JSON Lines, and redaction evidence completed'

@@ -5,12 +5,20 @@ IFS=$'\n\t'
 umask 077
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+report_helper="${root}/scripts/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-04.sh' 'Track 04 search and statistics real-process verification'
+verification_report_gate 'isolated search, statistics, and ownership evidence'
+verification_report_gate 'OpenAPI, JSON Lines, redaction, and SQL-boundary checks'
+verification_report_gate 'verified disposable-process cleanup'
 uv="${UV:-uv}"
 prefix="${TMPDIR:-/tmp}/backend-sample-track04."
-work="$(mktemp -d "${prefix}XXXXXX")"
-database_path="${work}/track04.sqlite3"
-output_path="${work}/bootstrap-output.log"
-log_path="${work}/application.jsonl"
+work=""
+database_path=""
+output_path=""
+log_path=""
 pid=""
 port=""
 
@@ -60,10 +68,20 @@ cleanup() {
     printf 'refusing to remove an unverified Track 04 harness path\n' >&2
     cleanup_status=1
   fi
-  [[ "${original}" != 0 ]] && exit "${original}"
+  verification_report_cleanup "${cleanup_status}" 'verified disposable process and workspace removal'
+  if [[ "${original}" != 0 ]]; then
+    verification_report_finish "${original}" "${cleanup_status}"
+    exit "${original}"
+  fi
+  verification_report_finish 0 "${cleanup_status}"
   exit "${cleanup_status}"
 }
 trap cleanup EXIT
+
+work="$(mktemp -d "${prefix}XXXXXX")"
+database_path="${work}/track04.sqlite3"
+output_path="${work}/bootstrap-output.log"
+log_path="${work}/application.jsonl"
 
 cd "${root}"
 [[ -d .git && -f Makefile ]] || fail 'refusing to run outside repository root'
@@ -452,3 +470,4 @@ for prohibited in ("queue", "cache", "dirty", "worker", "history", "stats_snapsh
 
 print("Track 04 evidence: HTTP search and live stats; all JSONL logs, redaction, private artifacts, cleanup, SQLite indexes, and source boundaries verified; no N+1 claim")
 PY
+verification_report_summary 'search, statistics, SQL-boundary, lifecycle, and redaction evidence completed'

@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
-repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repository_root="$(cd "${script_dir}/.." && pwd)"
+report_helper="${script_dir}/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-01.sh' 'Track 01 foundation real-process verification'
+verification_report_gate 'isolated migration and factory bootstrap'
+verification_report_gate 'OpenAPI, JSON Lines lifecycle, and owning fault boundary'
+verification_report_gate 'verified disposable-process cleanup'
 uv_command="${UV:-uv}"
 debug="${TRACK01_DEBUG:-0}"
 temporary_base="${TMPDIR:-/tmp}"
 work_dir_prefix="${temporary_base%/}/backend-sample-track01."
-work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
-database_path="${work_dir}/track01.sqlite3"
-log_path="${work_dir}/application.jsonl"
-process_output_path="${work_dir}/bootstrap-output.log"
+work_dir=""
+database_path=""
+log_path=""
+process_output_path=""
 port=""
 child_pid=""
 
@@ -47,14 +56,22 @@ cleanup() {
       rm -rf -- "${work_dir}" || cleanup_status=1
     fi
     [[ ! -e "${work_dir}" ]] || cleanup_status=1
-    printf 'Track 01 harness cleanup: removed verified disposable resources\n'
+    [[ "${cleanup_status}" -eq 0 ]] && printf 'Track 01 harness cleanup: removed verified disposable resources\n'
   fi
+  verification_report_cleanup "${cleanup_status}" 'verified disposable process and workspace removal'
   if [[ "${original_status}" -ne 0 ]]; then
+    verification_report_finish "${original_status}" "${cleanup_status}"
     exit "${original_status}"
   fi
+  verification_report_finish 0 "${cleanup_status}"
   exit "${cleanup_status}"
 }
 trap cleanup EXIT
+
+work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
+database_path="${work_dir}/track01.sqlite3"
+log_path="${work_dir}/application.jsonl"
+process_output_path="${work_dir}/bootstrap-output.log"
 
 cd "${repository_root}"
 export DATABASE_URL="sqlite:///${database_path}"
@@ -167,3 +184,4 @@ assert "track01-secret-sentinel-do-not-emit" not in raw
 assert "track01-submitted-bookmark-sentinel-do-not-emit" not in raw
 print("Track 01 process evidence: factory bootstrap, one worker, OpenAPI, JSON lifecycle, request exception boundary")
 PY
+verification_report_summary 'foundation bootstrap, lifecycle, fault-boundary, and redaction evidence completed'
