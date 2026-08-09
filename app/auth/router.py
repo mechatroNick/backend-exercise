@@ -7,7 +7,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, FastAPI
 
 from app.api.errors import ErrorEnvelope
-from app.auth.dependencies import get_auth_service, get_current_subject
+from app.auth.dependencies import enforce_auth_rate_limit, get_auth_service, get_current_subject
 from app.auth.schemas import AuthResponse, CurrentSubject, LoginRequest, RegisterRequest
 from app.auth.service import AuthService
 from app.core.config import Settings
@@ -55,6 +55,12 @@ _ERROR_EXAMPLES = {
             }
         },
     },
+    "rate_limited": {
+        "summary": "Local authentication rate limit",
+        "value": {
+            "error": {"code": "rate_limited", "message": "Too many requests.", "details": None}
+        },
+    },
 }
 
 
@@ -65,12 +71,31 @@ def _error_response(example: str) -> dict[str, Any]:
     }
 
 
+def _rate_limit_response() -> dict[str, Any]:
+    response = _error_response("rate_limited")
+    response["headers"] = {
+        "Retry-After": {
+            "description": "Positive whole seconds until one request token is available.",
+            "required": True,
+            "schema": {"type": "integer", "minimum": 1},
+        },
+        "Cache-Control": {
+            "description": "Prevents storage of a rate-limit response.",
+            "required": True,
+            "schema": {"type": "string", "example": "no-store"},
+        },
+    }
+    return response
+
+
 _REGISTER_RESPONSES: dict[int | str, dict[str, Any]] = {
+    429: _rate_limit_response(),
     409: _error_response("conflict"),
     422: _error_response("validation"),
     500: _error_response("internal"),
 }
 _LOGIN_RESPONSES: dict[int | str, dict[str, Any]] = {
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     422: _error_response("validation"),
     500: _error_response("internal"),
@@ -88,6 +113,7 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
 )
 def register(
     payload: RegisterRequest,
+    _rate_limit: Annotated[None, Depends(enforce_auth_rate_limit)],
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> AuthResponse:
     """Register one canonical identity and return its public access response."""
@@ -106,6 +132,7 @@ def register(
 )
 def login(
     payload: LoginRequest,
+    _rate_limit: Annotated[None, Depends(enforce_auth_rate_limit)],
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> AuthResponse:
     """Authenticate without disclosing whether the submitted email exists."""

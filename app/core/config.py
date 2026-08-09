@@ -64,6 +64,25 @@ class Settings(BaseSettings):
     app_worker_count: Annotated[int, Field(ge=1, le=_MAX_TUNABLE_VALUE)] = Field(
         default=1, validation_alias="APP_WORKER_COUNT"
     )
+    rate_limit_enabled: bool = Field(default=True, validation_alias="RATE_LIMIT_ENABLED")
+    rate_limit_auth_requests: Annotated[int, Field(ge=1, le=10_000)] = Field(
+        default=10, validation_alias="RATE_LIMIT_AUTH_REQUESTS"
+    )
+    rate_limit_auth_window_seconds: Annotated[int, Field(ge=1, le=3_600)] = Field(
+        default=60, validation_alias="RATE_LIMIT_AUTH_WINDOW_SECONDS"
+    )
+    rate_limit_bookmark_requests: Annotated[int, Field(ge=1, le=10_000)] = Field(
+        default=120, validation_alias="RATE_LIMIT_BOOKMARK_REQUESTS"
+    )
+    rate_limit_bookmark_window_seconds: Annotated[int, Field(ge=1, le=3_600)] = Field(
+        default=60, validation_alias="RATE_LIMIT_BOOKMARK_WINDOW_SECONDS"
+    )
+    rate_limit_max_keys: Annotated[int, Field(ge=1, le=100_000)] = Field(
+        default=10_000, validation_alias="RATE_LIMIT_MAX_KEYS"
+    )
+    rate_limit_idle_ttl_seconds: Annotated[int, Field(ge=1, le=86_400)] = Field(
+        default=300, validation_alias="RATE_LIMIT_IDLE_TTL_SECONDS"
+    )
     sqlite_busy_timeout_milliseconds: Annotated[int, Field(ge=1, le=60_000)] = Field(
         default=5_000, validation_alias="SQLITE_BUSY_TIMEOUT_MILLISECONDS"
     )
@@ -96,6 +115,15 @@ class Settings(BaseSettings):
             raise ValueError("STATS_DIRTY_MAX_AGE_SECONDS must be at least the refresh interval")
         if self.stats_refresh_enabled and self.app_worker_count != 1:
             raise ValueError("APP_WORKER_COUNT must equal 1 while STATS_REFRESH_ENABLED is true")
+        if self.rate_limit_enabled and self.app_worker_count != 1:
+            raise ValueError("APP_WORKER_COUNT must equal 1 while RATE_LIMIT_ENABLED is true")
+        if self.rate_limit_idle_ttl_seconds < max(
+            self.rate_limit_auth_window_seconds,
+            self.rate_limit_bookmark_window_seconds,
+        ):
+            raise ValueError("RATE_LIMIT_IDLE_TTL_SECONDS must be at least each rate-limit window")
+        if self.app_env == "production" and not self.rate_limit_enabled:
+            raise ValueError("RATE_LIMIT_ENABLED cannot be false in production")
 
         secret = self.jwt_secret.get_secret_value()
         if self.app_env == "production" and (

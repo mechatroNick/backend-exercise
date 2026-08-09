@@ -50,6 +50,18 @@ class AuthenticationError(ApplicationError):
     headers = {"WWW-Authenticate": "Bearer"}
 
 
+class RateLimitError(ApplicationError):
+    """A bounded local-policy rejection with no authentication challenge."""
+
+    code = "rate_limited"
+    message = "Too many requests."
+    status_code = 429
+
+    def __init__(self, retry_after: int) -> None:
+        super().__init__()
+        self.headers = {"Retry-After": str(max(1, retry_after)), "Cache-Control": "no-store"}
+
+
 class ConflictError(ApplicationError):
     """Expected, safe resource conflict."""
 
@@ -88,6 +100,7 @@ __all__ = [
     "IdentityConflictError",
     "InternalServerError",
     "NotFoundError",
+    "RateLimitError",
     "ValidationApplicationError",
     "ValidationIssue",
 ]

@@ -185,11 +185,15 @@ assert load("fault.response") == {"error":{"code":"internal_error","message":"In
 paths=openapi["paths"]; expected={"/api/bookmarks","/api/bookmarks/{bookmark_id}"}; assert expected <= set(paths)
 assert openapi["components"]["securitySchemes"]["BearerAuth"] == {"type":"http","scheme":"bearer","bearerFormat":"JWT"}
 assert set(paths["/api/bookmarks"]) == {"get","post"}; assert set(paths["/api/bookmarks/{bookmark_id}"]) == {"get","patch","delete"}
-assert set(paths["/api/bookmarks"]["post"]["responses"]) == {"201","401","422","500"}
-assert set(paths["/api/bookmarks"]["get"]["responses"]) == {"200","401","422","500"}
-assert set(paths["/api/bookmarks/{bookmark_id}"]["get"]["responses"]) == {"200","401","404","422","500"}
-assert set(paths["/api/bookmarks/{bookmark_id}"]["patch"]["responses"]) == {"200","401","404","422","500"}
-assert set(paths["/api/bookmarks/{bookmark_id}"]["delete"]["responses"]) == {"204","401","404","422","500"}
+assert set(paths["/api/bookmarks"]["post"]["responses"]) == {"201","401","422","429","500"}
+assert set(paths["/api/bookmarks"]["get"]["responses"]) == {"200","401","422","429","500"}
+assert set(paths["/api/bookmarks/{bookmark_id}"]["get"]["responses"]) == {"200","401","404","422","429","500"}
+assert set(paths["/api/bookmarks/{bookmark_id}"]["patch"]["responses"]) == {"200","401","404","422","429","500"}
+assert set(paths["/api/bookmarks/{bookmark_id}"]["delete"]["responses"]) == {"204","401","404","422","429","500"}
+for path, method in (("/api/bookmarks","post"),("/api/bookmarks","get"),("/api/bookmarks/{bookmark_id}","get"),("/api/bookmarks/{bookmark_id}","patch"),("/api/bookmarks/{bookmark_id}","delete")):
+    rate=paths[path][method]["responses"]["429"]
+    assert set(rate["headers"]) == {"Retry-After","Cache-Control"}
+    assert rate["content"]["application/json"]["schema"] == {"$ref":"#/components/schemas/ErrorEnvelope"}
 for path, method, success, body in (("/api/bookmarks","post","201",created),("/api/bookmarks","get","200",one_list),("/api/bookmarks/{bookmark_id}","get","200",detail),("/api/bookmarks/{bookmark_id}","patch","200",tagged)):
     operation=paths[path][method]; assert operation.get("security") == [{"BearerAuth": []}]
     schema=operation["responses"][success]["content"]["application/json"]["schema"]

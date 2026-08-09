@@ -15,6 +15,7 @@ from sqlalchemy import Engine
 from app.api.errors import register_exception_handlers, unexpected_error_response
 from app.api.health import ReadinessEvaluator
 from app.api.health import router as health_router
+from app.api.rate_limit import RateLimiter
 from app.auth.passwords import PasswordHasher
 from app.auth.router import install_test_protected_route
 from app.auth.router import router as auth_router
@@ -181,6 +182,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=_lifespan,
     )
     app.state.settings = resolved_settings
+    app.state.rate_limiter = RateLimiter(
+        enabled=resolved_settings.rate_limit_enabled,
+        auth_requests=resolved_settings.rate_limit_auth_requests,
+        auth_window_seconds=resolved_settings.rate_limit_auth_window_seconds,
+        bookmark_requests=resolved_settings.rate_limit_bookmark_requests,
+        bookmark_window_seconds=resolved_settings.rate_limit_bookmark_window_seconds,
+        max_keys=resolved_settings.rate_limit_max_keys,
+        idle_ttl_seconds=resolved_settings.rate_limit_idle_ttl_seconds,
+    )
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(bookmarks_router)

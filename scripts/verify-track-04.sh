@@ -307,8 +307,12 @@ paths = openapi["paths"]
 bookmarks = paths["/api/bookmarks"]["get"]
 stats = paths["/api/bookmarks/stats"]["get"]
 require(bookmarks.get("security") == [{"BearerAuth": []}] and stats.get("security") == [{"BearerAuth": []}], "OpenAPI security changed")
-require(set(bookmarks["responses"]) == {"200", "401", "422", "500"}, "list OpenAPI responses changed")
-require(set(stats["responses"]) == {"200", "401", "500"}, "stats OpenAPI responses changed")
+require(set(bookmarks["responses"]) == {"200", "401", "422", "429", "500"}, "list OpenAPI responses changed")
+require(set(stats["responses"]) == {"200", "401", "429", "500"}, "stats OpenAPI responses changed")
+for operation in (bookmarks, stats):
+    rate = operation["responses"]["429"]
+    require(set(rate["headers"]) == {"Retry-After", "Cache-Control"}, "rate-limit headers changed")
+    require(rate["content"]["application/json"]["schema"] == {"$ref": "#/components/schemas/ErrorEnvelope"}, "rate-limit schema changed")
 require(stats.get("parameters", []) == [], "stats acquired inputs")
 parameters = {item["name"]: item for item in bookmarks["parameters"]}
 require(set(parameters) == {"tag", "q", "from", "to", "updated_from", "updated_to", "page", "page_size"}, "list OpenAPI parameters changed")

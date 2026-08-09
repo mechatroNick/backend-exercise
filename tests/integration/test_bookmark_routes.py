@@ -211,11 +211,11 @@ def test_bookmark_operations_have_bounded_openapi_contracts_and_runtime_schema_b
     operations = document["paths"]["/api/bookmarks"]
     assert set(operations) == {"get", "post"}
     for path, method, accepted in (
-        ("/api/bookmarks", "post", {"201", "401", "422", "500"}),
-        ("/api/bookmarks", "get", {"200", "401", "422", "500"}),
-        ("/api/bookmarks/{bookmark_id}", "get", {"200", "401", "404", "422", "500"}),
-        ("/api/bookmarks/{bookmark_id}", "patch", {"200", "401", "404", "422", "500"}),
-        ("/api/bookmarks/{bookmark_id}", "delete", {"204", "401", "404", "422", "500"}),
+        ("/api/bookmarks", "post", {"201", "401", "422", "429", "500"}),
+        ("/api/bookmarks", "get", {"200", "401", "422", "429", "500"}),
+        ("/api/bookmarks/{bookmark_id}", "get", {"200", "401", "404", "422", "429", "500"}),
+        ("/api/bookmarks/{bookmark_id}", "patch", {"200", "401", "404", "422", "429", "500"}),
+        ("/api/bookmarks/{bookmark_id}", "delete", {"204", "401", "404", "422", "429", "500"}),
     ):
         operation = document["paths"][path][method]
         assert set(operation["responses"]) == accepted
