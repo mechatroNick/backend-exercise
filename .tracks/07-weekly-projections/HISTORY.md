@@ -1,5 +1,24 @@
 # Track 07 history
 
+## 2026-08-09 — T07-04 restartable surviving-data baseline implemented
+
+- Added a durable pending/running/active/failed projection state and a bounded
+  lexicographic `(user_id, window_start)` checkpoint query over surviving bookmarks.
+  Each baseline step owns one short-lived session and commits its projection rows and
+  checkpoint or terminal activation atomically.
+- Closed windows create only absent revision-1 points; current-window evidence creates
+  or replaces one working row. Baseline rows use `source_generation=0`, synthesize no
+  empty weeks, make no deleted pre-install audit claim, and never acknowledge or delete
+  dirty markers.
+- Proved empty activation, bounded pages, restart/rewind, rollback and session cleanup,
+  deleted-data absence, no duplicate roots, working replay, Unicode payloads, future and
+  malformed candidates, transition races, typed calculation-version mismatch, and
+  dirty-marker noninterference in migrated SQLite.
+- Full formatting/lint, mypy, and Pyright passed. The full suite passed with 802 tests
+  plus 3 subtests and 100% branch coverage over 3,537 statements and 780 branches.
+  Developing-row finalization, dirty corrections, and worker integration remain
+  pending under T07-05 through T07-07.
+
 ## 2026-08-09 — T07-03 canonical weekly domain and repository implemented
 
 - Added the sole UTC Monday-to-Monday calculator and a separate private weekly
