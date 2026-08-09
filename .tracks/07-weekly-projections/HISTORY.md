@@ -1,5 +1,27 @@
 # Track 07 history
 
+## 2026-08-09 — T07-05/T07-06 lifecycle and corrections implemented
+
+- Added one caller-transaction-owned projection processor for dirty generations and
+  overdue developing rows. Current rows are replaceable; closed rows are developed
+  from a fresh canonical read; a boundary transaction guarded-deletes the exact old
+  working row and creates only the window containing `now`.
+- Added same-hash no-op completion, append-only `late_recalculation` revisions, exact
+  immediate predecessors, zero corrections after last-bookmark deletion, compatible
+  positive-generation preservation, active/version guards, and atomic projection
+  success plus generation acknowledgement. Stale acknowledgement rolls every
+  candidate write back.
+- Proved actual developing-row rollover at the exact boundary, corrupted-working
+  canonical recalculation, absent/non-overdue/deferred paths, multi-week skips, A-B-A,
+  user deletion without recreation, and read/acknowledgement/caller-commit/guarded-
+  delete failures. Real Barrier-controlled SQLite races proved generation increment
+  rollback/retry and one revision winner followed by an immediate-predecessor retry.
+- Full formatting/lint, mypy, and Pyright passed. The focused 95-test projection gate
+  covered both changed modules at 100% statement and branch coverage; the full suite
+  passed with 831 tests plus 3 subtests and 100% coverage over 3,697 statements and
+  840 branches. Worker, readiness, logs, and process-harness integration remain T07-07
+  and T07-08 work.
+
 ## 2026-08-09 — T07-04 restartable surviving-data baseline implemented
 
 - Added a durable pending/running/active/failed projection state and a bounded

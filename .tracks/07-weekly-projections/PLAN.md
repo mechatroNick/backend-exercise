@@ -3,7 +3,7 @@
 - Specification: [SPEC.md](SPEC.md), version 2.0
 - Status: **In progress**
 - Governing ADRs: ADR-004, ADR-005, ADR-006, ADR-009
-- Active item: T07-05 — developing-row lifecycle and overdue finalization
+- Active item: T07-07 — existing-worker, readiness, and observability integration
 
 ## Dependency gate
 
@@ -19,8 +19,8 @@ rewriting Track 06 or treating this plan as evidence.
 | T07-02 | Add Alembic working/point rows, singleton baseline checkpoint, and dual-completion dirty columns. | T07-01 | Complete | Migration `0003_weekly_stats_projections`; exact DDL/FK/index/cascade and populated downgrade/re-upgrade tests; guarded acknowledgement orders/reset/rollback tests; 754-test full suite and 100% branch coverage. |
 | T07-03 | Implement Monday UTC calculator, scoped canonical reader, versioned compact JSON bytes, SHA-256 hash, and effective-revision selection. | T07-01, T07-02 | Complete | Private `weekly.py` and `projection_repository.py`; UTC/boundary/owner/order/injection/version/hash/immutable-revision tests; 774-test suite and 100% branch coverage. |
 | T07-04 | Implement bounded restartable surviving-data user-page backfill and checkpoint status. | T07-02, T07-03 | Complete | Exclusive user/window checkpoint paging, resume/rewind/rollback, surviving-data/no-empty-week behavior, version failure, dirty noninterference, and `source_generation=0`; 802-test full suite and 100% branch coverage. |
-| T07-05 | Implement developing replacement, overdue detection, finalization, and next-window creation. | T07-03, T07-04 | Pending | Atomic/idempotent boundary; evidenced-only multi-week clock-jump proof. |
-| T07-06 | Implement append-only late corrections and projection generation completion. | T07-02 through T07-05 | Pending | Immediate-predecessor, no-op, revision-race, concurrent-generation, and retry proof. |
+| T07-05 | Implement developing replacement, overdue detection, finalization, and next-window creation. | T07-03, T07-04 | Complete | Exact-boundary atomic finalization, fresh canonical recalculation, guarded working deletion, pending-dirty deferral, next-current creation, and multi-week/no-empty-intermediate proof. |
+| T07-06 | Implement append-only late corrections and projection generation completion. | T07-02 through T07-05 | Complete | No-op and zero corrections, A-B-A immediate predecessors, real barrier revision/generation races, stale rollback/retry, fault and user-cascade proof; 831-test suite and 100% branch coverage. |
 | T07-07 | Integrate the existing worker, readiness, and redacted observability without changing current stats. | T07-04 through T07-06 | Pending | One-thread/session behavior; `STATS_PROJECTION_ENABLED=true` default, disabled-marker retention, and current/liveness independence. |
 | T07-08 | Run deterministic, migrated-database, and real-process evidence. | T07-02 through T07-07 | Pending | Actual test receipts and `bash scripts/verify-track-07.sh`. |
 | T07-09 | Produce closure report and downstream integration handoff. | T07-01 through T07-08 | Pending | Truthful `TEST-REPORT.md`; reopening request for Tracks 08/09. |

@@ -554,6 +554,102 @@ class WeeklyProjectionRepository:
         )
         return None if row is None else _working(dict(row))
 
+    def delete_working(self, record: WorkingProjectionRecord) -> bool:
+        """Delete exactly the working row that was recalculated, never a replacement."""
+        _validate_working(record)
+        result = cast(
+            CursorResult[Any],
+            self._session.execute(
+                text(
+                    "DELETE FROM bookmark_stats_window_working "
+                    "WHERE user_id=:user_id AND window_start=:window_start "
+                    "AND window_end=:window_end AND payload=:payload "
+                    "AND calculated_at=:calculated_at "
+                    "AND source_generation=:source_generation "
+                    "AND calculation_version=:calculation_version "
+                    "AND content_hash=:content_hash"
+                ),
+                self._working_parameters(record),
+            ),
+        )
+        return result.rowcount == 1
+
+    def pending_projection_generation(self, user_id: int, window: WeeklyWindow) -> int | None:
+        """Return a still-pending projection generation for this exact dirty key."""
+        _positive(user_id, "user_id")
+        validated_window = WeeklyWindow.from_bounds(window.start, window.end)
+        row = (
+            self._session.execute(
+                text(
+                    "SELECT generation, projection_completed_generation "
+                    "FROM bookmark_stats_window_dirty "
+                    "WHERE user_id=:user_id AND window_start=:window_start"
+                ),
+                {
+                    "user_id": user_id,
+                    "window_start": _encoded(validated_window.start, "window_start"),
+                },
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if row is None:
+            return None
+        generation = _positive(row["generation"], "persisted dirty generation")
+        completed = _nonnegative(
+            row["projection_completed_generation"], "persisted projection completion"
+        )
+        return generation if completed != generation else None
+
+    def user_exists(self, user_id: int) -> bool:
+        """Keep lifecycle work from recreating private rows after a user cascade."""
+        _positive(user_id, "user_id")
+        return (
+            self._session.execute(
+                text("SELECT 1 FROM users WHERE id=:user_id"), {"user_id": user_id}
+            ).scalar_one_or_none()
+            is not None
+        )
+
+    def require_active(self, calculation_version: str) -> ProjectionStateRecord:
+        """Require a completed compatible baseline before normal projection work."""
+        _version(calculation_version)
+        state = self.get_state()
+        if state is None:
+            raise ProjectionStateTransitionError("projection baseline state is absent")
+        self._require_calculation_version(state, calculation_version)
+        if state.status is not _ProjectionStateStatus.ACTIVE:
+            raise ProjectionStateTransitionError("projection baseline is not active")
+        return state
+
+    def record_projection_success(
+        self, calculation_version: str, now: datetime
+    ) -> ProjectionStateRecord:
+        """Guard the success timestamp against a state or version transition race."""
+        _version(calculation_version)
+        encoded_now = _encoded(now, "now")
+        result = cast(
+            CursorResult[Any],
+            self._session.execute(
+                text(
+                    "UPDATE bookmark_stats_projection_state "
+                    "SET last_projection_success_at=:now, updated_at=:now, failure_code=NULL "
+                    "WHERE id=1 AND status=:status AND calculation_version=:calculation_version"
+                ),
+                {
+                    "now": encoded_now,
+                    "status": _ProjectionStateStatus.ACTIVE.value,
+                    "calculation_version": calculation_version,
+                },
+            ),
+        )
+        if result.rowcount != 1:
+            raise ProjectionStateTransitionError("projection state became inactive or incompatible")
+        state = self.get_state()
+        if state is None:
+            raise ProjectionStateTransitionError("projection state disappeared after success")
+        return state
+
     def replace_working(self, record: WorkingProjectionRecord) -> None:
         _validate_working(record)
         self._session.execute(
