@@ -271,9 +271,14 @@ def _settings_from_explicit_environment(environ: Mapping[str, str]) -> Settings:
         "production",
     }:
         raise SeedSafetyError("APP_ENV is invalid for seed execution")
-    settings = Settings(database_url=database_url)
-    if requested_environment == "production" or settings.app_env == "production":
+    if requested_environment == "production":
         raise SeedSafetyError("seed execution is not allowed in production")
+    isolated_values = Settings.model_construct().model_dump()
+    isolated_values.update(
+        database_url=database_url,
+        app_env=requested_environment or "development",
+    )
+    settings = Settings.model_validate(isolated_values)
     return settings
 
 
