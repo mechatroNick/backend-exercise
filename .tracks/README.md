@@ -44,6 +44,7 @@ flowchart LR
 | [ADR-004](ADR/ADR-004-event-driven-statistics-service.md) | Accepted | Queue-driven periodic statistics service, snapshots, health, bootstrap, and logs |
 | [ADR-005](ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design; implementation skipped | Archived developing-window and append-only correction design if Track 07 is ever revived |
 | [ADR-006](ADR/ADR-006-engineering-verification-and-closure-evidence.md) | Accepted | Binding engineering verification, evidence, and closure process |
+| [ADR-007](ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) | Accepted | Local one-worker rate limiting and authenticated keyset cursors |
 
 ## Planned delivery tracks
 
@@ -55,9 +56,9 @@ flowchart LR
 | 03 | Bookmark CRUD, tag relationships, and ownership isolation | 01, 02 | Complete |
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Complete |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Complete |
-| 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Ready; implementation in progress |
+| 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
 | 07 | Weekly developing points and append-only correction revisions | None | **Skipped (owner decision)** |
-| 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Planned (implementation-gated) |
+| 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Ready (implementation authorized) |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared

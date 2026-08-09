@@ -1,7 +1,7 @@
 # Track 08 plan: final hardening, documentation, and assessment handoff
 
-- Specification: [SPEC.md](SPEC.md), version 1.2
-- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`, `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-006
+- Specification: [SPEC.md](SPEC.md), version 1.3
+- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`, `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-007
 - Status: Ready (implementation authorized)
 - Active item: T08-02 — final automation and clean-clone rehearsal
 
@@ -43,6 +43,10 @@ recorded, passing evidence for every required upstream closure and final check, 
 no secret, unresolved critical/high defect, dirty generated artifact, orphan process,
 or cleanup failure. T08-08 requires isolated green checkpoints and a new
 mandatory/full final-harness receipt after the combined bonus set.
+
+[ADR-007](../ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) is the binding
+rate-limit and cursor contract for T08-08; implementation may not weaken its isolation,
+compatibility, bounded-state, signing, or fixed-error requirements.
 
 The future `scripts/verify-track-08.sh` is the final clean-clone real
 automation/orchestrator. From a verified disposable clone at the reviewed commit, it

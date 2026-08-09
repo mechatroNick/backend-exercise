@@ -1,12 +1,12 @@
 # Track 08 specification: final hardening, documentation, and assessment handoff
 
 - Status: Ready (implementation authorized)
-- Specification version: 1.2
+- Specification version: 1.3
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Completed Tracks 01–06 and the recorded Track 07 skip decision
 - Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`,
-  `docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-006
+  `docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-007
 
 ## Intent anchor
 
@@ -121,6 +121,10 @@ inspection is sanitized/ephemeral; debug retention is explicit-flag-only and exc
 protected response/token data. API/health output never exposes tracebacks, SQL, paths,
 credentials, or content, and cleanup removes disposable token/response/private-
 inspection/debug state.
+
+[ADR-007](../ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) governs the
+selected rate-limiting and cursor-pagination product changes; their focused and full
+evidence is required before Track 08 can close.
 
 ## Assumptions, unknowns, and stop conditions
 

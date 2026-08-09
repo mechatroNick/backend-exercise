@@ -23,6 +23,7 @@ assessment. Durable execution state and architecture decisions live under
 - [ADR-004: Event-driven statistics service](../.tracks/ADR/ADR-004-event-driven-statistics-service.md)
 - [ADR-005: Archived windowed-statistics design; implementation skipped](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
 - [ADR-006: Engineering verification and closure evidence](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
+- [ADR-007: Local rate limiting and cursor pagination](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
 - [Track 00: closed contract baseline](../.tracks/00-contract-baseline/SPEC.md)
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
 - [Track 01: foundation specification](../.tracks/01-foundation/SPEC.md)

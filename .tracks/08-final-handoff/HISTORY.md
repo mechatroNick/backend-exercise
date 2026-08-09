@@ -1,5 +1,15 @@
 # Track 08 history
 
+## 2026-08-09 — ADR-007 bonus contracts accepted
+
+- Accepted the local rate-limiting and cursor-pagination contract before their product
+  writes. The decision preserves the one-worker topology, legacy page response,
+  ownership isolation, strict error/logging rules, and Track 07 absence boundary.
+- Bound rate-limit identity, endpoint coverage, capacity behavior, 429 headers, cursor
+  signing/filter binding/expiry, keyset ordering, compatibility, OpenAPI, and focused
+  plus inherited evidence in ADR-007. Advanced the SPEC/PLAN contract to version 1.3.
+- This is a governance checkpoint only; it does not claim either bonus is implemented.
+
 ## 2026-08-09 — T08-01 dependency gate complete
 
 - Started `codex/track-08-final-handoff` from `main` after the fully verified Track 06

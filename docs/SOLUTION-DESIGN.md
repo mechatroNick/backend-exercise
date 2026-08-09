@@ -537,6 +537,11 @@ and malformed/tampered cursor handling while retaining existing page pagination 
 the final public contract requires compatibility. Deterministic seed data must be
 idempotent and must never contain or emit real credentials.
 
+[ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
+fixes those bonus contracts: socket-peer auth buckets, authenticated-user bookmark
+buckets, bounded process-local state under the one-worker invariant, and signed,
+owner/filter-bound keyset cursors while legacy page responses remain unchanged.
+
 ## 19. Evolution beyond the exercise
 
 The local architecture makes its replacement seams visible:
