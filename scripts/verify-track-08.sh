@@ -501,7 +501,7 @@ start_server() {
     export RATE_LIMIT_AUTH_WINDOW_SECONDS=60
     (cd "${clone_root}" && run_private runtime-migrate "${uv_command}" run alembic upgrade head)
     runtime_port="$(allocate_port)"
-    (cd "${clone_root}" && "${uv_command}" run uvicorn app.main:create_app --factory --host 127.0.0.1 --port "${runtime_port}" --workers 1 --no-access-log --log-level critical >"${workspace}/receipts/runtime.jsonl" 2>&1) &
+    (cd "${clone_root}" && exec "${uv_command}" run uvicorn app.main:create_app --factory --host 127.0.0.1 --port "${runtime_port}" --workers 1 --no-access-log --log-level critical >"${workspace}/receipts/runtime.jsonl" 2>&1) &
     server_pid=$!
     wait_for_service "${runtime_port}"
 }
