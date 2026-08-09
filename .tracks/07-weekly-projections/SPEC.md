@@ -1,6 +1,6 @@
 # Track 07 specification: weekly event-time projections and correction revisions
 
-- Status: **In progress**
+- Status: **Complete**
 - Specification version: 2.0
 - Originally planned: 2026-08-05
 - Revived: 2026-08-09
@@ -75,7 +75,10 @@ finalization, and correction paths; revision and generation races; projection
 failure/readiness versus liveness/current-stats independence; JSON-Line safe logs; and
 no public history surface. Completion additionally requires deterministic tests, a
 real-process `scripts/verify-track-07.sh`, and a truthful `TEST-REPORT.md` under
-ADR-006. Until then, this track is **In progress**, not Complete.
+ADR-006. Those deterministic, migration, and real-process receipts were completed by
+the continuous Track 07 verification run recorded in `TEST-REPORT.md` at commit
+`08a86b3`; this track is **Complete**. That receipt does not claim a post-merge run
+or downstream Track 08/09 validation.
 
 Stop for ADR/owner review before changing event-time semantics, immutability,
 supersession, marker generation semantics, user-cascade privacy behavior, Track 06
@@ -84,5 +87,6 @@ current-statistics contracts, or adding a public history surface.
 ## Downstream integration boundary
 
 Track 08 and Track 09 active documents still describe the pre-revival skip/absence
-state. They must be reopened and updated in a later downstream integration checkpoint;
-they are intentionally not edited by this Track 07 governance change.
+state and are therefore stale for this completed dependency. They must be reopened and
+updated in a later downstream integration checkpoint; they are intentionally not edited
+by this Track 07 closure and receive no post-merge or downstream-validation claim here.

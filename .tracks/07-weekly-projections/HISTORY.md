@@ -1,5 +1,26 @@
 # Track 07 history
 
+## 2026-08-10 — T07-08/T07-09 continuous closure evidence completed
+
+- The primary ran `bash scripts/verify-track-07.sh` continuously on commit `08a86b3`
+  and received `RESULT: PASS`. The receipt includes the exact inherited Track 06 gate,
+  focused weekly/schema/baseline/lifecycle/correction/dirty/refresher/health selectors,
+  locked sync, Ruff, mypy, Pyright, `make check`, docs, and whitespace validation.
+- The full deterministic run passed with 862 tests plus 3 subtests and 100% branch
+  coverage over 3,922 statements and 908 branches. Disposable Alembic upgrade,
+  downgrade, re-upgrade, and drift check also passed.
+- Real-process evidence covered disabled bootstrap plus protected historic backdate;
+  default baseline with a `source_generation=0` root and positive-generation current
+  working row; current totals 1 to 2; historic public deletion producing revision 2;
+  post-correction restart idempotence with two points and current total 1; disabled
+  retention with no fabricated private rows; incompatible-version fail-closed behavior;
+  and strict JSON Lines, redaction, exactly one named non-daemon worker, and cleanup.
+- The actual incremental implementation ledger is `472867b`, `194050d`, `26b4fae`,
+  `db87448`, `86d7207`, `f9f4152`, `4879a3a`, `49992d7`, and `08a86b3`.
+- Track 07 is now Complete. Tracks 08 and 09 still contain pre-revival skip/absence
+  records, are reopened/stale downstream work, and require their own update and
+  validation. This entry does not claim a post-merge run or downstream validation.
+
 ## 2026-08-09 — T07-07 existing-worker and readiness integration implemented
 
 - Added `STATS_PROJECTION_ENABLED=true` and integrated bounded baseline, dirty, and
