@@ -49,9 +49,9 @@ No track is considered complete based only on code presence. Completion requires
 | 03 | User-scoped bookmark CRUD with normalized many-to-many tags and timestamp invariants | 02 | Complete |
 | 04 | Search/filter/pagination and correct raw-SQL current statistics | 03 | Complete |
 | 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Complete |
-| 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Ready; implementation in progress |
+| 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
-| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Planned |
+| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | In progress |
 
 ## 4. Track 00 — Contract and architecture baseline
 

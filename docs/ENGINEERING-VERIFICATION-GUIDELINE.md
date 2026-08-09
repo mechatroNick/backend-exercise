@@ -8,13 +8,14 @@ makes it binding for Tracks 00-08. It governs how evidence is produced and recor
 it does not change API or product semantics. The supplied assessment, accepted ADRs,
 and a track SPEC's stricter rule prevail when they conflict with this guideline.
 
-This repository is currently documentation-only. `scripts/verify-docs.sh` therefore
-proves only documentation integrity. It is not unit, API, migration, database, log,
-or runtime evidence.
+`scripts/verify-docs.sh` is documentation-only: it proves documentation integrity,
+not unit, API, migration, database, log, or runtime behavior. The repository also
+contains executable Tracks 01–06 and in-progress Track 08 work, each of which needs
+its own recorded executable evidence.
 
 ## Evidence and track closure
 
-Every executable track (01–08) must provide both deterministic unit tests and a
+Every executable track must provide both deterministic unit tests and a
 real-process Bash harness at `scripts/verify-track-<NN>.sh`, or be invoked by a
 final orchestrator that invokes that per-track harness. The harness supplements,
 rather than replaces, unit, integration, contract, migration, static-analysis, and
@@ -25,7 +26,9 @@ versions, requirement selectors, artifacts inspected, cleanup result, known gaps
 and any preserved debug-artifact location. A planned, blocked, skipped, or unrun
 command is never a passing result. A work item or track is **Complete** only when
 its stated evidence exists and passes; **Ready**, **Pending**, and **Blocked** are
-not done. A track may not close with missing executable evidence.
+not done. A track may not close with missing executable evidence. Track 07 is an
+explicit owner-skipped scope record, not an executable track: it must not receive a
+harness or report and is exempt from this executable-harness rule.
 
 ## Structured logging
 
