@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from threading import Event, Lock, Thread, current_thread
 from time import perf_counter
@@ -19,6 +18,7 @@ from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.clock import Clock, normalize_utc
+from app.core.internal_models import FrozenInternalModel
 from app.core.logging import log_event, log_exception
 from app.db.engine import SessionFactory
 
@@ -41,8 +41,7 @@ class _RefresherBoundaryError(RuntimeError):
     """Sanitized exception that retains worker frames without adapter text."""
 
 
-@dataclass(frozen=True, slots=True)
-class RefresherState:
+class RefresherState(FrozenInternalModel):
     """Bounded operational state without user, resource, or content identifiers."""
 
     started: bool

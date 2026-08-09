@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Protocol
 from uuid import UUID
+
+from pydantic import model_validator
+
+from app.core.internal_models import FrozenInternalModel
 
 
 class BookmarkMutationKind(StrEnum):
@@ -19,23 +22,18 @@ class BookmarkMutationKind(StrEnum):
 
 
 def _positive_identifier(value: int, name: str) -> None:
-    if isinstance(value, bool) or not isinstance(value, int):
-        raise TypeError(f"{name} must be an integer")
     if value <= 0:
         raise ValueError(f"{name} must be positive")
 
 
 def _require_utc(value: datetime, name: str) -> None:
-    if not isinstance(value, datetime):
-        raise TypeError(f"{name} must be a datetime")
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError(f"{name} must be timezone-aware")
     if value.utcoffset() != UTC.utcoffset(value):
         raise ValueError(f"{name} must be UTC")
 
 
-@dataclass(frozen=True, slots=True)
-class BookmarkStatsInvalidated:
+class BookmarkStatsInvalidated(FrozenInternalModel):
     """Content-free wake-up hint for a committed bookmark mutation."""
 
     user_id: int
@@ -45,7 +43,8 @@ class BookmarkStatsInvalidated:
     occurred_at: datetime
     correlation_id: UUID
 
-    def __post_init__(self) -> None:
+    @model_validator(mode="after")
+    def _validate_invariants(self) -> BookmarkStatsInvalidated:
         _positive_identifier(self.user_id, "user_id")
         _positive_identifier(self.bookmark_id, "bookmark_id")
         _require_utc(self.window_start, "window_start")
@@ -58,12 +57,9 @@ class BookmarkStatsInvalidated:
             or self.window_start.microsecond != 0
         ):
             raise ValueError("window_start must be UTC Monday midnight")
-        if not isinstance(self.mutation_kind, BookmarkMutationKind):
-            raise TypeError("mutation_kind must be a BookmarkMutationKind")
-        if not isinstance(self.correlation_id, UUID):
-            raise TypeError("correlation_id must be a UUID")
         if self.correlation_id.int == 0:
             raise ValueError("correlation_id must not be nil")
+        return self
 
 
 class PublishOutcome(StrEnum):
@@ -79,6 +75,7 @@ class DomainEventPublisher(Protocol):
 
     def publish(self, event: BookmarkStatsInvalidated) -> PublishOutcome:
         """Attempt publication once and return a safe outcome."""
+        ...
 
 
 class NoOpDomainEventPublisher:

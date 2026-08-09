@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 from math import ceil
@@ -20,6 +19,7 @@ from sqlmodel import Session
 
 from app.core.clock import Clock, normalize_utc
 from app.core.config import Settings
+from app.core.internal_models import FrozenInternalModel
 from app.core.logging import log_event
 from app.db.engine import SessionFactory
 
@@ -74,8 +74,7 @@ class ReadinessReason(StrEnum):
     CLOCK_INVALID = "clock_invalid"
 
 
-@dataclass(frozen=True, slots=True)
-class ReadinessSnapshot:
+class ReadinessSnapshot(FrozenInternalModel):
     """Internal bounded evidence used for decisions and transition logs."""
 
     ready: bool

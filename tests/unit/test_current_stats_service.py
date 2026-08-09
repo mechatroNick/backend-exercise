@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from typing import cast
 
 import pytest
+from pydantic import ValidationError
 
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.schemas import BookmarksPerMonth, BookmarkStats, TopTag
@@ -167,23 +168,23 @@ def test_service_and_header_encoding_validate_boundaries() -> None:
 
 def test_result_rejects_incoherent_internal_source_metadata() -> None:
     stats = _stats(0)
-    with pytest.raises(TypeError, match="stats"):
+    with pytest.raises(ValidationError):
         CurrentStatsResult(stats={}, source=StatsSource.LIVE, generated_at=None)  # type: ignore[arg-type]
-    with pytest.raises(TypeError, match="source"):
+    with pytest.raises(ValidationError):
         CurrentStatsResult(stats=stats, source="live", generated_at=None)  # type: ignore[arg-type]
-    with pytest.raises(ValueError, match="require generated_at"):
+    with pytest.raises(ValidationError, match="require generated_at"):
         CurrentStatsResult(stats=stats, source=StatsSource.SNAPSHOT, generated_at=None)
-    with pytest.raises(ValueError, match="timezone-aware"):
+    with pytest.raises(ValidationError, match="timezone-aware"):
         CurrentStatsResult(
             stats=stats,
             source=StatsSource.SNAPSHOT,
             generated_at=_NOW.replace(tzinfo=None),
         )
-    with pytest.raises(ValueError, match="must be UTC"):
+    with pytest.raises(ValidationError, match="must be UTC"):
         CurrentStatsResult(
             stats=stats,
             source=StatsSource.SNAPSHOT,
             generated_at=_NOW.astimezone(timezone(timedelta(hours=10))),
         )
-    with pytest.raises(ValueError, match="must not include"):
+    with pytest.raises(ValidationError, match="must not include"):
         CurrentStatsResult(stats=stats, source=StatsSource.LIVE, generated_at=_NOW)

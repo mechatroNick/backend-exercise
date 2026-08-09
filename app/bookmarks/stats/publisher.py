@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from queue import Empty, Full, Queue
 from threading import Lock
 from uuid import UUID
 
 from app.bookmarks.events import BookmarkStatsInvalidated, PublishOutcome
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
+from app.core.internal_models import FrozenInternalModel
 from app.core.logging import log_event, log_exception
 
 _MAX_QUEUE_CAPACITY = 1_000_000
@@ -19,8 +19,7 @@ class _PublisherBoundaryError(RuntimeError):
     """Sanitized exception used to preserve frames without raw adapter text."""
 
 
-@dataclass(frozen=True, slots=True)
-class PublisherState:
+class PublisherState(FrozenInternalModel):
     """Safe aggregate publisher state without event or owner identifiers."""
 
     queue_depth: int

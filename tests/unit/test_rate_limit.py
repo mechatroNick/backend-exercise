@@ -6,8 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 from math import inf, nan
 
 import pytest
+from pydantic import ValidationError
 
-from app.api.rate_limit import RateLimiter, TokenBucket
+from app.api.rate_limit import RateLimitDecision, RateLimiter, TokenBucket, _BucketEntry
 
 
 class FakeMonotonic:
@@ -28,6 +29,24 @@ def _bucket(clock: FakeMonotonic, **kwargs: int) -> TokenBucket:
         idle_ttl_seconds=kwargs.get("idle_ttl_seconds", 10),
         monotonic=clock,
     )
+
+
+def test_rate_models_preserve_frozen_decisions_and_mutable_bucket_state() -> None:
+    decision = RateLimitDecision(allowed=True)
+
+    assert decision == RateLimitDecision(allowed=True)
+    assert hash(decision) == hash(RateLimitDecision(allowed=True))
+    with pytest.raises(ValidationError):
+        decision.allowed = False
+    with pytest.raises(ValidationError):
+        RateLimitDecision(allowed=1)
+
+    entry = _BucketEntry(tokens=1.0, refilled_at=2.0, last_seen=2.0)
+    entry.tokens -= 0.25
+    assert entry.tokens == 0.75
+    with pytest.raises(ValidationError):
+        entry.tokens = "0.5"  # type: ignore[assignment]
+    assert entry.tokens == 0.75
 
 
 def test_bucket_consumes_capacity_refills_and_rounds_positive_retry_after() -> None:

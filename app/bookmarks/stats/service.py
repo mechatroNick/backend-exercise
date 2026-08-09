@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
+
+from pydantic import model_validator
 
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.schemas import BookmarkStats
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.clock import Clock, normalize_utc
+from app.core.internal_models import FrozenInternalModel
 
 
 class StatsSource(StrEnum):
@@ -20,19 +22,15 @@ class StatsSource(StrEnum):
     LIVE = "live"
 
 
-@dataclass(frozen=True, slots=True)
-class CurrentStatsResult:
+class CurrentStatsResult(FrozenInternalModel):
     """Unchanged body plus transport-only source metadata."""
 
     stats: BookmarkStats
     source: StatsSource
     generated_at: datetime | None
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.stats, BookmarkStats):
-            raise TypeError("stats must be BookmarkStats")
-        if not isinstance(self.source, StatsSource):
-            raise TypeError("source must be StatsSource")
+    @model_validator(mode="after")
+    def _validate_invariants(self) -> CurrentStatsResult:
         if self.source is StatsSource.SNAPSHOT:
             if self.generated_at is None:
                 raise ValueError("snapshot results require generated_at")
@@ -41,6 +39,7 @@ class CurrentStatsResult:
                 raise ValueError("snapshot generated_at must be UTC")
         elif self.generated_at is not None:
             raise ValueError("live results must not include generated_at")
+        return self
 
 
 class CurrentStatsService:

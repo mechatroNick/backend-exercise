@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Protocol, cast
 
 from pydantic import AnyHttpUrl
 
 from app.core.clock import normalize_utc
+from app.core.internal_models import FrozenInternalModel
 
 
 def normalize_tag_name(value: object) -> str:
@@ -61,8 +61,7 @@ def literal_like_pattern(value: str) -> str:
     return f"%{escaped}%"
 
 
-@dataclass(frozen=True, slots=True)
-class BookmarkSnapshot:
+class BookmarkSnapshot(FrozenInternalModel):
     """Canonical bookmark state needed to decide whether a PATCH is material."""
 
     id: int
@@ -74,8 +73,7 @@ class BookmarkSnapshot:
     updated_at: datetime
 
 
-@dataclass(frozen=True, slots=True)
-class MaterialPatch:
+class MaterialPatch(FrozenInternalModel):
     """Resolved target state and the public fields that change materially."""
 
     url: str

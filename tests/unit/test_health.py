@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import pytest
+from pydantic import ValidationError
 from starlette.requests import Request
 
 from app.api.health import (
@@ -122,7 +123,7 @@ def _evaluator(
         backlog_reader=lambda session: (
             (_ for _ in ()).throw(backlog_failure)
             if isinstance(backlog_failure, Exception)
-            else DirtyBacklog(0, None)
+            else DirtyBacklog(count=0, oldest_marked_at=None)
             if backlog is None
             else backlog
         ),
@@ -192,57 +193,67 @@ def test_enabled_missing_or_unavailable_internal_state_fails_closed() -> None:
         (
             _worker(started=False),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.WORKER_NOT_STARTED,
         ),
         (
             _worker(alive=False),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.WORKER_NOT_ALIVE,
         ),
         (
             _worker(shutdown_timed_out=True),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.SHUTDOWN_TIMEOUT,
         ),
         (
             _worker(initial_completed=False),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.STARTUP_TIMEOUT,
         ),
         (
             _worker(successful_cycles=0, last_success_at=None),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.NEVER_SUCCESSFUL,
         ),
         (
             _worker(consecutive_failures=1),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.CONSECUTIVE_FAILURES,
         ),
         (
             _worker(),
             _publisher(reconciliation_required=True),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.RECONCILIATION_REQUIRED,
         ),
-        (_worker(), _publisher(), DirtyBacklog(1, None), ReadinessReason.STATE_UNAVAILABLE),
-        (_worker(), _publisher(), DirtyBacklog(0, _NOW), ReadinessReason.STATE_UNAVAILABLE),
+        (
+            _worker(),
+            _publisher(),
+            DirtyBacklog(count=1, oldest_marked_at=None),
+            ReadinessReason.STATE_UNAVAILABLE,
+        ),
+        (
+            _worker(),
+            _publisher(),
+            DirtyBacklog(count=0, oldest_marked_at=_NOW),
+            ReadinessReason.STATE_UNAVAILABLE,
+        ),
         (
             _worker(cycle_running=True, last_cycle_started_at=None),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.STATE_UNAVAILABLE,
         ),
         (
             _worker(last_cycle_completed_at=None),
             _publisher(),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
             ReadinessReason.STATE_UNAVAILABLE,
         ),
     ],
@@ -256,11 +267,11 @@ def test_fixed_reason_branches(worker, publisher, backlog, reason) -> None:
 def test_threshold_boundaries_future_and_healthy_metrics() -> None:
     old = _NOW - timedelta(seconds=11)
     assert (
-        _evaluator(backlog=DirtyBacklog(1001, _NOW)).evaluate().reason
+        _evaluator(backlog=DirtyBacklog(count=1001, oldest_marked_at=_NOW)).evaluate().reason
         is ReadinessReason.DIRTY_BACKLOG_COUNT
     )
     assert (
-        _evaluator(backlog=DirtyBacklog(1, old)).evaluate().reason
+        _evaluator(backlog=DirtyBacklog(count=1, oldest_marked_at=old)).evaluate().reason
         is ReadinessReason.DIRTY_BACKLOG_AGE
     )
     assert (
@@ -299,7 +310,7 @@ def test_all_thresholds_are_inclusive_and_fail_only_after_the_limit() -> None:
     exact = _NOW - timedelta(seconds=10)
     assert _evaluator(worker=_worker(last_cycle_completed_at=exact)).evaluate().ready
     assert _evaluator(worker=_worker(last_success_at=exact)).evaluate().ready
-    assert _evaluator(backlog=DirtyBacklog(1000, exact)).evaluate().ready
+    assert _evaluator(backlog=DirtyBacklog(count=1000, oldest_marked_at=exact)).evaluate().ready
     running = _worker(cycle_running=True, last_cycle_started_at=exact)
     assert _evaluator(worker=running).evaluate().ready
 
@@ -308,18 +319,28 @@ def test_all_thresholds_are_inclusive_and_fail_only_after_the_limit() -> None:
     "worker",
     [
         _worker(total_cycles=-1),
-        _worker(total_cycles=True),
         _worker(total_cycles=1, successful_cycles=2),
-        _worker(started=1),
-        _worker(alive=1),
-        _worker(cycle_running=1),
-        _worker(initial_completed=1),
-        _worker(initial_success=1),
-        _worker(shutdown_timed_out=1),
     ],
 )
-def test_malformed_worker_state_is_never_treated_as_ready(worker) -> None:
+def test_semantically_malformed_worker_state_is_never_treated_as_ready(worker) -> None:
     assert _evaluator(worker=worker).evaluate().reason is ReadinessReason.STATE_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"total_cycles": True},
+        {"started": 1},
+        {"alive": 1},
+        {"cycle_running": 1},
+        {"initial_completed": 1},
+        {"initial_success": 1},
+        {"shutdown_timed_out": 1},
+    ],
+)
+def test_worker_state_rejects_coercive_values(changes: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        _worker(**changes)
 
 
 def test_malformed_publisher_and_backlog_state_is_never_ready() -> None:
@@ -328,13 +349,14 @@ def test_malformed_publisher_and_backlog_state_is_never_ready() -> None:
         is ReadinessReason.STATE_UNAVAILABLE
     )
     assert (
-        _evaluator(publisher=_publisher(reconciliation_required=1)).evaluate().reason
+        _evaluator(backlog=DirtyBacklog(count=-1, oldest_marked_at=None)).evaluate().reason
         is ReadinessReason.STATE_UNAVAILABLE
     )
-    assert (
-        _evaluator(backlog=DirtyBacklog(-1, None)).evaluate().reason
-        is ReadinessReason.STATE_UNAVAILABLE
-    )
+
+
+def test_publisher_state_rejects_coercive_values() -> None:
+    with pytest.raises(ValidationError):
+        _publisher(reconciliation_required=1)
 
 
 @pytest.mark.parametrize(
@@ -345,9 +367,9 @@ def test_malformed_publisher_and_backlog_state_is_never_ready() -> None:
                 cycle_running=True,
                 last_cycle_started_at=_NOW + timedelta(seconds=1),
             ),
-            DirtyBacklog(0, None),
+            DirtyBacklog(count=0, oldest_marked_at=None),
         ),
-        (_worker(), DirtyBacklog(1, _NOW + timedelta(seconds=1))),
+        (_worker(), DirtyBacklog(count=1, oldest_marked_at=_NOW + timedelta(seconds=1))),
     ],
 )
 def test_future_operational_timestamps_fail_with_clock_invalid(worker, backlog) -> None:
