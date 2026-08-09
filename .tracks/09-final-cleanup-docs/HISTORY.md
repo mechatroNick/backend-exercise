@@ -38,7 +38,30 @@
 
 ## Current state
 
-- Specification: Ready (implementation authorized), version 1.0
-- Plan: In progress; T09-06 and T09-07 integration checkpoints active
-- Implementation: T09-02 through T09-05 complete; T09-06 and T09-07 implemented and awaiting commits
-- Closure: Pending clean-source branch and post-merge evidence
+- Specification: Ready to merge (branch gate passed), version 1.0
+- Plan: Ready to merge; T09-09 is active
+- Implementation: T09-01 through T09-08 complete
+- Closure: Branch evidence passed; merge and exact post-merge evidence pending
+
+## 2026-08-09 — Clean-source branch gate passed
+
+- Committed standalone report automation at `93ee83a`, the root reader guide at
+  `5e8fe42`, locked Pyright validation at `b113963`, and additive helper evidence at
+  `4db9410`.
+- The final Track 08 provenance audit found that all six newer upstream PLAN commits
+  contained only the Track 09-authorized `docs/` to `.docs/` link migration. The
+  fail-closed exception was committed at `a4992d5` and independently reviewed after
+  adding byte-exact, terminal-newline, mode/type, content-drift, missing-path, and
+  divergent-history tests. Documentation-safe fixtures followed at `c92dc35`.
+- `bash scripts/verify-track-08.sh` passed from clean committed HEAD `c92dc35`,
+  including exact Tracks 01–06, 100 focused bonus tests, full 743-test/3-subtest
+  coverage, migrations, seed idempotency, real Uvicorn, logging, hygiene, Docker
+  build/post-build/migrate-only/runtime/SIGTERM/removal, and verified cleanup.
+- `bash scripts/verify-track-09.sh` then passed from the same clean committed HEAD,
+  including locked sync/advisory, no-dataclass and lifecycle/lifespan inventories,
+  Ruff, mypy, Pyright, both warnings-as-errors gates, 2,953 statements and 618
+  branches at 100%, migrations, docs/hygiene, cleanup self-test, the exact Track 08
+  harness, final-clone cleanliness, and verified cleanup.
+- No external push, publication, deployment, submission, or release action occurred.
+  Track 09 remains Ready to merge until the owner-authorized merge commit and exact
+  merged-main rerun pass.

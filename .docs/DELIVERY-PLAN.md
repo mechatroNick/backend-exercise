@@ -53,7 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | **In progress** |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | **Ready to merge** |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -354,8 +354,8 @@ Turn the working solution into a concise, reproducible senior-level submission w
 
 Finish the repository as a fresh-reader-friendly assessment without changing the
 accepted HTTP, persistence, security, statistics, one-worker, or Track 07 absence
-contracts. This track remains **in progress** until its clean-source and Docker gates
-have actual passing receipts.
+contracts. Its clean-source and Docker branch gates have passed; it remains **Ready
+to merge** until the exact merged-`main` rerun passes.
 
 ### Included
 
@@ -372,13 +372,12 @@ have actual passing receipts.
 - the unchanged OpenAPI inventory remains 10 operations and 45 status pairs, and the
   requirement map remains 43 IDs;
 - all eight accepted ADRs and Tracks 00–09 are accurately indexed;
-- current in-progress evidence reports 741 tests plus 3 subtests and 2,953 statements /
-  618 branches at 100%, without claiming final closure;
+- current branch evidence reports 743 tests plus 3 subtests and 2,953 statements /
+  618 branches at 100%, without claiming merged-main closure;
 - `verify-docs`, Tracks 01–06, Track 08, and the new Track 09 gate emit standalone
   terminal reports; Track 07 remains owner-skipped and has no verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are
-  nonzero incomplete, never a pass or skip; final Track 09 and merged-main evidence is
-  still required.
+  nonzero incomplete, never a pass or skip; the merged-main rerun is still required.
 
 ### Proposed commit
 
@@ -424,7 +423,8 @@ The project is done only when:
 - current statistics remain correct and weekly historical projections remain explicitly skipped;
 - the application bootstraps locally with all internal services visible in logs;
 - migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;
-- all selected Track 08 bonuses have their recorded evidence, and Track 09's final
-  clean-source/Docker/report gate has actual passing evidence;
+- all selected Track 08 bonuses have their recorded evidence, Track 09's branch
+  clean-source/Docker/report gate has actual passing evidence, and the exact Track 09
+  gate passes again on merged `main`;
 - documentation describes the actual implementation, including tradeoffs and known limits;
 - no unresolved material ambiguity, secret, or high-severity defect remains.

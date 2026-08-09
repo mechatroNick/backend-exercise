@@ -600,7 +600,8 @@ The ADRs are authoritative when this overview is intentionally concise. Any impl
 
 ## 21. Track 09 modernization and current status
 
-Track 09 is **in progress**. It replaces internal and test-helper dataclasses with
+Track 09 is **Ready to merge** after its clean-source branch gate. It replaces
+internal and test-helper dataclasses with
 explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
 cross-field event/statistics invariants, keyword construction, cursor payloads, and
 rate-bucket synchronization. Public FastAPI request/response schemas and OpenAPI bodies
@@ -614,6 +615,7 @@ narrow rather than broad type suppressions. The current supported `httpx2` TestC
 dependency uses a public response adapter only where Schemathesis needs a compatible response surface, so
 contract validation continues to assess the unchanged public API.
 
-All eight ADRs are accepted. The final Track 09 documentation, Docker, clean-source, and
-closure receipts remain pending; consult [Track 09's plan](../.tracks/09-final-cleanup-docs/PLAN.md)
-for current gates rather than inferring completion from this design overview.
+All eight ADRs are accepted. Track 09 documentation, Docker, and clean-source branch
+receipts have passed; merge and exact post-merge evidence remain pending. Consult
+[Track 09's plan](../.tracks/09-final-cleanup-docs/PLAN.md) for the current closure
+gate rather than inferring merged-main completion from this design overview.

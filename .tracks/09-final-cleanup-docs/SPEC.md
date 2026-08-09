@@ -1,6 +1,6 @@
 # Track 09 specification: final cleanup, documentation migration, and test reports
 
-- Status: Ready (implementation authorized)
+- Status: Ready to merge (branch gate passed)
 - Specification version: 1.0
 - Planned: 2026-08-09
 - Owner: Primary engineering thread
@@ -64,7 +64,7 @@ Included:
   adapters, add a repository Pyright/Pylance-compatible check if it can be locked and
   made deterministic, and document any justified third-party boundary suppressions;
 - make every verification script emit a readable standalone terminal report with
-  identity, gates, pass/fail/skip status, useful summaries, and cleanup outcome while
+  identity, gates, pass/fail/incomplete status, useful summaries, and cleanup outcome while
   preserving nonzero failure propagation and safe/private output handling;
 - ensure Docker-focused tests execute after the image build and prove image/runtime
   delivery before a final Docker pass is printed;

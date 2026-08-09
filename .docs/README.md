@@ -50,11 +50,13 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 09: final cleanup specification](../.tracks/09-final-cleanup-docs/SPEC.md)
 - [Track 09: final cleanup execution plan](../.tracks/09-final-cleanup-docs/PLAN.md)
 - [Track 09: final cleanup history](../.tracks/09-final-cleanup-docs/HISTORY.md)
+- [Track 09: branch test report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md)
 
 Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
 Track 08 is complete. The selected seed, Docker, rate-limit, and cursor checkpoints
 passed their combined final clean-source harness and are recorded in its final report.
-Track 09 is in progress and does not yet have closure evidence.
+Track 09 has passing clean-source branch evidence and is Ready to merge; exact
+merged-main evidence remains pending.
 External release actions remain owner-only and were not performed.
 
 ## Authority
