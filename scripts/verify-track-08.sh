@@ -272,15 +272,15 @@ PY
 
 configure_clean_clone() {
     local resolved_python
-    [[ "$(tr -d '[:space:]' < "${clone_root}/.python-version")" == 3.12 ]] \
-        || fail '.python-version is not exactly 3.12 in the clean clone'
+    [[ "$(tr -d '[:space:]' < "${clone_root}/.python-version")" == 3.12.12 ]] \
+        || fail '.python-version is not exactly 3.12.12 in the clean clone'
     command -v "${uv_command}" >/dev/null 2>&1 || fail 'uv is unavailable'
     export UV_CACHE_DIR="${workspace}/uv-cache"
     export UV_PYTHON_INSTALL_DIR="${workspace}/python-install"
-    resolved_python="$(cd "${clone_root}" && "${uv_command}" python find 3.12)"
-    [[ -n "${resolved_python}" && -x "${resolved_python}" ]] || fail 'uv did not resolve Python 3.12'
-    [[ "$("${resolved_python}" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')" == 3.12 ]] \
-        || fail 'resolved interpreter is not Python 3.12'
+    resolved_python="$(cd "${clone_root}" && "${uv_command}" python find 3.12.12)"
+    [[ -n "${resolved_python}" && -x "${resolved_python}" ]] || fail 'uv did not resolve Python 3.12.12'
+    [[ "$("${resolved_python}" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')" == 3.12.12 ]] \
+        || fail 'resolved interpreter is not Python 3.12.12'
     (cd "${clone_root}" && run_private lock-check "${uv_command}" lock --check)
     (cd "${clone_root}" && run_private locked-sync "${uv_command}" sync --locked)
     (cd "${clone_root}" && run_private pip-audit "${uv_command}" run pip-audit --local --progress-spinner off --desc off)
