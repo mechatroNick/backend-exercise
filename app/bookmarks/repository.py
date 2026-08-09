@@ -5,12 +5,13 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
-from sqlalchemy import Table, delete, exists, func, select, update
+from sqlalchemy import Table, and_, delete, exists, func, or_, select, update
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.sql.elements import ColumnElement
 from sqlmodel import Session
 
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
+from app.bookmarks.pagination import CursorBoundary
 from app.bookmarks.policy import (
     BookmarkSnapshot,
     literal_like_pattern,
@@ -97,6 +98,54 @@ class BookmarkRepository:
                 for bookmark in bookmarks
             ],
             total,
+        )
+
+    def search_owned_after(
+        self, user_id: int, query: BookmarkQuery, boundary: CursorBoundary | None
+    ) -> tuple[list[BookmarkSnapshot], int, bool]:
+        """Return a keyset page and whether one further matching row exists.
+
+        The count retains the accepted live total for the requested filters.  The
+        keyset predicate deliberately applies only to the item statement, so a
+        cursor remains useful after its anchor has been deleted.
+        """
+        predicates = self._search_predicates(user_id, query)
+        count_statement = select(func.count()).select_from(Bookmark).where(*predicates)
+        total = int(self._session.execute(count_statement).scalar_one())
+        page_predicates = predicates
+        if boundary is not None:
+            page_predicates = (
+                *predicates,
+                or_(
+                    _BOOKMARKS.c.created_at < boundary.created_at,
+                    and_(
+                        _BOOKMARKS.c.created_at == boundary.created_at,
+                        _BOOKMARKS.c.id < boundary.bookmark_id,
+                    ),
+                ),
+            )
+        page_statement = (
+            select(Bookmark)
+            .where(*page_predicates)
+            .order_by(_BOOKMARKS.c.created_at.desc(), _BOOKMARKS.c.id.desc())
+            .limit(query.page_size + 1)
+        )
+        rows = list(self._session.execute(page_statement).scalars())
+        has_more = len(rows) > query.page_size
+        bookmarks = rows[: query.page_size]
+        tag_names_by_bookmark = self._tag_names_for_bookmarks(
+            user_id,
+            [self._required_id(bookmark) for bookmark in bookmarks],
+        )
+        return (
+            [
+                self._snapshot_from_values(
+                    bookmark, tag_names_by_bookmark[self._required_id(bookmark)]
+                )
+                for bookmark in bookmarks
+            ],
+            total,
+            has_more,
         )
 
     def update_owned(self, user_id: int, bookmark_id: int, values: Mapping[str, object]) -> bool:

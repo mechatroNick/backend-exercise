@@ -30,6 +30,7 @@ _SETTINGS_ENV_NAMES = (
     "RATE_LIMIT_BOOKMARK_WINDOW_SECONDS",
     "RATE_LIMIT_MAX_KEYS",
     "RATE_LIMIT_IDLE_TTL_SECONDS",
+    "CURSOR_TTL_SECONDS",
     "SQLITE_BUSY_TIMEOUT_MILLISECONDS",
     "LOG_LEVEL",
 )
@@ -57,6 +58,7 @@ def test_defaults_are_safe_for_non_production() -> None:
     assert settings.rate_limit_bookmark_window_seconds == 60
     assert settings.rate_limit_max_keys == 10_000
     assert settings.rate_limit_idle_ttl_seconds == 300
+    assert settings.cursor_ttl_seconds == 900
     assert settings.sqlite_busy_timeout_milliseconds == 5_000
     assert settings.log_level == "INFO"
 
@@ -135,6 +137,8 @@ def test_database_url_must_be_local_sqlite(database_url: str, message: str) -> N
         ({"rate_limit_max_keys": 100_001}, "less than or equal"),
         ({"rate_limit_idle_ttl_seconds": 0}, "greater than or equal"),
         ({"rate_limit_idle_ttl_seconds": 86_401}, "less than or equal"),
+        ({"cursor_ttl_seconds": 59}, "greater than or equal"),
+        ({"cursor_ttl_seconds": 3_601}, "less than or equal"),
         ({"sqlite_busy_timeout_milliseconds": 0}, "greater than or equal"),
         ({"sqlite_busy_timeout_milliseconds": 60_001}, "less than or equal"),
         (

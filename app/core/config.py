@@ -83,6 +83,9 @@ class Settings(BaseSettings):
     rate_limit_idle_ttl_seconds: Annotated[int, Field(ge=1, le=86_400)] = Field(
         default=300, validation_alias="RATE_LIMIT_IDLE_TTL_SECONDS"
     )
+    cursor_ttl_seconds: Annotated[int, Field(ge=60, le=3_600)] = Field(
+        default=900, validation_alias="CURSOR_TTL_SECONDS"
+    )
     sqlite_busy_timeout_milliseconds: Annotated[int, Field(ge=1, le=60_000)] = Field(
         default=5_000, validation_alias="SQLITE_BUSY_TIMEOUT_MILLISECONDS"
     )

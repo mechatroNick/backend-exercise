@@ -62,6 +62,14 @@ class RateLimitError(ApplicationError):
         self.headers = {"Retry-After": str(max(1, retry_after)), "Cache-Control": "no-store"}
 
 
+class InvalidCursorError(ApplicationError):
+    """One deliberately indistinguishable cursor rejection at the HTTP boundary."""
+
+    code = "invalid_cursor"
+    message = "Cursor is invalid or expired."
+    status_code = 422
+
+
 class ConflictError(ApplicationError):
     """Expected, safe resource conflict."""
 
@@ -98,6 +106,7 @@ __all__ = [
     "AuthenticationError",
     "ConflictError",
     "IdentityConflictError",
+    "InvalidCursorError",
     "InternalServerError",
     "NotFoundError",
     "RateLimitError",

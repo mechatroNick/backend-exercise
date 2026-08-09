@@ -315,9 +315,12 @@ for operation in (bookmarks, stats):
     require(rate["content"]["application/json"]["schema"] == {"$ref": "#/components/schemas/ErrorEnvelope"}, "rate-limit schema changed")
 require(stats.get("parameters", []) == [], "stats acquired inputs")
 parameters = {item["name"]: item for item in bookmarks["parameters"]}
-require(set(parameters) == {"tag", "q", "from", "to", "updated_from", "updated_to", "page", "page_size"}, "list OpenAPI parameters changed")
+require(set(parameters) == {"tag", "q", "from", "to", "updated_from", "updated_to", "page", "page_size", "pagination", "cursor"}, "list OpenAPI parameters changed")
 require(parameters["page"]["schema"] == {"type": "integer", "minimum": 1, "default": 1, "examples": [1], "title": "Page"}, "page contract changed")
 require(parameters["page_size"]["schema"] == {"type": "integer", "maximum": 100, "minimum": 1, "default": 20, "examples": [20], "title": "Page Size"}, "page size contract changed")
+require(parameters["pagination"]["schema"].get("enum") == ["page", "cursor"] and parameters["pagination"]["schema"].get("default") == "page", "pagination mode contract changed")
+require(parameters["cursor"]["schema"].get("maxLength") == 2048, "cursor length contract changed")
+require(bookmarks["responses"]["200"]["headers"]["X-Next-Cursor"]["required"] is False, "cursor response header contract changed")
 require(parameters["q"]["schema"]["anyOf"][0] == {"type": "string", "maxLength": 200}, "query length contract changed")
 require(all(not item.get("required", False) for item in parameters.values()), "optional list parameter became required")
 for name in ("from", "to", "updated_from", "updated_to"):

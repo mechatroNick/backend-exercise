@@ -72,3 +72,29 @@ def test_all_eight_selected_operations_document_the_same_safe_429_contract() -> 
                 "schema": {"type": "string", "example": "no-store"},
             },
         }
+
+
+def test_cursor_extension_keeps_the_frozen_inventory_while_documenting_its_safe_contract() -> None:
+    document = create_app(
+        Settings(app_env="test", database_url="sqlite:////private/tmp/cursor-openapi.sqlite3")
+    ).openapi()
+    operation = document["paths"]["/api/bookmarks"]["get"]
+    parameters = {item["name"]: item["schema"] for item in operation["parameters"]}
+
+    assert parameters["pagination"]["enum"] == ["page", "cursor"]
+    assert parameters["pagination"]["default"] == "page"
+    assert parameters["cursor"]["maxLength"] == 2048
+    assert operation["responses"]["200"]["headers"]["X-Next-Cursor"] == {
+        "description": (
+            "Opaque continuation cursor for pagination=cursor; absent when no further page exists."
+        ),
+        "required": False,
+        "schema": {"type": "string", "maxLength": 2048},
+    }
+    assert "forbids cursor" in parameters["pagination"]["description"]
+    assert "forbids an explicitly supplied page" in parameters["pagination"]["description"]
+    assert "only when pagination=cursor" in parameters["cursor"]["description"]
+    examples = operation["responses"]["422"]["content"]["application/json"]["examples"]
+    assert examples["invalid_cursor"]["value"] == {
+        "error": {"code": "invalid_cursor", "message": "Cursor is invalid or expired."}
+    }
