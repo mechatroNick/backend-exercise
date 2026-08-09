@@ -733,7 +733,7 @@ wait_for_docker_removal() {
     local receipt_label="$2"
     local attempt
     for attempt in $(seq 1 100); do
-        if ! docker inspect "${container_name}" >/dev/null 2>&1; then
+        if ! docker container inspect "${container_name}" >/dev/null 2>&1; then
             return 0
         fi
         sleep 0.1
@@ -770,7 +770,7 @@ PY
         "${docker_image}" migrate-only >"${workspace}/receipts/docker-migrate.log" 2>&1 || fail 'Docker migrate-only failed'
     docker rm "${docker_migrate_container}" >/dev/null || fail 'Docker migrate-only container removal failed'
     wait_for_docker_removal "${docker_migrate_container}" 'migrate-only container'
-    ! docker inspect "${docker_migrate_container}" >/dev/null 2>&1 \
+    ! docker container inspect "${docker_migrate_container}" >/dev/null 2>&1 \
         || fail 'Docker migrate-only container remained after removal visibility wait'
     docker_migrate_container=""
     docker_container="backend-sample-track08-${short_head}-$$"
@@ -782,7 +782,7 @@ PY
     for attempt in $(seq 1 400); do
         if curl --fail --silent "http://127.0.0.1:${port}/health/live" >/dev/null 2>&1 \
             && curl --fail --silent "http://127.0.0.1:${port}/health/ready" >/dev/null 2>&1 \
-            && [[ "$(docker inspect --format '{{.State.Health.Status}}' "${docker_container}")" == healthy ]]; then
+            && [[ "$(docker container inspect --format '{{.State.Health.Status}}' "${docker_container}")" == healthy ]]; then
             break
         fi
         sleep 0.1
@@ -823,7 +823,7 @@ PY
     )
     docker rm "${docker_container}" >/dev/null || fail 'Docker container removal failed after SIGTERM'
     wait_for_docker_removal "${docker_container}" 'runtime container'
-    ! docker inspect "${docker_container}" >/dev/null 2>&1 || fail 'Docker container remained after SIGTERM'
+    ! docker container inspect "${docker_container}" >/dev/null 2>&1 || fail 'Docker container remained after SIGTERM'
     docker_container=""
     docker_env_file=""
     safe_message 'receipt: command=docker build/run migrate-only + non-root one-worker health/JSON Lines/SIGTERM/removal; exit=0'

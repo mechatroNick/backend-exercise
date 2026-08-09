@@ -126,6 +126,7 @@ def test_track08_harness_requires_real_docker_except_for_labelled_incomplete_dev
         "migrate-only",
         "docker_migrate_container",
         "wait_for_docker_removal",
+        "docker container inspect",
         "seq 1 100",
         "removal visibility wait",
         "docker_env_file",
@@ -142,6 +143,10 @@ def test_track08_harness_requires_real_docker_except_for_labelled_incomplete_dev
     ):
         assert required in source
     assert '--env "JWT_SECRET=' not in source
+    docker_verification = source[
+        source.index("wait_for_docker_removal") : source.index("run_cleanup_self_test")
+    ]
+    assert "docker inspect" not in docker_verification
 
 
 def test_track08_harness_discriminates_live_filter_and_patch_contracts() -> None:
