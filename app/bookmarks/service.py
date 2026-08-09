@@ -5,6 +5,7 @@ from __future__ import annotations
 import builtins
 import sqlite3
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, cast
 from uuid import UUID
@@ -19,6 +20,7 @@ from app.bookmarks.events import (
     DomainEventPublisher,
 )
 from app.bookmarks.models import Bookmark, Tag
+from app.bookmarks.pagination import BookmarkCursorCodec, CursorBoundary
 from app.bookmarks.policy import (
     BookmarkPatchValues,
     BookmarkSnapshot,
@@ -53,6 +55,14 @@ class DirtyMarkerWriter(Protocol):
         marked_at: datetime,
     ) -> None:
         """Insert or atomically increment one dirty generation."""
+
+
+@dataclass(frozen=True, slots=True)
+class CursorListResult:
+    """A normal list body with an optional opaque continuation value."""
+
+    body: BookmarkList
+    next_cursor: str | None
 
 
 def _is_tag_unique_conflict(error: IntegrityError) -> bool:
@@ -134,6 +144,44 @@ class BookmarkService:
             page=resolved_query.page,
             page_size=resolved_query.page_size,
         )
+
+    def list_cursor(
+        self,
+        user_id: int,
+        query: BookmarkQuery,
+        *,
+        cursor: str | None,
+        codec: BookmarkCursorCodec,
+    ) -> CursorListResult:
+        """Read an owner-bound keyset page from the same SQLite snapshot as totals."""
+        boundary = (
+            codec.decode(cursor, owner_id=user_id, query=query, now=self._clock.now())
+            if cursor is not None
+            else None
+        )
+        begin_sqlite_read_snapshot(self._session)
+        snapshots, total, has_more = self._bookmarks.search_owned_after(user_id, query, boundary)
+        page = boundary.page if boundary is not None else 1
+        body = BookmarkList(
+            items=tuple(_public_bookmark(snapshot) for snapshot in snapshots),
+            total=total,
+            page=page,
+            page_size=query.page_size,
+        )
+        next_cursor: str | None = None
+        if has_more:
+            last = snapshots[-1]
+            next_cursor = codec.encode(
+                owner_id=user_id,
+                query=query,
+                boundary=CursorBoundary(
+                    created_at=last.created_at,
+                    bookmark_id=last.id,
+                    page=page + 1,
+                ),
+                now=self._clock.now(),
+            )
+        return CursorListResult(body=body, next_cursor=next_cursor)
 
     def get(self, user_id: int, bookmark_id: int) -> BookmarkPublic:
         """Return an owner-visible bookmark without opening a write transaction."""
@@ -290,4 +338,4 @@ def _public_bookmark(snapshot: BookmarkSnapshot) -> BookmarkPublic:
     )
 
 
-__all__ = ["BookmarkService", "DirtyMarkerWriter"]
+__all__ = ["BookmarkService", "CursorListResult", "DirtyMarkerWriter"]

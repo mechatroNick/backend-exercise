@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Any, cast
+from typing import Annotated, Any, Literal, cast
 
-from fastapi import APIRouter, Depends, Path, Query, Response, status
+from fastapi import APIRouter, Depends, Path, Query, Request, Response, status
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 
-from app.api.errors import ErrorEnvelope
+from app.api.errors import ErrorEnvelope, request_validation_issues
 from app.auth.dependencies import get_rate_limited_subject
 from app.auth.schemas import CurrentSubject
-from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_service
+from app.bookmarks.dependencies import (
+    get_bookmark_cursor_codec,
+    get_bookmark_service,
+    get_bookmark_stats_service,
+)
+from app.bookmarks.pagination import BookmarkCursorCodec
 from app.bookmarks.schemas import (
     BookmarkCreate,
     BookmarkList,
@@ -25,6 +32,7 @@ from app.bookmarks.stats.service import (
     StatsSource,
     stats_generated_at_header,
 )
+from app.core.errors import ValidationApplicationError, ValidationIssue
 
 _ERROR_EXAMPLES = {
     "authentication": {
@@ -102,6 +110,30 @@ def _rate_limit_response() -> dict[str, Any]:
     return response
 
 
+def _cursor_validation_response() -> dict[str, Any]:
+    """Document the fixed opaque-token rejection alongside ordinary query validation."""
+    return {
+        "model": ErrorEnvelope,
+        "content": {
+            "application/json": {
+                "examples": {
+                    "validation": _ERROR_EXAMPLES["validation"],
+                    "invalid_cursor": {
+                        "summary": "Opaque cursor rejection",
+                        "value": {
+                            "error": {
+                                "code": "invalid_cursor",
+                                "message": "Cursor is invalid or expired.",
+                                "details": None,
+                            }
+                        },
+                    },
+                }
+            }
+        },
+    }
+
+
 _CREATE_RESPONSES: dict[int | str, dict[str, Any]] = {
     429: _rate_limit_response(),
     401: _error_response("authentication"),
@@ -109,9 +141,22 @@ _CREATE_RESPONSES: dict[int | str, dict[str, Any]] = {
     500: _error_response("internal"),
 }
 _LIST_RESPONSES: dict[int | str, dict[str, Any]] = {
+    200: {
+        "description": "Owner-scoped bookmarks; cursor mode may include X-Next-Cursor.",
+        "headers": {
+            "X-Next-Cursor": {
+                "description": (
+                    "Opaque continuation cursor for pagination=cursor; absent when no further "
+                    "page exists."
+                ),
+                "required": False,
+                "schema": {"type": "string", "maxLength": 2048},
+            }
+        },
+    },
     429: _rate_limit_response(),
     401: _error_response("authentication"),
-    422: _error_response("validation"),
+    422: _cursor_validation_response(),
     500: _error_response("internal"),
 }
 _STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
@@ -153,6 +198,102 @@ _DELETE_RESPONSES: dict[int | str, dict[str, Any]] = {
 router = APIRouter(prefix="/api/bookmarks", tags=["bookmarks"])
 
 
+def get_bookmark_query(
+    request: Request,
+    tag: Annotated[str | None, Query(examples=["python"])] = None,
+    q: Annotated[str | None, Query(max_length=200, examples=["fictional search"])] = None,
+    created_from: Annotated[
+        str | None,
+        Query(
+            alias="from",
+            examples=["2025-01-01"],
+            json_schema_extra={"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}]},
+        ),
+    ] = None,
+    created_to: Annotated[
+        str | None,
+        Query(
+            alias="to",
+            examples=["2025-12-31"],
+            json_schema_extra={"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}]},
+        ),
+    ] = None,
+    updated_from: Annotated[
+        str | None,
+        Query(
+            examples=["2025-01-01"],
+            json_schema_extra={"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}]},
+        ),
+    ] = None,
+    updated_to: Annotated[
+        str | None,
+        Query(
+            examples=["2025-12-31"],
+            json_schema_extra={"anyOf": [{"type": "string", "format": "date"}, {"type": "null"}]},
+        ),
+    ] = None,
+    page: Annotated[
+        object,
+        Query(
+            json_schema_extra={"type": "integer", "minimum": 1, "examples": [1], "default": 1},
+        ),
+    ] = 1,
+    page_size: Annotated[
+        object,
+        Query(
+            json_schema_extra={
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "examples": [20],
+                "default": 20,
+            },
+        ),
+    ] = 20,
+) -> BookmarkQuery:
+    """Retain strict legacy raw-query parsing while adding independent cursor controls."""
+    try:
+        return BookmarkQuery.model_validate(_raw_bookmark_query_values(request))
+    except ValidationError as error:
+        details = request_validation_issues(RequestValidationError(_query_validation_errors(error)))
+        raise ValidationApplicationError(details=details) from None
+
+
+def _raw_bookmark_query_values(request: Request) -> dict[str, str | None]:
+    """Pass every legacy query key to the strict DTO, excluding cursor-only controls."""
+    date_filters = frozenset({"from", "to", "updated_from", "updated_to"})
+    cursor_controls = frozenset({"pagination", "cursor"})
+    return {
+        key: _nullable_date_query(value) if key in date_filters else value
+        for key, value in request.query_params.items()
+        if key not in cursor_controls
+    }
+
+
+def _nullable_date_query(value: str | None) -> str | None:
+    """Treat OpenAPI's serialized nullable query literal as an absent optional date."""
+    return None if value == "null" else value
+
+
+def _query_validation_errors(error: ValidationError) -> list[dict[str, object]]:
+    """Prefix Pydantic issues for the existing safe framework-error translation boundary."""
+    errors: list[dict[str, object]] = []
+    for item in error.errors()[:20]:
+        location = item.get("loc")
+        suffix = tuple(location) if isinstance(location, tuple | list) else ("invalid",)
+        errors.append({"loc": ("query", *suffix), "type": item.get("type")})
+    return errors or [{"loc": ("query", "invalid"), "type": "invalid"}]
+
+
+def _mode_validation_error(field: str) -> ValidationApplicationError:
+    """Use the established safe validation envelope for mutually exclusive controls."""
+    return ValidationApplicationError(
+        details=(
+            ValidationIssue(loc=("query", field), type="value_error", message="Invalid value"),
+        )
+    )
+
+
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
@@ -176,12 +317,45 @@ def create_bookmark(
     summary="List the authenticated subject's bookmarks",
 )
 def list_bookmarks(
+    request: Request,
+    response: Response,
     subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
-    query: Annotated[BookmarkQuery, Query()],
+    query: Annotated[BookmarkQuery, Depends(get_bookmark_query)],
+    codec: Annotated[BookmarkCursorCodec, Depends(get_bookmark_cursor_codec)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
+    pagination: Annotated[
+        Literal["page", "cursor"],
+        Query(
+            description=(
+                "Pagination strategy. Page mode is the default and forbids cursor; cursor mode "
+                "forbids an explicitly supplied page."
+            ),
+            examples=["page", "cursor"],
+        ),
+    ] = "page",
+    cursor: Annotated[
+        str | None,
+        Query(
+            description=(
+                "Opaque owner- and filter-bound continuation token, accepted only when "
+                "pagination=cursor."
+            ),
+            examples=["eyJjYSI6IjIwMjYtMDEtMDFUMDA6MDA6MDAuMDAwMDAwWiJ9.signature"],
+            json_schema_extra={"maxLength": 2048},
+        ),
+    ] = None,
 ) -> BookmarkList:
-    """Return the authenticated subject's filtered, stable collection page."""
-    return service.list(subject.user_id, query)
+    """Return a legacy offset page or a stable authenticated keyset page."""
+    if pagination == "page":
+        if cursor is not None:
+            raise _mode_validation_error("cursor")
+        return service.list(subject.user_id, query)
+    if "page" in request.query_params:
+        raise _mode_validation_error("page")
+    result = service.list_cursor(subject.user_id, query, cursor=cursor, codec=codec)
+    if result.next_cursor is not None:
+        response.headers["X-Next-Cursor"] = result.next_cursor
+    return result.body
 
 
 @router.get(

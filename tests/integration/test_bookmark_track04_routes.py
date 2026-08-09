@@ -177,6 +177,8 @@ def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> 
         "updated_to",
         "page",
         "page_size",
+        "pagination",
+        "cursor",
     }
     assert {"created_from", "created_to"}.isdisjoint(
         {item["name"] for item in list_operation["parameters"]}
@@ -206,6 +208,13 @@ def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> 
         "examples": [20],
         "title": "Page Size",
     }
+    assert parameters["pagination"]["default"] == "page"
+    assert parameters["pagination"]["enum"] == ["page", "cursor"]
+    assert parameters["cursor"]["maxLength"] == 2048
+    assert "forbids cursor" in parameters["pagination"]["description"]
+    assert "forbids an explicitly supplied page" in parameters["pagination"]["description"]
+    assert "only when pagination=cursor" in parameters["cursor"]["description"]
+    assert list_operation["responses"]["200"]["headers"]["X-Next-Cursor"]["required"] is False
     _validate(
         document, "/api/bookmarks", "200", client.get("/api/bookmarks", headers=headers).json()
     )

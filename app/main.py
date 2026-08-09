@@ -20,6 +20,7 @@ from app.auth.passwords import PasswordHasher
 from app.auth.router import install_test_protected_route
 from app.auth.router import router as auth_router
 from app.auth.security import AccessTokenCodec
+from app.bookmarks.pagination import BookmarkCursorCodec
 from app.bookmarks.router import router as bookmarks_router
 from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.refresher import StatsRefresher
@@ -86,6 +87,10 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
             secret=settings.jwt_secret,
             ttl=timedelta(minutes=settings.access_token_ttl_minutes),
             clock=app.state.clock,
+        )
+        app.state.bookmark_cursor_codec = BookmarkCursorCodec(
+            secret=settings.jwt_secret,
+            ttl_seconds=settings.cursor_ttl_seconds,
         )
         if settings.stats_refresh_enabled:
             store = StatsSnapshotStore()

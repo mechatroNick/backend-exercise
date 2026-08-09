@@ -10,6 +10,7 @@ from sqlmodel import Session
 
 from app.auth.dependencies import get_session
 from app.bookmarks.events import DomainEventPublisher, NoOpDomainEventPublisher
+from app.bookmarks.pagination import BookmarkCursorCodec
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.bookmarks.service import BookmarkService
 from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository
@@ -39,6 +40,14 @@ def get_bookmark_service(
         dirty=BookmarkStatsDirtyRepository(session),
         correlation_id_factory=uuid4,
     )
+
+
+def get_bookmark_cursor_codec(request: Request) -> BookmarkCursorCodec:
+    """Resolve the application-owned cursor signer without a hidden singleton."""
+    codec = request.app.state.bookmark_cursor_codec
+    if not isinstance(codec, BookmarkCursorCodec):
+        raise RuntimeError("application bookmark cursor codec is unavailable")
+    return codec
 
 
 def get_bookmark_stats_reader(
@@ -76,6 +85,7 @@ def get_bookmark_stats_service(
 
 __all__ = [
     "get_bookmark_service",
+    "get_bookmark_cursor_codec",
     "get_bookmark_stats_reader",
     "get_bookmark_stats_service",
 ]
