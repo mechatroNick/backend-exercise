@@ -1,5 +1,55 @@
 # Track 06 history
 
+## 2026-08-09 — T06-08 primary closure complete
+
+- Stabilized actual-thread non-daemon worker evidence in `f9a7cd6` and the executable
+  comprehensive closure harness in `8f1dc4d`, preserving the requested incremental
+  checkpoint history.
+- Primary reran the final-form harness successfully: 602 tests, 2,461 statements,
+  516 branches, 100% coverage, migration lifecycle, two-user process isolation,
+  overflow/restart recovery, strict JSON Lines, redaction, and verified cleanup.
+- Published `TEST-REPORT.md` with exact selectors, versions, dynamic safe ports,
+  artifact disposition, traceability, known limits, and independent review findings.
+  No critical, high, or medium defect remains.
+- Marked Track 06 and T06-08 Complete. Track 08 may begin only after this branch is
+  merged to `main` and the post-merge harness, documentation, and clean-tree gates
+  pass. Track 07 remains owner-skipped and current-only marker completion remains
+  terminal.
+
+## 2026-08-09 — T06-07 deterministic and real-process gate complete
+
+- Delivered the executable `scripts/verify-track-06.sh` closure harness with a
+  protected disposable workspace, recursive process cleanup and failure-preserving
+  cleanup self-test, inherited Track 05 gate, locked dependencies, focused and full
+  quality gates, migrated-database lifecycle, and real application processes on
+  reported dynamic loopback ports.
+- The actual harness passed its deterministic worker-topology, retry, join-timeout,
+  overflow, concurrency, recovery, isolation, and observability selectors. Collection
+  found 602 tests; the full run and repository coverage gate passed at 100% statements
+  and branches, with no skipped, xfailed, xpassed, or deselected results accepted.
+- Real HTTP evidence proved two distinguishable users receive their own exact
+  live-to-snapshot statistics bodies and documented headers; bounded capacity-one
+  overflow degraded readiness without failing committed mutations; durable dirty
+  work survived shutdown and cleared after restart reconciliation.
+- Every captured application line parsed as strict JSON Lines. The audit proved one
+  exact named non-daemon worker lifecycle per process, clean join, safe UUID service
+  and correlation identities, applicable cycle and queue/count telemetry, redaction
+  of credentials/content/identifiers/workspace paths, and complete application
+  lifecycle evidence.
+- Migration upgrade, downgrade, re-upgrade, drift check, Ruff format/check, strict
+  mypy, `make check`, documentation verification, whitespace validation, and verified
+  artifact cleanup all passed. No response, token, database, coverage, or debug
+  artifact was retained.
+- Mason's post-fix audit returned **PASS-WITH-NOTES** with no critical, high, or
+  medium finding. Its two low notes concern deliberate duplication of the effective
+  bootstrap recipe to isolate migration output from application JSON and receipt
+  detail; the latter was addressed by reporting exact edge selectors, suite/coverage
+  summaries, and selected non-sensitive ports.
+- T06-08 is now active. Track status remains in progress until primary creates the
+  final `TEST-REPORT.md`, records the stabilized commit evidence, and completes the
+  Track 08 handoff. The terminal current-only marker policy and Track 07 skip remain
+  unchanged.
+
 ## 2026-08-07 — T06-06 health/readiness checkpoint complete
 
 - Stabilized the exact public health surface in commit `5b4e489`: static

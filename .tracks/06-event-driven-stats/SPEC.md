@@ -1,6 +1,6 @@
 # Track 06 specification: event-driven current statistics, durable recovery, and operations
 
-- Status: Ready (implementation authorized)
+- Status: Complete
 - Specification version: 1.2
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
@@ -18,8 +18,8 @@ must never be required for a correct `GET /api/bookmarks/stats` response.
 Track 05 is Complete and merged to `main` at `001056c`; its post-merge Track 05
 harness, documentation verification, and cleanup self-test passed. The Track 06
 compatibility gate found no critical/high defect or incompatible delivered seam.
-Implementation is therefore authorized on `codex/track-06-event-driven-stats`, while
-all acceptance claims remain open until T06-08 records executable evidence.
+Implementation was completed on `codex/track-06-event-driven-stats`. T06-08 records
+the executable evidence and independent closure review in `TEST-REPORT.md`.
 
 ## 2. Must-preserve contracts
 

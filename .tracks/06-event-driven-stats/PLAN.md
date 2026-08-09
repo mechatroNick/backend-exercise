@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.2
 - Governing ADRs: ADR-001, ADR-004, ADR-005, ADR-006
-- Status: Ready (implementation authorized)
-- Active item: T06-07 — deterministic closure suite and real-process harness
+- Status: Complete
+- Active item: None — Track 08 handoff is unblocked after merge to `main`
 
 ## Dependency gate and intent check
 
@@ -22,8 +22,8 @@ not adapt a public or durable-state contract silently.
 | T06-04 | Implement bounded queue, overflow flag/logging, coalescing, immutable snapshot store, and live `/stats` source selection/headers. | Smith / implementation | T06-01, T06-03 | Complete | Commits `38539c8` and `58eaa08`; total queue adapter, epoch-safe immutable snapshots, exact live fallback, documented headers, concurrency/failure tests, and 100% coverage passed. |
 | T06-05 | Implement lifecycle-owned `bookmark-stats-refresher`, startup/periodic/full reconciliation, per-cycle sessions, generation-safe cleanup, and bounded cooperative shutdown. | Smith / implementation | T06-02, T06-04 | Complete | Commit `3de2c76`; exact non-daemon thread, bounded cursor/backlog and epoch-safe reconciliation, one session/non-overlap, generation/CAS/commit races, retry, deferred timeout cleanup, 556-test full suite, 100% coverage, and independent PASS. |
 | T06-06 | Implement exact health routes, readiness state, worker-count enforcement, safe structured lifecycle logs, and redaction tests. | Smith / implementation | T06-04, T06-05 | Complete | Commit `5b4e489`; exact public health surface, static liveness, fail-closed database/worker/publisher/backlog readiness, transition-only redacted logs, 10-operation/37-pair OpenAPI inventory, 601-test full suite, 100% statement/branch coverage, and independent PASS. |
-| T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Pending | No real sleep; barrier/fault-injection proof for generation and concurrency; full ledger, SQL/live fallback parity, migration lifecycle, contracts, ephemeral response/token assertion handling, hygiene, and actual `bash scripts/verify-track-06.sh` receipt. |
-| T06-08 | Primary closure, risk review, Track 08 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Pending | All SPEC traceability complete; no critical/high defect; truthful deterministic/process-harness results, verified cleanup, safe debug-artifact disposition, and terminal current-only marker contract recorded. |
+| T06-07 | Run deterministic integration/concurrency/failure suite, migration/quality validation, and the real-process closure harness; assemble evidence. | Smith / implementation | T06-02, T06-03, T06-04, T06-05, T06-06 | Complete | Actual `bash scripts/verify-track-06.sh` passed: inherited Track 05, deterministic topology/retry/join/overflow edges, 602-test full suite and 100% statement/branch coverage, migration lifecycle, two-user live/snapshot isolation, real overflow/restart recovery, strict JSON Lines/redaction, and verified cleanup. Independent post-fix audit: PASS with no critical/high/medium finding. |
+| T06-08 | Primary closure, risk review, Track 08 handoff, and `TEST-REPORT.md`. | Primary engineering thread | T06-01, T06-02, T06-03, T06-04, T06-05, T06-06, T06-07 | Complete | `TEST-REPORT.md`; commits `f9a7cd6` and `8f1dc4d`; actual 602-test/100%-coverage/process receipt; no retained private artifact; independent post-fix PASS with no critical/high/medium finding; terminal current-only marker and Track 07 skip boundaries handed to Track 08. |
 
 ## Shared completion gate
 
