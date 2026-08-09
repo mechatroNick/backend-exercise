@@ -110,13 +110,13 @@ Track 07 deliberately has no verifier. Track 08 and Track 09 are clean-committed
 gates and include Docker delivery evidence. A dirty/non-clean source is a **failure**;
 explicit development seams and an unavailable Docker daemon are nonzero **incomplete**
 results, never a pass or skip. Run them only when their documented prerequisites are
-met. The clean-source Track 09 branch gate has passed; the track remains **Ready to
-merge** until the exact merged-`main` rerun passes.
+met. Track 09 is **Complete**: its clean-source branch gate and exact merged-`main`
+rerun passed.
 
 The current clean-source Track 09 branch evidence is **743 tests plus 3 subtests** and
 **2,953 statements / 618 branches at 100% coverage**. The exact commands, receipts,
-and remaining merge gate are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
-and [branch test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
+and merged-main receipt are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
+and [final test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
 
 For ordinary local checks:
 
@@ -148,7 +148,7 @@ Use `migrate-only` as the final image argument to run Alembic and exit. The cont
 contract is non-root, one worker, `/data` volume, `/health/live` health check, JSON Lines
 lifecycle logs, and cooperative `SIGTERM` handling. The clean-source Track 09 branch
 Docker receipt passed; use `bash scripts/verify-track-09.sh` for the authoritative
-ordered build, runtime, and cleanup gate. Exact merged-`main` closure remains pending.
+ordered build, runtime, and cleanup gate. The exact merged-`main` gate also passed.
 
 ## Architecture and security
 
@@ -178,11 +178,10 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 06 | Complete — event-driven current snapshots, health, and observability. |
 | 07 | Skipped by owner — no weekly projection/history delivery or verifier. |
 | 08 | Complete — final handoff and selected delivery extensions. |
-| 09 | **Ready to merge** — cleanup, documentation migration, typed-model/lifecycle modernization, and branch reporting passed. |
+| 09 | Complete — cleanup, documentation migration, typed-model/lifecycle modernization, final reporting, and merged-main verification. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,
 plans, histories, and evidence reports. The [release handoff](.docs/RELEASE-HANDOFF.md)
-holds completed repository evidence and the external-action boundary; it is not a claim
-that Track 09 final evidence is complete. External push, archive, sharing, deployment,
-and submission remain repository-owner actions.
+holds completed repository evidence and the external-action boundary. External push,
+archive, sharing, deployment, and submission remain repository-owner actions.

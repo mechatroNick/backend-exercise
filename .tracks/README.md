@@ -60,7 +60,7 @@ flowchart LR
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
 | 07 | Weekly developing points and append-only correction revisions | None | **Skipped (owner decision)** |
 | 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Complete |
-| 09 | Final cleanup, documentation migration, and standalone test reports | 08 | **Ready to merge** |
+| 09 | Final cleanup, documentation migration, and standalone test reports | 08 | Complete |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -112,4 +112,4 @@ deterministic tests and real-process harness evidence.
 - [Track 09 specification](09-final-cleanup-docs/SPEC.md)
 - [Track 09 execution plan](09-final-cleanup-docs/PLAN.md)
 - [Track 09 history](09-final-cleanup-docs/HISTORY.md)
-- [Track 09 branch test report](09-final-cleanup-docs/TEST-REPORT.md)
+- [Track 09 final test report](09-final-cleanup-docs/TEST-REPORT.md)

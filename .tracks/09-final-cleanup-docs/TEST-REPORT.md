@@ -1,18 +1,22 @@
-# Track 09 branch test report
+# Track 09 final test report
 
-- Status: Passed (clean-source branch gate; merged-main rerun pending)
+- Status: Passed
 - Date: 2026-08-09
-- Clean source HEAD: `c92dc353a84aa06cd6496e83543d3828910be746`
+- Clean implementation evidence HEAD: `c92dc353a84aa06cd6496e83543d3828910be746`
+- Clean branch closure evidence HEAD: `62780a77431e3f64db9df9f29af133fb736562c0`
+- Merged main evidence HEAD: `ce16aa187a8b281873e1b290b3c826d3ad552d1c`
 - Scope: Track 09 implementation, comprehensive clean-source verification, exact
-  inherited Track 08 verification, Docker delivery, and cleanup. Merge/post-merge
-  evidence and owner-only external release actions are not claimed by this receipt.
+  inherited Track 08 verification, Docker delivery, merge, post-merge verification,
+  and cleanup. Owner-only external release actions are not claimed by this receipt.
 
-## Branch result
+## Final result
 
 `bash scripts/verify-track-08.sh` and `bash scripts/verify-track-09.sh` passed from the
 recorded clean committed source. No development seam, Docker skip, warning allowance,
 coverage waiver, or stale historical receipt was treated as a pass. Track 07 remains
-an explicit owner skip and no weekly-history implementation exists.
+an explicit owner skip and no weekly-history implementation exists. The branch was
+merged with merge commit `ce16aa1`, and the exact Track 09 gate passed again on that
+clean merged `main` commit.
 
 ## Environment and locked tools
 
@@ -72,10 +76,9 @@ terminal output retained only safe selectors, counts, versions, and cleanup resu
 | `a4992d5` | Made upstream path-migration provenance byte/mode exact and fail closed. |
 | `c92dc35` | Kept provenance fixtures compatible with documentation-path hygiene. |
 
-## Remaining closure action
+## External action boundary
 
-T09-REQ-11 is not complete at this branch receipt. The primary thread must review
-this closure wave, commit it, merge the branch with a merge commit to `main`, rerun
-the exact Track 09 gate on the merged commit, update statuses to Complete, and verify
-the final clean `main` HEAD. External push, archive, publication, deployment,
-submission, or release remains owner-only and was not performed.
+T09-REQ-11 is complete: the independently reviewed branch closure was committed,
+merged with a merge commit to `main`, and the exact final gate passed on the clean
+merged commit. External push, archive, publication, deployment, submission, or
+release remains owner-only and was not performed.

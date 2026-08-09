@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.0
 - Governing records: ADR-006, ADR-008, and completed Tracks 00–08
-- Status: Ready to merge
-- Active item: T09-09 merge and post-merge verification
+- Status: Complete
+- Active item: None
 
 ## Dependency and intent gate
 
@@ -22,7 +22,7 @@ and the Track 07 skip. No external action or history rewrite is authorized.
 | T09-06 | Add consistent safe standalone reporting to every verification script, strengthen post-build Docker tests, and implement `verify-track-09.sh`. | Smith High | T09-03, T09-05 | Complete | Reporting and final harness committed through `93ee83a`, `b113963`, `4db9410`, `a4992d5`, and `c92dc35`; report/static/failure/cleanup contracts and the clean-source gate passed. |
 | T09-07 | Rewrite root README and update `.docs`/track indexes with SDD Mermaid first, current requirement/limitation/test-report guidance, and Tracks 00–09 status. | Smith | T09-03, T09-06 | Complete | Reader guide committed at `5e8fe42`; documentation gate passed with 43 requirements, eight ADRs, ten tracks, exact links, and newline hygiene. |
 | T09-08 | Run focused and complete deterministic, branch-coverage, type, warning, migration, runtime, security, dependency, documentation, inherited-harness, Docker, and cleanup validation. | Primary | T09-04, T09-05, T09-06, T09-07 | Complete | Clean committed branch HEAD `c92dc35` passed `bash scripts/verify-track-08.sh` and `bash scripts/verify-track-09.sh`: 743 tests plus 3 subtests, 2,953 statements / 618 branches at 100%, real runtime, Docker, and verified cleanup. |
-| T09-09 | Independent closure review; publish TEST-REPORT/HISTORY/status, merge branch to main, and rerun the exact final gate on merged main. | Primary + Mason | T09-08 | In progress | Provenance correction received independent PASS review; branch report/closure commit, merge commit, and post-merge clean-source pass remain. |
+| T09-09 | Independent closure review; publish TEST-REPORT/HISTORY/status, merge branch to main, and rerun the exact final gate on merged main. | Primary + Mason | T09-08 | Complete | Closure wave received independent PASS review; merge commit `ce16aa1` was created on `main`; the exact Track 09 gate passed on that clean merged commit with inherited Track 08, Docker, final-clone cleanliness, and cleanup PASS. |
 
 ## Ordered validation ledger
 

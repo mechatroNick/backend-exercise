@@ -53,7 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | **Ready to merge** |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Complete |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -354,8 +354,8 @@ Turn the working solution into a concise, reproducible senior-level submission w
 
 Finish the repository as a fresh-reader-friendly assessment without changing the
 accepted HTTP, persistence, security, statistics, one-worker, or Track 07 absence
-contracts. Its clean-source and Docker branch gates have passed; it remains **Ready
-to merge** until the exact merged-`main` rerun passes.
+contracts. Its clean-source/Docker branch gate and exact merged-`main` rerun passed;
+the track is **Complete**.
 
 ### Included
 
@@ -372,12 +372,12 @@ to merge** until the exact merged-`main` rerun passes.
 - the unchanged OpenAPI inventory remains 10 operations and 45 status pairs, and the
   requirement map remains 43 IDs;
 - all eight accepted ADRs and Tracks 00–09 are accurately indexed;
-- current branch evidence reports 743 tests plus 3 subtests and 2,953 statements /
-  618 branches at 100%, without claiming merged-main closure;
+- final evidence reports 743 tests plus 3 subtests and 2,953 statements / 618 branches
+  at 100% on the branch and merged-main gates;
 - `verify-docs`, Tracks 01–06, Track 08, and the new Track 09 gate emit standalone
   terminal reports; Track 07 remains owner-skipped and has no verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are
-  nonzero incomplete, never a pass or skip; the merged-main rerun is still required.
+  nonzero incomplete, never a pass or skip; the merged-main rerun passed.
 
 ### Proposed commit
 

@@ -38,10 +38,10 @@
 
 ## Current state
 
-- Specification: Ready to merge (branch gate passed), version 1.0
-- Plan: Ready to merge; T09-09 is active
-- Implementation: T09-01 through T09-08 complete
-- Closure: Branch evidence passed; merge and exact post-merge evidence pending
+- Specification: Complete, version 1.0
+- Plan: Complete; T09-01 through T09-09 complete
+- Implementation: Complete
+- Closure: Complete on merged `main`
 
 ## 2026-08-09 — Clean-source branch gate passed
 
@@ -65,3 +65,16 @@
 - No external push, publication, deployment, submission, or release action occurred.
   Track 09 remains Ready to merge until the owner-authorized merge commit and exact
   merged-main rerun pass.
+
+## 2026-08-09 — Merged-main closure passed
+
+- The independently reviewed branch closure was committed at `62780a7` and passed the
+  exact Track 09 clean-source gate, including inherited Track 08 and Docker.
+- The branch was merged to `main` with non-fast-forward merge commit `ce16aa1`.
+- `bash scripts/verify-track-09.sh` passed on clean merged `main` commit `ce16aa1`:
+  lock/audit, modernization inventories, Ruff, mypy, Pyright, both warning-fatal
+  suites, 743 tests plus 3 subtests, 2,953 statements / 618 branches at 100%, Alembic,
+  docs, hygiene, cleanup self-test, exact inherited Track 08/Docker, final-clone
+  cleanliness, and verified cleanup all returned exit 0.
+- Track 09 is Complete. External push, archive, publication, deployment, submission,
+  and release remain owner-only and were not performed.
