@@ -1,0 +1,40 @@
+# Source control, developer configuration, and credentials must never enter the build context.
+.git
+.env
+.env.*
+*.env
+.aws/
+.ssh/
+*.pem
+*.key
+*.cert
+*.secret
+
+# Local databases and generated Python/tooling state.
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+.venv/
+.uv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Repository material that is not required to build the runtime image.
+.tracks/
+docs/
+tests/
+tmp/
+build/
+dist/
+*.egg-info/
+README.md
+scripts/*
+!scripts/docker-entrypoint.sh
