@@ -21,10 +21,24 @@
 - No product, dependency, documentation-tree, automation, Docker, external, or
   history-rewrite change is claimed by this planning record.
 
+## 2026-08-09 — Implementation checkpoints stabilized
+
+- Accepted Track 09 and ADR-008 at `a915400`.
+- Added typed lifecycle events, current TestClient support, locked Pyright, and
+  reasonable application typing fixes at `ecb225c` and `d1ac384`.
+- Moved the complete nine-file reader documentation tree to `.docs/` and repaired
+  every live repository path at `bc728b6`.
+- Replaced all application and test-helper standard-library dataclasses with strict
+  behavior-preserving Pydantic v2 models at `a9bdf15`.
+- The integrated uncommitted reporting and reader-documentation waves pass 740 tests
+  plus 3 subtests, 2,953 statements and 618 branches at 100% coverage, Ruff, mypy,
+  Pyright, documentation, warning-fatal, report-contract, and working-tree Docker
+  preflight gates. They remain in progress until independently committed and proven by
+  the clean-source final harness.
+
 ## Current state
 
 - Specification: Ready (implementation authorized), version 1.0
-- Plan: In progress; T09-02 active
-- Implementation: Not started
+- Plan: In progress; T09-06 and T09-07 integration checkpoints active
+- Implementation: T09-02 through T09-05 complete; T09-06 and T09-07 implemented and awaiting commits
 - Closure: Pending clean-source branch and post-merge evidence
-

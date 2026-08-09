@@ -77,4 +77,3 @@ concurrency, extra/coercive/invalid values, event UUID/time invariants, stats
 source/timestamp invariants, cursor round-trip and legacy token compatibility, seed
 summary/log safety, and query-plan helper equality. Full type, warning, coverage,
 OpenAPI/runtime, Track 01–06/08, and Docker gates must remain green.
-
