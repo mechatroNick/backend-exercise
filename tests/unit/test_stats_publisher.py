@@ -150,12 +150,17 @@ def test_internal_failures_are_total_set_reconciliation_and_log_once() -> None:
     assert queue_failure.publish(_event()) is PublishOutcome.UNAVAILABLE
     assert queue_failure.state().failure_count == 1
     assert len(queue_handler.records) == 1
+    sensitive_failure_content = (
+        "private-user-content-sentinel",
+        "private-queue-content-sentinel",
+        "logger-private-content-sentinel",
+    )
     for record in (*store_handler.records, *queue_handler.records):
-        assert "private" not in repr(record.structured_context)
-        assert "user" not in repr(record.structured_context)
+        structured_context = repr(record.structured_context)
+        assert all(value not in structured_context for value in sensitive_failure_content)
         rendered = JsonFormatter().format(record)
         payload = json.loads(rendered)
-        assert "private" not in rendered
+        assert all(value not in rendered for value in sensitive_failure_content)
         assert payload["exception"]["message"] == "statistics publisher operation failed"
         assert payload["exception"]["frames"]
 
