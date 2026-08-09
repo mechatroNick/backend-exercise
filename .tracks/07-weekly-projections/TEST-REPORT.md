@@ -1,6 +1,6 @@
 # Track 07 test report: weekly event-time projections and correction revisions
 
-- Status: **Complete**
+- Status: Passed
 - Evidence commit: `08a86b3`
 - Verification date: 2026-08-10
 - Governing ADRs: ADR-004, ADR-005, ADR-006, ADR-009

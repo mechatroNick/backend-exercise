@@ -76,11 +76,21 @@ def test_dockerignore_excludes_secrets_generated_artifacts_and_unneeded_context(
     assert "!scripts/docker-entrypoint.sh" in dockerignore
 
 
-def test_container_delivery_does_not_add_weekly_history_or_external_worker_components() -> None:
+def test_container_delivery_allows_private_projections_without_history_or_external_workers() -> (
+    None
+):
     delivery = "\n".join(
         _read_repository_file(relative_path)
         for relative_path in ("Dockerfile", ".dockerignore", "scripts/docker-entrypoint.sh")
     ).lower()
 
-    for forbidden_component in ("weekly", "projection", "history", "developing", "developed"):
+    for forbidden_component in ("celery", "kafka", "redis", "dramatiq", "rq"):
         assert forbidden_component not in delivery
+
+    migration = _read_repository_file("alembic/versions/0003_weekly_stats_projections.py")
+    assert "bookmark_stats_window_working" in migration
+    assert "bookmark_stats_window_point" in migration
+    assert "bookmark_stats_projection_state" in migration
+    public_bookmark_router = _read_repository_file("app/bookmarks/router.py").lower()
+    assert "history" not in public_bookmark_router
+    assert "weekly" not in public_bookmark_router

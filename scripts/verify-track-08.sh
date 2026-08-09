@@ -13,7 +13,7 @@ report_helper="${source_root}/scripts/verification-report.sh"
 source "${report_helper}"
 verification_report_start 'scripts/verify-track-08.sh' 'Track 08 final clean-clone verification'
 verification_report_gate 'clean committed source, locked toolchain, and dependency advisory'
-verification_report_gate 'exact inherited Track 01--06 harnesses and closure provenance'
+verification_report_gate 'exact inherited Track 01--07 harnesses and closure provenance'
 verification_report_gate 'quality, migration, seed, runtime, hygiene, and cleanup evidence'
 verification_report_gate 'Docker build, post-build contract, and image runtime delivery'
 uv_command="${UV:-uv}"
@@ -204,6 +204,7 @@ run_private() {
             verify-track-04) safe_message 'receipt: command=bash scripts/verify-track-04.sh; exit=0' ;;
             verify-track-05) safe_message 'receipt: command=bash scripts/verify-track-05.sh; exit=0' ;;
             verify-track-06) safe_message 'receipt: command=bash scripts/verify-track-06.sh; exit=0' ;;
+            verify-track-07) safe_message 'receipt: command=bash scripts/verify-track-07.sh; exit=0' ;;
             bonus-focused) safe_message 'receipt: command=uv run pytest -q [focused Track 08 bonus selectors]; exit=0' ;;
             ruff-format) safe_message 'receipt: command=uv run ruff format --check .; exit=0' ;;
             ruff-check) safe_message 'receipt: command=uv run ruff check .; exit=0' ;;
@@ -396,7 +397,8 @@ assert_upstream_provenance() {
     [[ -f "${clone_root}/${report}" ]] || fail "missing upstream closure report ${report}"
     rg -q -- '- Status: Passed' "${clone_root}/${report}" || fail "upstream report is not Passed: ${report}"
     [[ -f "${clone_root}/${plan}" ]] || fail "missing upstream plan ${plan}"
-    rg -q -- '^- Status: Complete$' "${clone_root}/${plan}" || fail "upstream plan is not Complete: ${plan}"
+    rg -q -- '^- Status: (Complete|\*\*Complete\*\*)$' "${clone_root}/${plan}" \
+        || fail "upstream plan is not Complete: ${plan}"
     report_commit="$(git -C "${clone_root}" log -1 --format=%H -- "${report}")"
     [[ -n "${report_commit}" ]] || fail "upstream report has no committed provenance: ${report}"
     git -C "${clone_root}" merge-base --is-ancestor "${report_commit}" HEAD \
@@ -434,6 +436,7 @@ verify_upstream_evidence() {
     (cd "${clone_root}" && run_private verify-track-04 bash scripts/verify-track-04.sh)
     (cd "${clone_root}" && run_private verify-track-05 bash scripts/verify-track-05.sh)
     (cd "${clone_root}" && run_private verify-track-06 bash scripts/verify-track-06.sh)
+    (cd "${clone_root}" && run_private verify-track-07 bash scripts/verify-track-07.sh)
 
     assert_upstream_provenance 01 .tracks/01-foundation/TEST-REPORT.md .tracks/01-foundation/PLAN.md
     assert_upstream_provenance 02 .tracks/02-auth-errors/TEST-REPORT.md .tracks/02-auth-errors/PLAN.md
@@ -441,7 +444,8 @@ verify_upstream_evidence() {
     assert_upstream_provenance 04 .tracks/04-search-stats/TEST-REPORT.md .tracks/04-search-stats/PLAN.md
     assert_upstream_provenance 05 .tracks/05-mandatory-quality-gate/TEST-REPORT.md .tracks/05-mandatory-quality-gate/PLAN.md
     assert_upstream_provenance 06 .tracks/06-event-driven-stats/TEST-REPORT.md .tracks/06-event-driven-stats/PLAN.md
-    safe_message 'upstream closure reports: non-circular provenance and current exact harness compatibility verified'
+    assert_upstream_provenance 07 .tracks/07-weekly-projections/TEST-REPORT.md .tracks/07-weekly-projections/PLAN.md
+    safe_message 'upstream closure reports: Tracks 01--07 non-circular provenance and current exact harness compatibility verified'
 }
 
 assert_no_masked_test_results() {
@@ -747,9 +751,15 @@ refresher_events = (
     "bookmark_stats.refresher_stopping",
     "bookmark_stats.refresher_stopped",
 )
-if any(event in events for event in refresher_events):
-    if any(events.count(event) != 1 for event in refresher_events):
-        raise SystemExit("runtime refresher lifecycle evidence is incomplete")
+if any(events.count(event) != 1 for event in refresher_events):
+    raise SystemExit("runtime refresher lifecycle evidence is not exactly once")
+started = [record for record in records if record.get("event") == "bookmark_stats.refresher_started"]
+if not (
+    len(started) == 1
+    and started[0].get("thread_name") == "bookmark-stats-refresher"
+    and started[0].get("context", {}).get("worker_is_daemon") is False
+):
+    raise SystemExit("runtime named non-daemon refresher evidence is absent")
 print("runtime JSON Lines schema, redaction, and shutdown lifecycle audit passed")
 PY
     ) >"${workspace}/receipts/runtime-audit.log" 2>&1; then
@@ -759,15 +769,22 @@ PY
     safe_message 'receipt: selector=runtime JSON Lines schema/redaction/shutdown lifecycle; exit=0; exact exception ownership selectors ran in Track 01, 05, and 06 receipts'
 }
 
-verify_track07_absence() {
-    rg -q 'Status: \*\*Skipped \(owner decision\)\*\*' "${clone_root}/.tracks/07-weekly-projections/SPEC.md" \
-        || fail 'Track 07 skip disposition is absent'
-    [[ ! -e "${clone_root}/.tracks/07-weekly-projections/TEST-REPORT.md" ]] || fail 'Track 07 has an implementation report'
-    [[ ! -e "${clone_root}/scripts/verify-track-07.sh" ]] || fail 'Track 07 has an executable harness'
-    ! rg -qi 'weekly|projection|developing|developed|history' "${clone_root}/alembic/versions" \
-        || fail 'weekly projection migration artifacts are present'
-    ! rg -qi '/api/.+history|weekly' "${clone_root}/app" || fail 'weekly/history runtime API is present'
-    safe_message 'receipt: selector=Track 07 owner-skipped disposition and absence boundary; exit=0'
+verify_track07_private_boundary() {
+    rg -q 'Status: \*\*Complete\*\*' "${clone_root}/.tracks/07-weekly-projections/SPEC.md" \
+        || fail 'Track 07 specification is not Complete'
+    rg -q '^- Status: \*\*Complete\*\*$' "${clone_root}/.tracks/07-weekly-projections/PLAN.md" \
+        || fail 'Track 07 plan is not Complete'
+    [[ -f "${clone_root}/.tracks/07-weekly-projections/TEST-REPORT.md" ]] \
+        || fail 'Track 07 closure report is missing'
+    [[ -x "${clone_root}/scripts/verify-track-07.sh" ]] \
+        || fail 'Track 07 executable harness is missing'
+    [[ -f "${clone_root}/alembic/versions/0003_weekly_stats_projections.py" ]] \
+        || fail 'Track 07 private projection migration is missing'
+    ! rg -qi '/api/[^"[:space:]]*(history|weekly)' "${clone_root}/app" \
+        || fail 'public weekly/history API surface is present'
+    ! rg -qi 'celery|kafka|redis|dramatiq|rq' "${clone_root}/Dockerfile" "${clone_root}/scripts/docker-entrypoint.sh" \
+        || fail 'external projection worker or broker component is present'
+    safe_message 'receipt: selector=Track 07 Complete/private projection/no-public-history/single-worker boundary; exit=0'
 }
 
 verify_hygiene() {
@@ -878,9 +895,15 @@ refresher_events = (
     "bookmark_stats.refresher_stopping",
     "bookmark_stats.refresher_stopped",
 )
-if any(event in events for event in refresher_events):
-    if any(events.count(event) != 1 for event in refresher_events):
-        raise SystemExit("Docker refresher lifecycle evidence is incomplete")
+if any(events.count(event) != 1 for event in refresher_events):
+    raise SystemExit("Docker refresher lifecycle evidence is not exactly once")
+started = [record for record in records if record.get("event") == "bookmark_stats.refresher_started"]
+if not (
+    len(started) == 1
+    and started[0].get("thread_name") == "bookmark-stats-refresher"
+    and started[0].get("context", {}).get("worker_is_daemon") is False
+):
+    raise SystemExit("Docker named non-daemon refresher evidence is absent")
 for record in records:
     if not {"source", "event", "timestamp", "process_id", "thread_id"} <= record.keys():
         raise SystemExit("Docker JSON Lines schema is incomplete")
@@ -944,13 +967,13 @@ main() {
     exercise_runtime "${runtime_port}"
     stop_server
     audit_runtime_logs
-    verify_track07_absence
+    verify_track07_private_boundary
     verify_hygiene
     verify_docker
     if [[ "${development_preflight}" == 1 || "${skip_docker}" == 1 ]]; then
         fail 'development seam was used; this is not a final Track 08 receipt'
     fi
-    verification_report_summary 'clean clone, inherited gates, quality, runtime, Docker post-build contract, image delivery, and hygiene completed'
+    verification_report_summary 'clean clone, inherited Track 01--07 gates, quality, runtime, Docker post-build contract, image delivery, and hygiene completed'
     safe_message 'FINAL PASS: clean-clone Track 08 evidence complete; no external action was performed'
 }
 
