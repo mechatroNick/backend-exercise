@@ -1,6 +1,6 @@
 # Track 08 specification: final hardening, documentation, and assessment handoff
 
-- Status: Planned (implementation-gated)
+- Status: Ready (implementation authorized)
 - Specification version: 1.2
 - Planned: 2026-08-05
 - Owner: Primary engineering thread

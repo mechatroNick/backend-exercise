@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.2
 - Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`, `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-006
-- Status: Planned (implementation-gated)
-- Active item: None; T08-01 is blocked pending Tracks 01–06 closure
+- Status: Ready (implementation authorized)
+- Active item: T08-02 — final automation and clean-clone rehearsal
 
 ## Dependency gate and intent check
 
@@ -17,7 +17,7 @@ push, deployment, link/archive creation, or history rewrite is authorized here.
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
-| T08-01 | Verify Track 00–06 closure reports, the Track 07 skip record/absence boundary, delivered seams, ADR conformance, and complete assessment inventory before final work. | Primary engineering thread | T01-08, T02-07, T03-08, T04-07, T05-07, T06-08 | Blocked | Tracks 01–06 are Complete with actual reports; Track 07 is Skipped with no weekly artifacts; every assessment ID has evidence or an explicit owner disposition; no unresolved contract conflict. |
+| T08-01 | Verify Track 00–06 closure reports, the Track 07 skip record/absence boundary, delivered seams, ADR conformance, and complete assessment inventory before final work. | Primary engineering thread | T01-08, T02-07, T03-08, T04-07, T05-07, T06-08 | Complete | `EVIDENCE-MATRIX.md`; every Track 00–06 report Passed/plan Complete; Track 07 skip and absence verified; 43 unique IDs inventoried as delivered, skipped, partial, or open; docs gate passed; no unresolved upstream contract conflict. |
 | T08-02 | Deliver `scripts/verify-track-08.sh` and rehearse its clean-clone Python 3.12/locked-`uv` configure, migration, bootstrap/run, full test, OpenAPI/docs, and health workflow. | Smith / implementation | T08-01 | Pending | The final clean-clone automation/orchestrator receipt has exact commands, resolved versions, migration state, service logs, dependency-ordered upstream harness receipts, deterministic unit/integration/contract results, OpenAPI/docs and health selectors, and verified teardown. |
 | T08-03 | Reconcile all assessment and accepted-extension requirements with actual results, defect severity, and evidence locations. | Primary engineering thread | T08-01, T08-02 | Pending | Complete requirement-to-evidence matrix covers GOV-01, ENV-01…DATA-04, AUTH-01…SEC-01, BKM-01…TIME-01, QRY-01…SQL-03, EVT-01…OPS-01, API-01…QUAL-01, DEL-01…DOC-01, and FUT-01. |
 | T08-04 | Author and fresh-reader review root README and supporting reader documentation from delivered facts. | Smith / implementation | T08-02, T08-03 | Pending | Setup/configure/migrate/bootstrap/run/API/test/OpenAPI/health guidance; architecture, local deployment, trade-offs, limitations, and production evolution agree with code and reports. |

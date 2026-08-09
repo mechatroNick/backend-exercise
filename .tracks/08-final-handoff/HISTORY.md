@@ -1,5 +1,21 @@
 # Track 08 history
 
+## 2026-08-09 — T08-01 dependency gate complete
+
+- Started `codex/track-08-final-handoff` from `main` after the fully verified Track 06
+  integration and dedicated Track 07 archived-skip merge `6905b2f`.
+- Inspected every Track 00–06 closure report and plan: all reports say Passed and all
+  plans say Complete. Revalidated Track 07's skipped status and absence of a report,
+  harness, weekly schema/runtime symbols, revisions, or public history API.
+- Added `EVIDENCE-MATRIX.md` covering all 43 assessment IDs. Upstream-delivered rows
+  remain subject to the exact final harness rerun; WIN-01/WIN-02 are owner-skipped;
+  DEL/DOC/BONUS rows remain explicitly Open; FUT-01 remains documentary.
+- `bash scripts/verify-docs.sh` and `git diff --check` passed. No upstream conflict,
+  critical/high defect, secret, private correspondence, or owner-only external action
+  was found or performed.
+- Advanced Track 08 to **Ready (implementation authorized)** with T08-02 active. This
+  is an authorization checkpoint, not clean-clone, bonus, or final closure evidence.
+
 ## 2026-08-06 — Track 07 skipped and all bonus scope required
 
 - Removed Track 07 completion, `TEST-REPORT.md`, and harness from the Track 08 gate.
