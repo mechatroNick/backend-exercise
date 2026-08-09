@@ -15,7 +15,7 @@ assessment. Durable execution state and architecture decisions live under
 | [Engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) | Implementer and reviewer | Shared logging, testing, harness, evidence, and closure policy |
 | [Walkthrough](WALKTHROUGH.md) | Reviewer | Safe reproducible local service demonstration |
 | [AI-assisted work disclosure](AI-ASSISTED-WORK.md) | Reviewer and owner | Evidence-bounded provenance boundary |
-| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Implemented state, remaining final evidence, and external-action boundary |
+| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Completed repository evidence and external-action boundary |
 
 ## Decision and execution records
 
@@ -45,13 +45,12 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 07: skipped-work plan](../.tracks/07-weekly-projections/PLAN.md)
 - [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
+- [Track 08: final test report](../.tracks/08-final-handoff/TEST-REPORT.md)
 
 Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
-Track 08 is in progress. It has implemented the selected seed, Docker, rate-limit,
-and cursor checkpoints, with focused/full development evidence; the combined final
-clean-clone harness and final report remain pending. Other downstream artifacts may
-be planned sequentially after upstream plan review; their presence does not make
-implementation ready until each stated dependency closes with required evidence.
+Track 08 is complete. The selected seed, Docker, rate-limit, and cursor checkpoints
+passed their combined final clean-source harness and are recorded in its final report.
+External release actions remain owner-only and were not performed.
 
 ## Authority
 
@@ -69,4 +68,5 @@ updates. Editorial clarification may update these docs without changing contract
 
 The engineering-process disclosure is now recorded in
 [AI-assisted work](AI-ASSISTED-WORK.md), bounded to repository and owner-provided
-evidence. It is not a claim that final Track 08 verification has completed.
+evidence. It records no private material and does not replace the passed Track 08
+verification evidence.

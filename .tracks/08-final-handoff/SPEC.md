@@ -1,6 +1,6 @@
 # Track 08 specification: final hardening, documentation, and assessment handoff
 
-- Status: In progress
+- Status: Complete
 - Specification version: 1.3
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
@@ -126,11 +126,11 @@ inspection/debug state.
 selected rate-limiting and cursor-pagination product changes; their focused and full
 evidence is required before Track 08 can close.
 
-## Assumptions, unknowns, and stop conditions
+## Closure boundary
 
-The owner will provide any necessary non-repository authorization/provenance evidence
-privately; the repository cannot verify it. Exact dependency-audit and bootstrap
-commands remain implementation-dependent until the locked project exists.
+The clean-source receipt records the locked dependency-audit and bootstrap commands.
+Private authorization/provenance remains outside repository verification and is an
+owner-only review item, not a closure blocker for repository evidence.
 
 Stop and return to the owning track if a closure report is missing, a requirement lacks
 credible evidence, clean-clone behavior differs from documentation, a secret/higher
@@ -143,11 +143,11 @@ history rewriting/squashing, or use/disclosure of private correspondence.
 
 | Assessment / delivery ID | Track 08 evidence |
 | --- | --- |
-| DEL-01 | Coherent incremental-history review, repository hygiene receipt, release/handoff note, and explicit owner-owned submission action. |
+| DEL-01 | Coherent incremental-history review, repository hygiene receipt, release/handoff note, and explicit owner-owned submission boundary. |
 | DEL-02, DOC-01 | Fresh-clone/fresh-reader README and architecture/deployment/trade-off/limitation review. |
 | DEL-03 | Evidence-bounded AI-assisted-work disclosure; private authorization/provenance boundary recorded without copying private material. |
 | FUT-01 | README limitations/production-evolution section; no external infrastructure implementation. |
 | BONUS-01 | Required by owner decision after mandatory green: deterministic seed command, idempotency/safety evidence, and documented invocation. |
 | BONUS-02 | Required by owner decision after mandatory green: Docker setup, rate limiting, and cursor pagination, each with isolated contract/edge evidence. |
 | WIN-01, WIN-02 | Explicit Track 07 owner-skipped disposition; no implementation evidence claimed. |
-| All remaining assessment IDs | Track 01–06 closure-report inventory plus the Track 07 skip record reconciled in final `TEST-REPORT.md`, with final clean-clone and runtime checks. |
+| All remaining assessment IDs | Track 01–06 closure-report inventory plus the Track 07 skip record reconciled in the passing final [TEST-REPORT.md](TEST-REPORT.md), with clean-clone and runtime checks. |

@@ -10,7 +10,7 @@ and a track SPEC's stricter rule prevail when they conflict with this guideline.
 
 `scripts/verify-docs.sh` is documentation-only: it proves documentation integrity,
 not unit, API, migration, database, log, or runtime behavior. The repository also
-contains executable Tracks 01–06 and in-progress Track 08 work, each of which needs
+contains executable Tracks 01–06 and completed Track 08 work, each of which needs
 its own recorded executable evidence.
 
 ## Evidence and track closure
