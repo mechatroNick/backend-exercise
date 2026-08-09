@@ -8,8 +8,8 @@ The design has two layers:
 
 1. the mandatory assessment solution: authenticated bookmark management, search, pagination, and a raw-SQL current-statistics endpoint;
 2. a deliberately bounded engineering extension: loosely coupled invalidation events,
-   a background current-statistics refresher, and health reporting. Weekly historical
-   revisions are an archived design whose Track 07 implementation is skipped.
+   a background current-statistics refresher, private weekly event-time projections
+   with append-only corrections, and health reporting. Weekly history remains private.
 
 The mandatory API remains correct without the extension. The extension must improve freshness and observability without becoming the sole path to correct responses.
 
@@ -73,10 +73,11 @@ The complete stack and its boundaries are accepted in [ADR-001](../.tracks/ADR/A
 - [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) defines API, filtering, tag, and timestamp semantics.
 - [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) defines identity, password hashing, and JWT handling.
 - [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) defines current-statistics invalidation, snapshots, health, and one-worker runtime constraints.
-- [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) is an archived weekly-projection design; Track 07 is skipped and it is not delivered.
+- [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) defines the delivered private weekly-projection and correction design.
 - [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md) defines the binding evidence and closure process.
 - [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) defines local rate limiting and authenticated cursor pagination.
 - [ADR-008](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) defines strict internal Pydantic models and typed lifecycle events.
+- [ADR-009](../.tracks/ADR/ADR-009-track-07-weekly-projection-revival.md) revives Track 07 while preserving current-statistics and one-worker invariants.
 
 ## 5. Code organization
 
@@ -251,8 +252,10 @@ erDiagram
 ```
 
 The initial core migration contains users, bookmarks, tags, and `bookmark_tags`. The
-durable dirty-window table arrives with the Track 06 event service. Track 07 is
-skipped, so no developing/developed projection tables or correction schema is added.
+durable dirty-window table arrives with the Track 06 event service. Track 07 adds
+private `bookmark_stats_window_working`, append-only `bookmark_stats_window_point`, and
+restartable `bookmark_stats_projection_state` persistence plus dual current/projection
+generation completion.
 
 Important constraints and indexes include:
 
@@ -266,6 +269,10 @@ Important constraints and indexes include:
 - indexes supporting `bookmarks(user_id, created_at, id)` and `bookmarks(user_id, updated_at, id)`;
 - an index supporting case-insensitive title lookup where SQLite's query plan benefits from it;
 - a composite `(user_id, window_start)` dirty-marker key with generation-safe cleanup.
+- one working row per user/window, immutable point revisions with a same-window
+  immediate-predecessor foreign key, and a singleton restartable baseline checkpoint;
+- user-delete cascades across dirty, working, and point rows without synthesizing
+  deleted-user history.
 
 Every SQLite connection executes `PRAGMA foreign_keys=ON`. Tests prove actual constraint failures; schema declarations alone are not accepted as evidence. Alembic is the only application schema-creation mechanism.
 
@@ -389,15 +396,30 @@ Every `STATS_REFRESH_INTERVAL_SECONDS` (default `10`) it:
 
 Generation comparison prevents a concurrent mutation from being erased by an older refresh cycle.
 
-## 12. Skipped weekly event-time projection
+## 12. Private weekly event-time projection
 
-Track 07 is skipped by owner decision. The repository does not implement weekly
-developing points, immutable developed revisions, late corrections, historical
-backfill, a historical consumer, or a public history endpoint.
+Track 07 implements UTC Monday-to-Monday event-time windows without adding a public
+history endpoint. A restartable, bounded baseline scans surviving canonical bookmark
+data: closed evidenced windows receive revision 1 with `source_generation=0`, while
+the current evidenced window receives one replaceable working row. Empty elapsed weeks
+and deleted pre-install data are not fabricated.
 
-[ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) remains an archived
-design reference if this feature is ever reconsidered. It is not part of the delivered
-data model or runtime. Track 06 current-only generation completion is final.
+The existing named non-daemon `bookmark-stats-refresher` performs projection work only
+after the current-statistics transaction closes and uses independent short sessions.
+Observed positive dirty generations replace current working state or append a changed
+late correction to a closed window. Developed rows are immutable; a correction points
+to the immediate predecessor for the same user/window, same-hash replay is a no-op,
+and A-B-A material changes remain visible as distinct revisions.
+
+Canonical compact UTF-8 JSON includes an explicit payload schema. A domain-separated
+SHA-256 binds those bytes to the calculation version and top-tag limit. A stored/runtime
+version mismatch never rewrites history automatically: it degrades readiness while
+liveness and `/api/bookmarks/stats` remain correct. `STATS_PROJECTION_ENABLED=false`
+likewise retains durable work and degrades readiness without changing the public body.
+
+[ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) defines the data
+semantics and [ADR-009](../.tracks/ADR/ADR-009-track-07-weekly-projection-revival.md)
+records the revival and compatibility boundary.
 
 ## 13. Configuration
 
@@ -411,6 +433,7 @@ Application settings are environment-driven, validated once, and injectable in t
 | `ACCESS_TOKEN_TTL_MINUTES` | `30` | Access-token lifetime. |
 | `TOP_TAGS_LIMIT` | `5` | Number of top tags in current stats. |
 | `STATS_REFRESH_ENABLED` | `true` | Enable the background refresher. |
+| `STATS_PROJECTION_ENABLED` | `true` | Enable private weekly projection processing in the existing refresher. |
 | `STATS_REFRESH_INTERVAL_SECONDS` | `10` | Maximum normal batching delay. |
 | `STATS_EVENT_QUEUE_CAPACITY` | `1000` | Protect memory under event bursts. |
 | `STATS_STALE_AFTER_SECONDS` | `30`, at least the interval | Decide whether cached current stats are fresh enough. |
@@ -502,7 +525,8 @@ Tests are organized by the behavior they prove, not only by source file.
 - queue overflow still leaves durable work recoverable;
 - worker restart replays dirty work;
 - generation-safe cleanup under a concurrent invalidation;
-- explicit absence of weekly projection tables, routes, and consumers;
+- private weekly baseline, working, correction, restart, and version-mismatch behavior
+  with explicit absence of a public weekly/history route or second worker;
 - readiness degradation and recovery.
 
 ### 16.3 Contract tests
@@ -591,16 +615,19 @@ The goal is not to simulate distributed infrastructure in a take-home. It is to 
 | API semantics, normalization, pagination, timestamp behavior | [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) |
 | Identity validation, Argon2, JWT behavior | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) |
 | Event invalidation, queue, worker lifecycle, health, logging | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) |
-| Weekly event-time points and append-only correction revisions (archived design; implementation skipped) | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) |
+| Weekly event-time points and append-only correction revisions | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) |
 | Evidence and closure governance | [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md) |
 | Local rate limiting and authenticated cursors | [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) |
 | Strict internal Pydantic models and typed lifecycle events | [ADR-008](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) |
+| Track 07 revival and current-statistics compatibility | [ADR-009](../.tracks/ADR/ADR-009-track-07-weekly-projection-revival.md) |
 
 The ADRs are authoritative when this overview is intentionally concise. Any implementation pressure to violate an accepted decision requires updating the ADR first, including consequences and migration impact.
 
 ## 21. Track 09 modernization and current status
 
-Track 09 is **Complete** after its clean-source branch and exact merged-main gates.
+Track 09's pre-revival implementation and clean-source gates are preserved as
+historical evidence. Its active downstream verification is reopened after Track 08
+because those earlier gates asserted Track 07 absence.
 It replaces internal and test-helper dataclasses with
 explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
 cross-field event/statistics invariants, keyword construction, cursor payloads, and
@@ -615,7 +642,7 @@ narrow rather than broad type suppressions. The current supported `httpx2` TestC
 dependency uses a public response adapter only where Schemathesis needs a compatible response surface, so
 contract validation continues to assess the unchanged public API.
 
-All eight ADRs are accepted. Track 09 documentation, Docker, clean-source branch,
-merge, and exact post-merge evidence passed. Consult
+All nine ADRs are accepted. The earlier Track 09 documentation, Docker, clean-source
+branch, merge, and exact post-merge evidence passed for the then-current scope. Consult
 [Track 09's final report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md) for the
 recorded closure evidence.

@@ -1,19 +1,23 @@
 # Track 08 plan: final hardening, documentation, and assessment handoff
 
 - Specification: [SPEC.md](SPEC.md), version 1.3
-- Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`, `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-007
-- Status: Complete
-- Active item: None
+- Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`, `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-009
+- Status: In progress
+- Active item: T08-10 — Track 07 weekly-projection downstream integration and fresh clean-source closure
 
 ## Dependency gate and intent check
 
-Before any Track 08 implementation, the primary thread verifies Track 00 is Complete,
-Tracks 01–06 are Complete with their actual `TEST-REPORT.md` closure artifacts, and
-Track 07 is explicitly Skipped with no weekly projection artifacts.
+Before renewed Track 08 closure, the primary verifies Track 00 is Complete, Tracks
+01–07 are Complete with their actual `TEST-REPORT.md` closure artifacts, and inspects
+the exact Track 07 report, incremental provenance ledger, and executable harness.
 It reconciles each report with the delivered tree and accepted ADRs (including ADR-006), rather than
 treating a planning artifact as implementation evidence. Stop on missing, stale, or
 contradictory evidence; return the defect to its owning track. No external submission,
 push, deployment, link/archive creation, or history rewrite is authorized here.
+
+T08-01 through T08-09 below retain their exact historical completion facts from the
+then-valid Track 07 skip disposition. They are not a current closure claim; T08-10 is
+the sole active downstream integration item.
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -26,19 +30,21 @@ push, deployment, link/archive creation, or history rewrite is authorized here.
 | T08-07 | Establish the mandatory-green bonus preflight, exact acceptance contracts, isolation order, and rollback/stop conditions for all bonus work. | Primary engineering thread | T08-03, T08-04, T08-05, T08-06 | Complete | ADR-007, preflight, and final clean-source evidence passed. |
 | T08-08 | Implement all bonus work in isolated green checkpoints: deterministic seed data, Docker setup, rate limiting, and cursor pagination; then rerun the mandatory/full final harness. | Smith / implementation | T08-07 | Complete | Checkpoints and final full harness passed; no weekly-history drift. |
 | T08-09 | Produce final `TEST-REPORT.md`, release/handoff note, closure review, and owner-action checklist. | Primary engineering thread | T08-02, T08-03, T08-04, T08-05, T08-06, T08-07, T08-08 | Complete | `TEST-REPORT.md`, handoff, closure evidence, and owner-only external-action boundary are recorded. |
+| T08-10 | Reconcile completed Track 07 weekly projections with Track 08’s final clean-source contract, then produce a new closure report. | Primary engineering thread | T07-09, historical T08-01 through T08-09 | In progress | Inspect exact Track 07 Complete report/provenance/harness; verify private projection persistence and Docker compatibility, no public weekly/history API, and the same sole refresher/no external worker; run a fresh clean-source `bash scripts/verify-track-08.sh`; record a new truthful closure report. |
 
 T08-08 is mandatory under the current owner decision. If a bonus threatens correctness
 or security, stop and fix/reframe it; do not silently mark it not selected or close
-Track 08 without it.
+Track 08 without it. The earlier Track 08 completion is historical for the Track 07
+skip disposition and cannot satisfy T08-10.
 
 ## Shared completion gate
 
 The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
-to Track 08 without changing its status, task IDs/dependencies, mandatory bonus
+to Track 08 without changing its historical task IDs/dependencies, mandatory bonus
 boundary, FUT-01/documentation-only boundary, no-public-history boundary, or the
 repository owner's exclusive submission authority. Planned, Ready, Blocked, skipped,
-or unrun work is not done. T08-09 may mark Track 08 Complete only after current,
+or unrun work is not done. T08-10 may mark Track 08 Complete only after current,
 recorded, passing evidence for every required upstream closure and final check, with
 no secret, unresolved critical/high defect, dirty generated artifact, orphan process,
 or cleanup failure. T08-08 requires isolated green checkpoints and a new
@@ -48,11 +54,12 @@ mandatory/full final-harness receipt after the combined bonus set.
 rate-limit and cursor contract for T08-08; implementation may not weaken its isolation,
 compatibility, bounded-state, signing, or fixed-error requirements.
 
-`scripts/verify-track-08.sh` passed as the final clean-clone real
-automation/orchestrator at the recorded clean source HEAD. Its design required it to
+The pre-revival `scripts/verify-track-08.sh` passed as the final clean-clone real
+automation/orchestrator at its recorded clean source HEAD. The reopened verifier now
+requires the same controls plus Track 07. Its design requires it to
 verify the committed Python 3.12.12 pin and locked `uv` without ambient database,
 credentials, or mutable repair; invoke `bash scripts/verify-docs.sh` and every exact
-delivered `bash scripts/verify-track-01.sh` through `bash scripts/verify-track-06.sh`
+delivered `bash scripts/verify-track-01.sh` through `bash scripts/verify-track-07.sh`
 in dependency order, directly or through a named in-repo orchestrator whose
 implementation demonstrably invokes each exact harness. Equivalent selectors cannot
 replace them. It records every exact command/selector, exit result, report/plan/cited-
@@ -73,11 +80,11 @@ archive, create a link, upload, deploy, or submit externally.
 | Area | Planned proof and stop condition |
 | --- | --- |
 | Clean clone/toolchain | `scripts/verify-track-08.sh` starts from a verified disposable clone, uses Python 3.12 and `uv sync --locked`, and has no ambient database or credentials; stop on missing lock, ambient-PATH dependence, undocumented setting, or mutable install step. |
-| Upstream automation | Invoke `bash scripts/verify-docs.sh` and every exact delivered `bash scripts/verify-track-01.sh` through `bash scripts/verify-track-06.sh` directly, or a named in-repo orchestrator demonstrably invoking each exact harness; verify Track 07's skip/absence contract; record command/selector, exit, report/plan/cited-commit provenance and ancestry, inspected artifact, and cleanup result. Stop on missing/contradictory/unrun/nonzero evidence or failed cleanup; equivalent selectors cannot replace harnesses. |
+| Track 07 downstream integration | Inspect the exact Complete Track 07 report, provenance ledger, and executable harness; verify private working/point/state persistence and Docker compatibility, no public weekly/history operation, and the existing sole named refresher/no external worker. Run a fresh clean-source Track 08 harness and produce a new report. Stop on stale skip/absence assertions, missing provenance, topology drift, public-history drift, or unrun integration evidence. |
 | Migration/bootstrap | Empty database upgrade and documented bootstrap/server flow use only supported commands; stop on implicit schema creation, stale migration, multi-worker conflict, orphan process, or non-attributed service startup. |
 | Runtime contract | `/docs`/OpenAPI, auth-protected API examples, current stats, and health are checked against actual routes; stop on documentation/schema/runtime divergence. |
-| Statistics boundaries | Current stats remain correct without weekly projections; no weekly tables/consumer or public history path is added; stop on accidental Track 07 implementation. |
-| Requirement evidence | Reconcile every assessment ID with Track 00–06 receipts, the Track 07 skip record, and fresh final evidence; stop on an unproven selected row or unsupported “pass” claim. |
+| Statistics boundaries | Current all-statistics remain correct alongside delivered private weekly projections; no public weekly/history path, second refresher, external worker, or topology drift is added; stop on a private-persistence/Docker incompatibility. |
+| Requirement evidence | Reconcile every assessment ID with Track 00–07 receipts, the Track 07 Complete report/provenance/harness, and fresh final evidence; stop on an unproven selected row or unsupported “pass” claim. |
 | Documentation/disclosure | README, architecture/deployment, trade-offs, limitations, walkthrough, and AI disclosure derive from inspected facts; stop on a claim needing private/proprietary evidence not supplied by the owner. |
 | Deterministic proof | Record focused and full deterministic-suite commands/results; fail required skip/xfail/deselection/alternate-selector hiding/swallowed failure/assertion-free smoke. Final process evidence supplements each track-owned deterministic proof. |
 | Security/hygiene | Inspect staged/tracked files, ignore rules, config/examples/logs, lock/dependency advisories as supported, generated DB/cache/coverage artifacts, full JSON Lines/redaction/exception ownership/fail-closed formatter behavior, and history; stop on secret exposure, dirty generated artifact, or unresolved critical/high issue. |
@@ -124,7 +131,7 @@ owner credentials made the result possible. The rehearsal verifies the committed
 Python pin; it must not create or silently repair `.python-version` in the clean clone.
 `scripts/verify-track-08.sh` is the recorded final entry point: it must invoke
 `bash scripts/verify-docs.sh` and every exact delivered `bash scripts/verify-track-01.sh`
-through `bash scripts/verify-track-06.sh` itself, or a named in-repo orchestrator whose
+through `bash scripts/verify-track-07.sh` itself, or a named in-repo orchestrator whose
 implementation demonstrably invokes each exact harness; no equivalent selector can
 replace them. It retains every command/selector, exit result, report/plan/cited-commit
 provenance and ancestry, inspected artifact, and cleanup receipt; records focused and
@@ -141,7 +148,7 @@ clean-source receipt resolved the toolchain, dependency-audit, and service-comma
 unknowns. FUT-01 remains a documented production-evolution path, not a deployment
 promise.
 
-Close only when T08-01 through T08-09 have actual green evidence, including all four
+Close only when historical T08-01 through T08-09 and active T08-10 have actual green evidence, including all four
 bonus checkpoints and the combined regression. No critical/high defect,
 secret, requirement-evidence gap, or unresolved documentation contradiction may
 remain. The final note must name the owner as next actor for any submission artifact

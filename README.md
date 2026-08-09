@@ -13,9 +13,11 @@ flowchart LR
 An authenticated local bookmark-management service for the supplied backend assessment.
 It offers registration and login, owner-scoped bookmark CRUD and search, current
 statistics, liveness/readiness checks, deterministic development seeding, local rate
-limiting, and signed cursor pagination. It is a deliberately bounded modular monolith:
+limiting, signed cursor pagination, and private weekly event-time projections with
+append-only correction revisions. It is a deliberately bounded modular monolith:
 FastAPI maps HTTP to services, SQLModel repositories access SQLite, Alembic owns schema
-changes, and a single in-process worker refreshes optional current-statistics snapshots.
+changes, and a single in-process worker refreshes current-statistics snapshots and the
+private weekly projection.
 
 ## What is delivered—and what is not
 
@@ -30,9 +32,9 @@ statistics when a snapshot is unavailable or stale. The requirement map contains
 This is not a production topology. It intentionally uses local SQLite, one Uvicorn
 worker, process-local snapshots/queue/rate state, and HS256 JWTs. It does not provide
 PostgreSQL, Redis or a broker, multi-worker coordination, or a public weekly-history
-API. Track 07 weekly projections are **In progress** under ADR-009; no Track 07
-verifier, implementation, migration, consumer, or closure report exists at this
-checkpoint.
+API. Track 07 is **Complete** under ADR-009: the weekly working rows, immutable point
+revisions, restartable baseline, correction consumer, readiness integration, and
+executable verifier are delivered without adding an eleventh public operation.
 
 ## Run locally
 
@@ -104,24 +106,29 @@ bash scripts/verify-track-03.sh
 bash scripts/verify-track-04.sh
 bash scripts/verify-track-05.sh
 bash scripts/verify-track-06.sh
+bash scripts/verify-track-07.sh
 bash scripts/verify-track-08.sh
 bash scripts/verify-track-09.sh
 ```
 
-Track 07 has no verifier yet; future completion requires deterministic evidence, a
-real-process harness, and `TEST-REPORT.md`. Track 08 and Track 09 retain pre-revival
-clean-source evidence records but must be reopened and updated at a later downstream
-integration checkpoint. A dirty/non-clean source is a **failure**; explicit development
+Track 07's continuous closure receipt passed 862 tests plus 3 subtests, 100% branch
+coverage over 3,922 statements and 908 branches, migrations, and six real-process
+projection phases. Track 08 and Track 09 retain pre-revival clean-source evidence
+records but are reopened for fresh downstream integration. A dirty/non-clean source
+is a **failure**; explicit development
 seams and an unavailable Docker daemon are nonzero **incomplete** results, never pass.
 
-The historical clean-source Track 09 branch evidence is **743 tests plus 3 subtests** and
+The pre-revival Track 09 evidence was **743 tests plus 3 subtests** and
 **2,953 statements / 618 branches at 100% coverage**. The exact commands, receipts,
-and merged-main receipt are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
-and [final test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
+and merged-main receipt remain recorded as historical evidence in the
+[Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md) and
+[test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md); they are not current
+Track 07 integration proof.
 
 The committed [testing-report manifest](.testing_report/MANIFEST.md) indexes historical
 public terminal output. Its Track 07 skip receipt predates ADR-009 and is not current
-implementation or passing executable evidence.
+implementation or passing executable evidence; the bundle will be regenerated only
+after the clean-source downstream gates pass.
 
 For ordinary local checks:
 
@@ -152,8 +159,8 @@ docker run --rm -p 8000:8000 -v bookmarks-api-data:/data \
 Use `migrate-only` as the final image argument to run Alembic and exit. The container
 contract is non-root, one worker, `/data` volume, `/health/live` health check, JSON Lines
 lifecycle logs, and cooperative `SIGTERM` handling. The clean-source Track 09 branch
-Docker receipt passed; use `bash scripts/verify-track-09.sh` for the authoritative
-ordered build, runtime, and cleanup gate. The exact merged-`main` gate also passed.
+Docker receipt passed before Track 07 was revived. The refreshed authoritative ordered
+build, runtime, and cleanup receipt is pending the reopened Track 08/09 gates.
 
 ## Architecture and security
 
@@ -181,9 +188,9 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 04 | Complete — search and current raw-SQL statistics. |
 | 05 | Complete — mandatory quality and OpenAPI gate. |
 | 06 | Complete — event-driven current snapshots, health, and observability. |
-| 07 | In progress — dependency-gated weekly projections; no implementation evidence yet. |
-| 08 | Complete pre-revival record — downstream re-open/update pending. |
-| 09 | Complete pre-revival record — downstream re-open/update pending. |
+| 07 | Complete — private weekly projections, corrections, readiness, and executable evidence. |
+| 08 | In progress — reopened clean-source/Docker integration for completed Track 07. |
+| 09 | Pre-revival completion record — fresh downstream gate pending Track 08. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,

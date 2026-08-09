@@ -1,5 +1,21 @@
 # Track 08 history
 
+## 2026-08-10 — Reopened for completed Track 07 downstream integration
+
+- Track 07 is now Complete with its own report, provenance ledger, executable harness,
+  private weekly-projection persistence, and real-process evidence. The 2026-08-09
+  Track 08 clean-source receipt remains exact historical evidence for the prior Track
+  07 skip/absence disposition, including its recorded HEAD and counts; it is not
+  rewritten or represented as having tested delivered Track 07.
+- Track 08 is reopened **In progress** under T08-10. Before a new closure it must
+  inspect the exact Track 07 Complete report/provenance/harness, verify private
+  persistence and Docker compatibility, preserve no public weekly/history API and the
+  same sole named refresher/no external worker, run a fresh clean-source Track 08
+  harness, and issue a new truthful report.
+- WIN-01/WIN-02 are delivered by Track 07 evidence, but fresh Track 08 integration
+  proof is pending. No current Passed claim, post-merge assertion, or downstream
+  validation is made by this reopening record.
+
 ## 2026-08-09 — Final clean-source closure passed
 
 - `bash scripts/verify-track-08.sh` passed at clean source HEAD

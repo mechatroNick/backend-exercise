@@ -1,20 +1,22 @@
-# Track 08 final test report
+# Track 08 final test report — historical/superseded receipt
 
-- Status: Passed
+- Status: Historical/superseded — not the active Track 08 closure report
 - Date: 2026-08-09
 - Clean source HEAD: `ff32511e9cc0e2df8d7681e2c16b3dddb579faae`
-- Scope: Final clean-source Track 08 verification, documentation handoff, selected
+- Scope: Historical final clean-source Track 08 verification, documentation handoff, selected
   bonus delivery, hygiene, and cleanup. Owner-only external release actions are out
   of scope and were not performed.
 
-## Final result
+## Historical final result
 
 `bash scripts/verify-track-08.sh` passed on a clean source checkout at the recorded
 HEAD. It completed the pre-closure reader package and inherited Track 01–06 harnesses,
 focused bonus checks, full regression, static analysis, migration lifecycle, real
-Uvicorn, Docker, security/hygiene, and cleanup checks. Track 07 remains an explicit
-owner skip, not passing implementation evidence. No unresolved critical, high,
-medium, or low defect remains.
+Uvicorn, Docker, security/hygiene, and cleanup checks. Its Track 07 owner-skip
+statement is historical for that run; it does not include the later delivered Track 07
+implementation or fresh Track 08 integration proof. This report is not a current
+Passed claim. No unresolved critical, high, medium, or low defect was recorded by that
+historical run.
 
 ## Environment and locked dependencies
 

@@ -70,10 +70,11 @@ implementation-ready only when its stated upstream implementation and closure ga
 are satisfied. Decisions that change observable behavior require an ADR update before
 implementation.
 
-Current scope decision: Track 07 is in progress under ADR-009. No Track 07
-implementation, harness, or closure report exists at this checkpoint. Track 08 and
-Track 09 retain pre-revival completion records and must be reopened/updated in a later
-downstream integration checkpoint. External push, archive, sharing, deployment, and
+Current scope decision: Track 07 is Complete under ADR-009 with private projection
+persistence, the existing one-worker integration, a harness, and a closure report.
+Track 08 is reopened for downstream clean-source/Docker verification; Track 09 retains
+a pre-revival completion record until it inherits that fresh gate. External push,
+archive, sharing, deployment, and
 submission remain owner-only actions outside repository completion.
 
 Track completion uses the shared
@@ -106,6 +107,7 @@ deterministic tests and real-process harness evidence.
 - [Track 07 weekly-projection specification](07-weekly-projections/SPEC.md)
 - [Track 07 weekly-projection plan](07-weekly-projections/PLAN.md)
 - [Track 07 decision history](07-weekly-projections/HISTORY.md)
+- [Track 07 test report](07-weekly-projections/TEST-REPORT.md)
 - [Track 08 specification](08-final-handoff/SPEC.md)
 - [Track 08 execution plan](08-final-handoff/PLAN.md)
 - [Track 08 history](08-final-handoff/HISTORY.md)
