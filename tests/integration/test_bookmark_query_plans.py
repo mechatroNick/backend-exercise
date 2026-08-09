@@ -5,11 +5,11 @@ from __future__ import annotations
 import inspect
 import re
 from collections.abc import Iterator
-from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Engine, event, insert
 from sqlalchemy.engine import Connection
 from sqlmodel import Session
@@ -29,8 +29,9 @@ _FIXTURE_COUNT = 250
 _FIXTURE_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 
 
-@dataclass(frozen=True)
-class _ExecutedStatement:
+class _ExecutedStatement(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
     statement: str
     parameters: tuple[object, ...] | dict[str, object]
 
@@ -115,7 +116,7 @@ def _capture_search_statements(
         _context: object,
         _executemany: bool,
     ) -> None:
-        captured.append(_ExecutedStatement(statement, parameters))
+        captured.append(_ExecutedStatement(statement=statement, parameters=parameters))
 
     event.listen(engine, "before_cursor_execute", record)
     try:
@@ -140,7 +141,7 @@ def _capture_stats_statements(engine: Engine) -> tuple[_ExecutedStatement, ...]:
         _executemany: bool,
     ) -> None:
         if statement != "BEGIN DEFERRED":
-            captured.append(_ExecutedStatement(statement, parameters))
+            captured.append(_ExecutedStatement(statement=statement, parameters=parameters))
 
     event.listen(engine, "before_cursor_execute", record)
     try:

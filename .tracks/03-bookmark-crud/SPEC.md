@@ -145,7 +145,7 @@ revise before code if later implementation reveals a material contradiction.
   proves the Track 03 no-op publisher seam cannot change CRUD outcomes; it makes no
   Track 06 event-publication claim.
 
-Track 03 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never planned work or code presence. `scripts/verify-track-03.sh` supplements tests through the delivered bootstrap, without altering CRUD/tag/timestamp semantics, the inert publisher seam, or downstream ownership.
+Track 03 imports the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never planned work or code presence. `scripts/verify-track-03.sh` supplements tests through the delivered bootstrap, without altering CRUD/tag/timestamp semantics, the inert publisher seam, or downstream ownership.
 
 ## 8. Risks, stop conditions, and follow-ups
 

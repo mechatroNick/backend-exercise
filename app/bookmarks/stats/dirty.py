@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any, cast
@@ -20,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import CursorResult
 from sqlmodel import Field, Session, SQLModel
 
+from app.core.internal_models import FrozenInternalModel
 from app.db.types import UTCDateTime
 
 _UTC_TEXT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -35,7 +35,7 @@ class DirtyReason(StrEnum):
 
 
 class BookmarkStatsWindowDirty(SQLModel, table=True):
-    __tablename__ = "bookmark_stats_window_dirty"
+    __tablename__ = "bookmark_stats_window_dirty"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("user_id", "window_start", name="pk_stats_dirty_user_window"),
         ForeignKeyConstraint(
@@ -101,8 +101,7 @@ def utc_monday(value: datetime) -> datetime:
     )
 
 
-@dataclass(frozen=True, slots=True)
-class DirtyMarker:
+class DirtyMarker(FrozenInternalModel):
     user_id: int
     window_start: datetime
     generation: int
@@ -111,8 +110,7 @@ class DirtyMarker:
     last_marked_at: datetime
 
 
-@dataclass(frozen=True, slots=True)
-class DirtyBacklog:
+class DirtyBacklog(FrozenInternalModel):
     count: int
     oldest_marked_at: datetime | None
 

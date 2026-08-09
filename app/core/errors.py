@@ -8,11 +8,11 @@ driver messages, submitted input, credentials, or persistence details.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+
+from app.core.internal_models import FrozenInternalModel
 
 
-@dataclass(frozen=True, slots=True)
-class ValidationIssue:
+class ValidationIssue(FrozenInternalModel):
     """A bounded, safe description of a rejected request field."""
 
     loc: tuple[str | int, ...]

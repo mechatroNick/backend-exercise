@@ -21,6 +21,7 @@ lint:
 
 typecheck:
 	$(UV) run mypy app
+	$(UV) run pyright
 
 migrate:
 	$(UV) run alembic upgrade head

@@ -15,7 +15,7 @@ assessment. Durable execution state and architecture decisions live under
 | [Engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) | Implementer and reviewer | Shared logging, testing, harness, evidence, and closure policy |
 | [Walkthrough](WALKTHROUGH.md) | Reviewer | Safe reproducible local service demonstration |
 | [AI-assisted work disclosure](AI-ASSISTED-WORK.md) | Reviewer and owner | Evidence-bounded provenance boundary |
-| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Completed repository evidence and external-action boundary |
+| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Completed repository evidence and external-action boundary. |
 
 ## Decision and execution records
 
@@ -27,6 +27,7 @@ assessment. Durable execution state and architecture decisions live under
 - [ADR-005: Archived windowed-statistics design; implementation skipped](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
 - [ADR-006: Engineering verification and closure evidence](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 - [ADR-007: Local rate limiting and cursor pagination](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
+- [ADR-008: Pydantic internal models and typed lifecycle events](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md)
 - [Track 00: closed contract baseline](../.tracks/00-contract-baseline/SPEC.md)
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
 - [Track 01: foundation specification](../.tracks/01-foundation/SPEC.md)
@@ -46,10 +47,16 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 - [Track 08: final test report](../.tracks/08-final-handoff/TEST-REPORT.md)
+- [Track 09: final cleanup specification](../.tracks/09-final-cleanup-docs/SPEC.md)
+- [Track 09: final cleanup execution plan](../.tracks/09-final-cleanup-docs/PLAN.md)
+- [Track 09: final cleanup history](../.tracks/09-final-cleanup-docs/HISTORY.md)
+- [Track 09: branch test report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md)
 
 Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
 Track 08 is complete. The selected seed, Docker, rate-limit, and cursor checkpoints
 passed their combined final clean-source harness and are recorded in its final report.
+Track 09 has passing clean-source branch evidence and is Ready to merge; exact
+merged-main evidence remains pending.
 External release actions remain owner-only and were not performed.
 
 ## Authority

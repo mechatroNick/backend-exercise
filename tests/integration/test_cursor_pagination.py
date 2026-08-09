@@ -361,7 +361,9 @@ def test_cursor_keyset_query_plan_uses_the_existing_owner_created_identifier_ind
             items, total, has_more = BookmarkRepository(session).search_owned_after(
                 _owner_id(client, "cursplan"),
                 BookmarkQuery(page_size=1),
-                CursorBoundary(_NOW + timedelta(seconds=1), seeded[-1], page=2),
+                CursorBoundary(
+                    created_at=_NOW + timedelta(seconds=1), bookmark_id=seeded[-1], page=2
+                ),
             )
         assert total == 3
         assert len(items) == 1

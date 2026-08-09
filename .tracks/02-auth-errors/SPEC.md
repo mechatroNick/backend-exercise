@@ -166,7 +166,7 @@ environment demonstrate all of the following:
 - no secrets, hashes, tokens, generated databases, caches, or coverage artifacts
   appear in repository status.
 
-Track 02 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never a planned command or code presence. `scripts/verify-track-02.sh` supplements test layers and must use the delivered Track 01 bootstrap rather than a fake server. It does not alter auth/error semantics or Track 05's ownership of full cross-operation OpenAPI conformance.
+Track 02 imports the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing deterministic tests and a real-process harness receipt, never a planned command or code presence. `scripts/verify-track-02.sh` supplements test layers and must use the delivered Track 01 bootstrap rather than a fake server. It does not alter auth/error semantics or Track 05's ownership of full cross-operation OpenAPI conformance.
 
 ## 8. Risks and mitigations
 

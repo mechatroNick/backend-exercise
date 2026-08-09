@@ -15,7 +15,6 @@ import logging
 import os
 import sys
 from collections.abc import Mapping
-from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Final, cast
@@ -32,6 +31,7 @@ from app.auth.repository import UserRepository
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
 from app.bookmarks.repository import BookmarkRepository, TagRepository
 from app.core.config import Settings
+from app.core.internal_models import FrozenInternalModel
 from app.core.logging import configure_logging, log_event, log_exception
 from app.db.engine import SessionFactory, create_database_engine, create_session_factory
 
@@ -54,8 +54,7 @@ class SeedConflictError(SeedError):
     """An existing row has a seed identity but does not match the fixed fixture."""
 
 
-@dataclass(frozen=True, slots=True)
-class SeedBookmark:
+class SeedBookmark(FrozenInternalModel):
     """One fixed, non-sensitive bookmark fixture."""
 
     url: str
@@ -65,8 +64,7 @@ class SeedBookmark:
     created_at: datetime
 
 
-@dataclass(frozen=True, slots=True)
-class SeedSummary:
+class SeedSummary(FrozenInternalModel):
     """Content-free result counts suitable for structured logging."""
 
     users_created: int = 0

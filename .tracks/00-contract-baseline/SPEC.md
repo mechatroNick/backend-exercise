@@ -85,11 +85,11 @@ When documents conflict, use this precedence:
 
 Inputs:
 
-- `docs/Technical Assessment Senior Software_Engineer.pdf`;
+- `.docs/Technical Assessment Senior Software_Engineer.pdf`;
 - clarifications and verification governance recorded in ADR-001 through ADR-006;
-- `docs/ASSESSMENT.md`;
-- `docs/SOLUTION-DESIGN.md`;
-- `docs/DELIVERY-PLAN.md`.
+- `.docs/ASSESSMENT.md`;
+- `.docs/SOLUTION-DESIGN.md`;
+- `.docs/DELIVERY-PLAN.md`.
 
 ## 6. Requirements
 
@@ -110,7 +110,7 @@ Inputs:
 Track 00 closes only when:
 
 - all T00 requirements have file-and-section evidence;
-- links among `docs/` and `.tracks/` resolve;
+- links among `.docs/` and `.tracks/` resolve;
 - ADR status and track ownership agree across indexes and documents;
 - there is no unresolved material product ambiguity known to the primary thread;
 - a reader-oriented review identifies no blocking contradiction or missing assumption;
@@ -151,20 +151,20 @@ Stop and request direction if:
 
 | Requirement | Primary evidence |
 | --- | --- |
-| T00-REQ-01 | `docs/ASSESSMENT.md` requirement matrix |
+| T00-REQ-01 | `.docs/ASSESSMENT.md` requirement matrix |
 | T00-REQ-02 | `.tracks/ADR/ADR-001...ADR-006`, including ADR-006 closure evidence process |
 | T00-REQ-03 | `.tracks/ADR/ADR-005-windowed-statistics-data-points.md`, Event-time design |
-| T00-REQ-04 | `docs/SOLUTION-DESIGN.md`, sections 10 and 12 |
-| T00-REQ-05 | `docs/SOLUTION-DESIGN.md`, sections 3–19 |
-| T00-REQ-06 | `docs/DELIVERY-PLAN.md`, delivery strategy and Track 05 stop condition |
-| T00-REQ-07 | `docs/DELIVERY-PLAN.md`, Tracks 00–08 |
+| T00-REQ-04 | `.docs/SOLUTION-DESIGN.md`, sections 10 and 12 |
+| T00-REQ-05 | `.docs/SOLUTION-DESIGN.md`, sections 3–19 |
+| T00-REQ-06 | `.docs/DELIVERY-PLAN.md`, delivery strategy and Track 05 stop condition |
+| T00-REQ-07 | `.docs/DELIVERY-PLAN.md`, Tracks 00–08 |
 | T00-REQ-08 | ADR decision records and this specification's decision latitude |
 | T00-REQ-09 | Reader audit recorded in `TEST-REPORT.md` |
 
 ## 12. Post-closure governance addendum
 
 Track 00 remains Complete for its documentation-contract scope. Its shared
-[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+[engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 sets evidence and closure rules for future executable tracks without asserting that
 this baseline contains unit, API, database, log, or runtime proof. [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 makes that process binding while preserving the assessment, accepted ADRs, stricter

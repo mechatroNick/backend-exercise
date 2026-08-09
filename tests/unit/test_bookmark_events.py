@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import FrozenInstanceError, fields
 from datetime import UTC, datetime, timedelta, timezone
 from typing import Any, cast
 from uuid import UUID
 
 import pytest
+from pydantic import ValidationError
 
 from app.bookmarks.events import (
     BookmarkMutationKind,
@@ -40,7 +40,7 @@ def test_event_is_frozen_content_free_and_noop_publisher_is_total() -> None:
     publisher: DomainEventPublisher = cast(DomainEventPublisher, NoOpDomainEventPublisher())
 
     assert publisher.publish(event) is PublishOutcome.UNAVAILABLE
-    assert {field.name for field in fields(event)} == {
+    assert set(type(event).model_fields) == {
         "user_id",
         "window_start",
         "mutation_kind",
@@ -59,30 +59,30 @@ def test_event_is_frozen_content_free_and_noop_publisher_is_total() -> None:
         "password_hash",
         "authorization",
         "token",
-    } & {field.name for field in fields(event)}
-    with pytest.raises(FrozenInstanceError):
+    } & set(type(event).model_fields)
+    with pytest.raises(ValidationError):
         event.user_id = 8  # type: ignore[misc]
 
 
 @pytest.mark.parametrize("field", ["user_id", "bookmark_id"])
 @pytest.mark.parametrize("value", [0, -1])
 def test_event_rejects_nonpositive_identifiers(field: str, value: int) -> None:
-    with pytest.raises(ValueError, match="must be positive"):
+    with pytest.raises(ValidationError, match="must be positive"):
         _event(**{field: value})
 
 
 @pytest.mark.parametrize("field", ["user_id", "bookmark_id"])
 @pytest.mark.parametrize("value", [True, "7", 7.0])
 def test_event_rejects_noninteger_identifiers(field: str, value: object) -> None:
-    with pytest.raises(TypeError, match="must be an integer"):
+    with pytest.raises(ValidationError):
         _event(**{field: value})
 
 
 @pytest.mark.parametrize("field", ["window_start", "occurred_at"])
 def test_event_rejects_naive_and_non_utc_timestamps(field: str) -> None:
-    with pytest.raises(ValueError, match="timezone-aware"):
+    with pytest.raises(ValidationError, match="timezone-aware"):
         _event(**{field: _OCCURRED.replace(tzinfo=None)})
-    with pytest.raises(ValueError, match="must be UTC"):
+    with pytest.raises(ValidationError, match="must be UTC"):
         _event(
             **{
                 field: _OCCURRED.astimezone(timezone(timedelta(hours=10))),
@@ -101,18 +101,18 @@ def test_event_rejects_naive_and_non_utc_timestamps(field: str) -> None:
     ],
 )
 def test_event_rejects_noncanonical_window(window: datetime) -> None:
-    with pytest.raises(ValueError, match="UTC Monday midnight"):
+    with pytest.raises(ValidationError, match="UTC Monday midnight"):
         _event(window_start=window)
 
 
 def test_event_rejects_unbounded_types_and_nil_correlation() -> None:
-    with pytest.raises(TypeError, match="window_start must be a datetime"):
+    with pytest.raises(ValidationError):
         _event(window_start="2026-08-03T00:00:00Z")
-    with pytest.raises(TypeError, match="occurred_at must be a datetime"):
+    with pytest.raises(ValidationError):
         _event(occurred_at="2026-08-06T12:00:00Z")
-    with pytest.raises(TypeError, match="mutation_kind"):
+    with pytest.raises(ValidationError):
         _event(mutation_kind="created")
-    with pytest.raises(TypeError, match="correlation_id"):
+    with pytest.raises(ValidationError):
         _event(correlation_id=str(_CORRELATION_ID))
-    with pytest.raises(ValueError, match="must not be nil"):
+    with pytest.raises(ValidationError, match="must not be nil"):
         _event(correlation_id=UUID(int=0))

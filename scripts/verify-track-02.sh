@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
-repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repository_root="$(cd "${script_dir}/.." && pwd)"
+report_helper="${script_dir}/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-02.sh' 'Track 02 authentication and error verification'
+verification_report_gate 'isolated bootstrap and bearer authentication contract'
+verification_report_gate 'error envelope, OpenAPI, and redacted owning fault evidence'
+verification_report_gate 'verified disposable-process cleanup'
 uv_command="${UV:-uv}"
 debug="${TRACK02_DEBUG:-0}"
 temporary_base="${TMPDIR:-/tmp}"
 work_dir_prefix="${temporary_base%/}/backend-sample-track02."
-work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
-database_path="${work_dir}/track02.sqlite3"
-process_output_path="${work_dir}/bootstrap-output.log"
-log_path="${work_dir}/application.jsonl"
+work_dir=""
+database_path=""
+process_output_path=""
+log_path=""
 port=""
 child_pid=""
 
@@ -41,10 +50,20 @@ cleanup() {
     [[ ! -e "${work_dir}" ]] || cleanup_status=1
     [[ "${cleanup_status}" -eq 0 ]] && printf 'Track 02 harness cleanup: removed verified disposable resources\n'
   fi
-  [[ "${original_status}" -ne 0 ]] && exit "${original_status}"
+  verification_report_cleanup "${cleanup_status}" 'verified disposable process and workspace removal'
+  if [[ "${original_status}" -ne 0 ]]; then
+    verification_report_finish "${original_status}" "${cleanup_status}"
+    exit "${original_status}"
+  fi
+  verification_report_finish 0 "${cleanup_status}"
   exit "${cleanup_status}"
 }
 trap cleanup EXIT
+
+work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
+database_path="${work_dir}/track02.sqlite3"
+process_output_path="${work_dir}/bootstrap-output.log"
+log_path="${work_dir}/application.jsonl"
 
 cd "${repository_root}"
 [[ -d "${repository_root}/.git" && -f "${repository_root}/Makefile" ]] || {
@@ -208,3 +227,4 @@ assert "track01-secret-sentinel-do-not-emit" not in raw
 assert "track01-submitted-bookmark-sentinel-do-not-emit" not in raw
 print("Track 02 process evidence: bootstrap, auth contract, protected bearer, redacted owning fault")
 PY
+verification_report_summary 'authentication, error-boundary, OpenAPI, and redaction evidence completed'

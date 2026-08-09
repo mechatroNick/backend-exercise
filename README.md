@@ -1,138 +1,188 @@
 # Bookmarks API
 
-Local, authenticated bookmark management service built for the supplied backend assessment. It provides registration and login, owner-scoped bookmark CRUD, search, current statistics, health checks, and selected local delivery extensions: deterministic development seeding, a one-worker Docker image, local rate limiting, and cursor pagination.
+```mermaid
+flowchart LR
+    Intent["Requirements and intent"] --> Control["SPEC + accepted ADR"]
+    Control --> Review["Scope review and dependency gate"]
+    Review --> Implement["Ordered track implementation"]
+    Implement --> Verify["Automated verification"]
+    Verify --> Evidence["TEST-REPORT and status"]
+    Evidence --> Next["Next verified track or handoff"]
+```
 
-This is a modular monolith: FastAPI routers map HTTP to application services; repositories own SQLite/SQLModel access; Alembic owns schema changes; a bounded in-process publisher/refresher maintains optional current-statistics snapshots. Canonical raw SQL remains the correctness fallback for current statistics. Weekly projection/history work was deliberately skipped in Track 07 and is not delivered.
+An authenticated local bookmark-management service for the supplied backend assessment.
+It offers registration and login, owner-scoped bookmark CRUD and search, current
+statistics, liveness/readiness checks, deterministic development seeding, local rate
+limiting, and signed cursor pagination. It is a deliberately bounded modular monolith:
+FastAPI maps HTTP to services, SQLModel repositories access SQLite, Alembic owns schema
+changes, and a single in-process worker refreshes optional current-statistics snapshots.
 
-## Prerequisites and setup
+## What is delivered—and what is not
 
-Use Python **3.12**, [uv](https://docs.astral.sh/uv/), and Git. Docker is needed only for the container workflow below. The project is pinned to Python `>=3.12,<3.13` and has a committed `uv.lock`.
+The public OpenAPI contract has exactly **10 operations** and **45 documented
+operation/status pairs**. It preserves owner isolation, stable redacted errors,
+canonical UTC behavior, page and cursor pagination, and canonical raw-SQL current
+statistics when a snapshot is unavailable or stale. The requirement map contains
+**43 assessment IDs**; detailed traceability lives in
+[the assessment interpretation](.docs/ASSESSMENT.md) and
+[the track evidence](.tracks/README.md).
+
+This is not a production topology. It intentionally uses local SQLite, one Uvicorn
+worker, process-local snapshots/queue/rate state, and HS256 JWTs. It does not provide
+PostgreSQL, Redis or a broker, multi-worker coordination, a public weekly-history API,
+or weekly projection tables. Track 07 is an owner-authorized skip, not incomplete
+evidence: it has no verifier, implementation, migration, consumer, or closure report.
+
+## Run locally
+
+Use Python **3.12**, [uv](https://docs.astral.sh/uv/), and Git. Docker is required only
+for Docker verification. The committed lock requires Python `>=3.12,<3.13`.
 
 ```sh
 git clone <repository-url>
 cd backend-sample
 uv sync --locked
-```
-
-`.env.example` is a **comment-only reference**; it is not loaded automatically. Set configuration as process environment variables (or through your deployment’s secret/configuration mechanism) before running a command. Do not commit a `.env` file or usable secret.
-
-The defaults support local development: `APP_ENV=development`, `DATABASE_URL=sqlite:///./bookmarks.db`, and a development-only JWT secret. Production must set `APP_ENV=production`, a unique non-placeholder `JWT_SECRET` of at least 32 characters, and cannot disable rate limiting. `DATABASE_URL` must be a local SQLite URL beginning `sqlite:///`.
-
-All configuration names, ranges, and defaults are listed in [.env.example](.env.example). Cross-field constraints matter: stale, reconciliation, and dirty-marker ages cannot be lower than the refresh interval; the rate-limit idle TTL cannot be lower than either rate-limit window; and `APP_WORKER_COUNT` must be `1` while statistics refresh or rate limiting is enabled. The delivered runtime is intentionally one worker.
-
-## Migrate, run, and seed
-
-`make migrate` upgrades an already chosen database and exits. `make run` starts only the API, assuming its schema is already migrated. `make bootstrap` first upgrades the database, then starts the API; it is the usual local command.
-
-```sh
 make migrate
-make run
-# or, for a fresh local database:
 make bootstrap
 ```
 
-The API listens on `127.0.0.1:8000` by default. Override `HOST` and `PORT` as Make variables when needed. Browse `/docs`, inspect `/openapi.json`, and use `/health/live` and `/health/ready` for local checks.
+The default service listens on `127.0.0.1:8000`. Browse `/docs`, inspect
+`/openapi.json`, and check `/health/live` and `/health/ready`. `make run` starts only
+the API after migration; `make bootstrap` migrates first. `.env.example` documents
+environment variables but is not loaded automatically. Never commit a `.env` file or a
+usable secret.
 
-Seed only a disposable, explicitly named non-production SQLite database after migration:
+To seed an explicitly named disposable development database after migration:
 
 ```sh
 DATABASE_URL=sqlite:////absolute/path/bookmarks-dev.sqlite3 \
   APP_ENV=development uv run python -m app.seed
 ```
 
-The seed command rejects a missing/blank target, production, and a schema not at this checkout’s Alembic head. It never creates a schema, deletes rows, or mutates an existing seed record. A second identical run is idempotent; it reports existing fixed records. If an existing user or bookmark occupies a seed identity but differs from the fixed fixture, it rejects the run and rolls back. The fixture account is fictional: `fictional-reader` / `fictional-reader@example.test`, with password `fictional-seed-password-only`; use it only for local development and never deploy it as a real credential.
+The seed command never creates schema or deletes data. It rejects unsafe targets,
+requires this checkout's Alembic head, is idempotent for its fixed fictional fixture,
+and rolls back on a conflicting fixture identity.
 
-## API
+## API at a glance
 
-All `/api/bookmarks` operations require `Authorization: Bearer <access token>` obtained from login. The 10 documented operations are:
+All `/api/bookmarks` routes require a bearer token obtained from login.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | POST | `/api/auth/register` | Register a user. |
-| POST | `/api/auth/login` | Return an access token. |
+| POST | `/api/auth/login` | Obtain an access token. |
 | POST | `/api/bookmarks` | Create an owned bookmark. |
-| GET | `/api/bookmarks` | List/search owned bookmarks. |
-| GET | `/api/bookmarks/stats` | Return current, owner-scoped statistics. |
+| GET | `/api/bookmarks` | List or search owned bookmarks. |
+| GET | `/api/bookmarks/stats` | Return current owner-scoped statistics. |
 | GET | `/api/bookmarks/{bookmark_id}` | Read one owned bookmark. |
-| PATCH | `/api/bookmarks/{bookmark_id}` | Update one owned bookmark. |
+| PATCH | `/api/bookmarks/{bookmark_id}` | Apply a material owned update. |
 | DELETE | `/api/bookmarks/{bookmark_id}` | Delete one owned bookmark (204, no body). |
-| GET | `/health/live` | Local process liveness. |
-| GET | `/health/ready` | Database/internal-service readiness. |
+| GET | `/health/live` | Report local process liveness. |
+| GET | `/health/ready` | Report database and internal-service readiness. |
 
-List filters are `tag` (normalized exact tag), `q` (case-insensitive title substring), `from`/`to` (created date), and `updated_from`/`updated_to` (updated date). Dates are inclusive UTC calendar dates. Page mode is the default and returns `items`, `total`, `page`, and `page_size`; use `page` and `page_size` (default 20, maximum 100).
+List/search supports normalized tags, title substring, created/updated UTC date ranges,
+and page pagination. Cursor mode (`pagination=cursor`) uses an opaque signed,
+owner/filter-bound `X-Next-Cursor` token while retaining the same response body. Current
+statistics report `X-Stats-Source: snapshot` only for a trustworthy fresh snapshot;
+otherwise they use the canonical live SQL path. See the
+[solution design](.docs/SOLUTION-DESIGN.md) for exact request, response, and invariant
+details.
 
-For keyset traversal, use `pagination=cursor` and omit an explicitly supplied `page`. Supply the opaque response `X-Next-Cursor` value as `cursor` on the next request; a response omits that header when there is no next page. Cursor mode retains the same body fields and uses its signed logical page ordinal. Do not edit, share, reuse across users, or combine a cursor with changed filters. Page mode rejects `cursor`; cursor mode rejects an explicit `page`; invalid, expired, tampered, cross-user, or filter-mismatched cursors all use the fixed 422 `invalid_cursor` error.
+## Functional reports and verification
 
-Current statistics contain `total_bookmarks`, `total_tags`, deterministic `top_tags`, and chronological `bookmarks_per_month`. When a fresh snapshot is safely available, `X-Stats-Source: snapshot` identifies it; otherwise the service computes canonical current values through raw SQL and returns `X-Stats-Source: live`. There is no weekly history API.
+Each verification script prints a standalone formatted terminal report: script identity,
+selected gates, pass/fail/incomplete outcome, useful summaries, and cleanup result. Run the
+documentation and completed-track receipts directly:
 
-Expected API failures use a stable `error` envelope. Missing/invalid bearer tokens produce 401; an owned-resource miss or another user’s resource produces the same 404; validation failures produce 422; duplicate identities produce 409. Public register/login and all six bookmark operations are locally rate-limited. A rejection is HTTP 429 with `error.code` `rate_limited`, a positive integer `Retry-After`, and `Cache-Control: no-store`. The limiter is process-local, keyed by socket peer IP for auth and authenticated user for bookmarks; it is not a distributed production control.
+```sh
+bash scripts/verify-docs.sh
+bash scripts/verify-track-01.sh
+bash scripts/verify-track-02.sh
+bash scripts/verify-track-03.sh
+bash scripts/verify-track-04.sh
+bash scripts/verify-track-05.sh
+bash scripts/verify-track-06.sh
+bash scripts/verify-track-08.sh
+bash scripts/verify-track-09.sh
+```
 
-## Docker
+Track 07 deliberately has no verifier. Track 08 and Track 09 are clean-committed-source
+gates and include Docker delivery evidence. A dirty/non-clean source is a **failure**;
+explicit development seams and an unavailable Docker daemon are nonzero **incomplete**
+results, never a pass or skip. Run them only when their documented prerequisites are
+met. The clean-source Track 09 branch gate has passed; the track remains **Ready to
+merge** until the exact merged-`main` rerun passes.
 
-Docker is an optional local delivery path. Build from the repository root, use a Docker-managed named volume for the explicit `/data` database location, and provide runtime variables directly:
+The current clean-source Track 09 branch evidence is **743 tests plus 3 subtests** and
+**2,953 statements / 618 branches at 100% coverage**. The exact commands, receipts,
+and remaining merge gate are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
+and [branch test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
+
+For ordinary local checks:
+
+```sh
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy app
+uv run pyright app
+uv run pytest -q
+uv run coverage run --branch -m pytest -q && uv run coverage report --fail-under=100
+```
+
+## Docker verification
+
+Docker is a local delivery path, not a deployed environment. Build and run it with an
+explicit named volume and runtime configuration:
 
 ```sh
 docker build -t bookmarks-api:local .
 docker volume create bookmarks-api-data
-docker run --rm -p 8000:8000 \
-  -v bookmarks-api-data:/data \
+docker run --rm -p 8000:8000 -v bookmarks-api-data:/data \
   -e APP_ENV=development \
   -e DATABASE_URL=sqlite:////data/bookmarks.sqlite3 \
   -e JWT_SECRET='replace-with-a-local-development-secret' \
   bookmarks-api:local
 ```
 
-The normal entrypoint runs Alembic migration before Uvicorn. To migrate and exit instead, append `migrate-only`:
+Use `migrate-only` as the final image argument to run Alembic and exit. The container
+contract is non-root, one worker, `/data` volume, `/health/live` health check, JSON Lines
+lifecycle logs, and cooperative `SIGTERM` handling. The clean-source Track 09 branch
+Docker receipt passed; use `bash scripts/verify-track-09.sh` for the authoritative
+ordered build, runtime, and cleanup gate. Exact merged-`main` closure remains pending.
 
-```sh
-docker run --rm -v bookmarks-api-data:/data \
-  -e DATABASE_URL=sqlite:////data/bookmarks.sqlite3 \
-  bookmarks-api:local migrate-only
-```
+## Architecture and security
 
-Remove the named volume only when its local SQLite data is no longer needed:
+Passwords use Argon2; access tokens are HS256 JWTs; protected reads and writes are
+owner-scoped; expected failures use stable redacted envelopes; and application logs are
+JSON Lines with redaction and bounded exception evidence. The background refresher is
+lifespan-owned, named, non-daemon, and cooperative on shutdown. Canonical SQL remains
+the statistics correctness path; the queue and snapshots only improve freshness.
 
-```sh
-docker volume rm bookmarks-api-data
-```
+Track 09 modernizes internal values to strict Pydantic v2 models, retains FastAPI's
+current `@asynccontextmanager` lifespan pattern, represents the five application
+lifecycle names with `StrEnum`, and adds pinned standard-mode Pyright validation. The
+current supported `httpx2` TestClient dependency includes a public response adapter for
+Schemathesis compatibility; it does not change API bodies or OpenAPI. Narrow SQLModel
+metaclass typing boundaries are documented rather than hidden with broad suppressions.
 
-The image runs as a non-root `app` user (UID 10001), exposes 8000, declares `/data` as its volume, health-checks `/health/live`, uses one Uvicorn worker, and uses an exec-form entrypoint with `SIGTERM` configured. The final clean-source harness passed build, migrate-only, live/ready/health, JSON Lines lifecycle, SIGTERM, removal, and named-volume cleanup checks.
+## Status and detailed evidence
 
-## Verify
+| Track | Status |
+| --- | --- |
+| 00 | Complete — contract baseline and traceability. |
+| 01 | Complete — foundation, configuration, schema, and migrations. |
+| 02 | Complete — errors, identity, and authentication. |
+| 03 | Complete — CRUD, tags, and owner isolation. |
+| 04 | Complete — search and current raw-SQL statistics. |
+| 05 | Complete — mandatory quality and OpenAPI gate. |
+| 06 | Complete — event-driven current snapshots, health, and observability. |
+| 07 | Skipped by owner — no weekly projection/history delivery or verifier. |
+| 08 | Complete — final handoff and selected delivery extensions. |
+| 09 | **Ready to merge** — cleanup, documentation migration, typed-model/lifecycle modernization, and branch reporting passed. |
 
-```sh
-uv run ruff format --check .
-uv run ruff check .
-uv run mypy app
-uv run pytest tests/integration/test_seed.py tests/integration/test_rate_limit_routes.py tests/integration/test_cursor_pagination.py tests/contract/test_docker_delivery.py
-uv run pytest
-uv run coverage run --branch -m pytest -q && uv run coverage report --fail-under=100
-uv run pip-audit --local --progress-spinner off --desc off
-make check
-bash scripts/verify-docs.sh
-```
-
-`pip-audit` queries the known PyPA/PyPI advisory data for the installed locked
-dependencies. The local `bookmarks-api` distribution is the sole expected
-unauditable skip because it is not published to that advisory source. A current
-dependency-metadata license inventory finds only that same local distribution with
-unknown license metadata; it needs repository-owner review and is not presented as
-an assessment failure.
-
-The final clean-source Track 08 receipt at `ff32511e9cc0e2df8d7681e2c16b3dddb579faae` records 723 tests passed (one warning and three subtests), 2,958 statements / 630 branches at 100% coverage, and a passing inherited Track 01–06 harness chain. The static/runtime OpenAPI inventory is 3.1.0 with 10 operations and 45 status pairs; see the passing [Track 08 report](.tracks/08-final-handoff/TEST-REPORT.md).
-
-## Security, limits, and evolution
-
-Passwords use Argon2; access tokens are HS256 JWTs; secrets are not logged; protected resources are query-scoped by owner; SQLite foreign keys are enabled; expected failures have redacted stable envelopes; application logs are JSON Lines with redaction and bounded exception evidence. Local SQLite, a process-local queue/cache/limiter, and one worker are intentional assessment constraints, not a production topology.
-
-For production evolution, move SQLite to a managed relational database, use a shared atomic rate-limit store with an explicit trusted-proxy policy, replace in-process events with a transactional outbox and durable worker/broker, provide multi-process coordination, externalize secret management and observability, and load-test/back up/operate the system. These are future directions only; this repository does not implement them.
-
-## Reader and handoff material
-
-- [Walkthrough](docs/WALKTHROUGH.md) — safe local demonstration steps.
-- [Solution design](docs/SOLUTION-DESIGN.md) — architecture and contract rationale.
-- [AI-assisted work disclosure](docs/AI-ASSISTED-WORK.md) — evidence-bounded provenance statement.
-- [Release handoff](docs/RELEASE-HANDOFF.md) — completed repository evidence and owner-only actions.
-- [Documentation index](docs/README.md) and [Track index](.tracks/README.md) — decisions and execution records.
-
-Track 07 weekly projections were owner-skipped. Track 08 is complete with a passing final clean-source receipt. Only the repository owner may review local project license metadata and private AI wording/provenance, choose a final ref, push, archive, share, deploy, or submit the work.
+Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
+and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,
+plans, histories, and evidence reports. The [release handoff](.docs/RELEASE-HANDOFF.md)
+holds completed repository evidence and the external-action boundary; it is not a claim
+that Track 09 final evidence is complete. External push, archive, sharing, deployment,
+and submission remain repository-owner actions.

@@ -5,7 +5,6 @@ from __future__ import annotations
 import builtins
 import sqlite3
 from collections.abc import Callable
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, cast
 from uuid import UUID
@@ -39,6 +38,7 @@ from app.bookmarks.schemas import (
 from app.bookmarks.stats.dirty import DirtyReason, utc_monday
 from app.core.clock import Clock, normalize_utc
 from app.core.errors import NotFoundError
+from app.core.internal_models import FrozenInternalModel
 from app.db.engine import begin_sqlite_read_snapshot
 
 _TAG_UNIQUE_MESSAGE = "UNIQUE constraint failed: tags.name"
@@ -57,8 +57,7 @@ class DirtyMarkerWriter(Protocol):
         """Insert or atomically increment one dirty generation."""
 
 
-@dataclass(frozen=True, slots=True)
-class CursorListResult:
+class CursorListResult(FrozenInternalModel):
     """A normal list body with an optional opaque continuation value."""
 
     body: BookmarkList

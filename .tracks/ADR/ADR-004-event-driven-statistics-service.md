@@ -192,7 +192,7 @@ is retained only as an archived design and no historical consumer is installed.
 
 ## Evidence and references
 
-- [Assessment](../../docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
+- [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
 - [FastAPI lifespan](https://fastapi.tiangolo.com/advanced/events/)
 - [Python threading](https://docs.python.org/3/library/threading.html)
 - [Python synchronized queues](https://docs.python.org/3/library/queue.html)

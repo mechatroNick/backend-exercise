@@ -27,6 +27,7 @@ from app.bookmarks.stats.refresher import StatsRefresher
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.clock import SystemClock
 from app.core.config import Settings
+from app.core.lifecycle import ApplicationLifecycleEvent
 from app.core.logging import configure_logging, log_event, log_exception
 from app.db.engine import create_database_engine, create_session_factory
 
@@ -68,7 +69,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     log_event(
         logger,
         logging.INFO,
-        "application.starting",
+        ApplicationLifecycleEvent.STARTING,
         message="application starting",
         component="lifecycle",
     )
@@ -130,7 +131,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception as error:
         log_exception(
             logger,
-            "application.startup_failed",
+            ApplicationLifecycleEvent.STARTUP_FAILED,
             exception=error,
             message="application startup failed",
             component="lifecycle",
@@ -151,7 +152,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         log_event(
             logger,
             logging.INFO,
-            "application.started",
+            ApplicationLifecycleEvent.STARTED,
             message="application started",
             component="lifecycle",
         )
@@ -160,7 +161,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         log_event(
             logger,
             logging.INFO,
-            "application.stopping",
+            ApplicationLifecycleEvent.STOPPING,
             message="application stopping",
             component="lifecycle",
         )
@@ -171,7 +172,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
         log_event(
             logger,
             logging.INFO,
-            "application.stopped",
+            ApplicationLifecycleEvent.STOPPED,
             message="application stopped",
             component="lifecycle",
         )

@@ -19,7 +19,7 @@ from app.db.types import UTCDateTime
 class User(SQLModel, table=True):
     """Persisted account identity; application validation is introduced in Track 02."""
 
-    __tablename__ = "users"
+    __tablename__ = "users"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_users"),
         UniqueConstraint("username", name="uq_users_username"),

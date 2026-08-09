@@ -39,7 +39,7 @@ def _valid_token(codec: BookmarkCursorCodec) -> str:
     return codec.encode(
         owner_id=7,
         query=_QUERY,
-        boundary=CursorBoundary(_NOW - timedelta(seconds=1), 12, 2),
+        boundary=CursorBoundary(created_at=_NOW - timedelta(seconds=1), bookmark_id=12, page=2),
         now=_NOW,
     )
 
@@ -50,7 +50,7 @@ def test_cursor_round_trip_is_canonical_and_expires_at_the_exact_second() -> Non
 
     assert token == _valid_token(codec)
     assert codec.decode(token, owner_id=7, query=_QUERY, now=_NOW) == CursorBoundary(
-        _NOW - timedelta(seconds=1), 12, 2
+        created_at=_NOW - timedelta(seconds=1), bookmark_id=12, page=2
     )
     assert codec.decode(token, owner_id=7, query=_QUERY, now=_NOW + timedelta(seconds=899))
     with pytest.raises(InvalidCursorError):
@@ -174,7 +174,9 @@ def test_payload_contains_only_opaque_owner_and_filter_tags() -> None:
             first_codec.encode(
                 owner_id=8,
                 query=_QUERY,
-                boundary=CursorBoundary(_NOW - timedelta(seconds=1), 12, 2),
+                boundary=CursorBoundary(
+                    created_at=_NOW - timedelta(seconds=1), bookmark_id=12, page=2
+                ),
                 now=_NOW,
             ).split(".")[0]
             + "=="
@@ -185,7 +187,9 @@ def test_payload_contains_only_opaque_owner_and_filter_tags() -> None:
             first_codec.encode(
                 owner_id=7,
                 query=BookmarkQuery(tag="rust", q="fictional", page_size=2),
-                boundary=CursorBoundary(_NOW - timedelta(seconds=1), 12, 2),
+                boundary=CursorBoundary(
+                    created_at=_NOW - timedelta(seconds=1), bookmark_id=12, page=2
+                ),
                 now=_NOW,
             ).split(".")[0]
             + "=="

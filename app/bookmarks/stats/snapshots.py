@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
 from threading import Lock
 
 from app.bookmarks.stats.schemas import BookmarkStats
 from app.core.clock import normalize_utc
+from app.core.internal_models import FrozenInternalModel
 
 
 def _positive_identifier(value: int) -> None:
@@ -15,8 +15,7 @@ def _positive_identifier(value: int) -> None:
         raise ValueError("user_id must be a positive integer")
 
 
-@dataclass(frozen=True, slots=True)
-class SnapshotRecord:
+class SnapshotRecord(FrozenInternalModel):
     """One complete immutable aggregate; generation zero means no marker was observed."""
 
     stats: BookmarkStats

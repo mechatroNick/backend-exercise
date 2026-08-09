@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 # Real-process evidence for Track 03 only; it intentionally does not claim Track 04--06 behavior.
-set -euo pipefail
+set -Eeuo pipefail
 IFS=$'\n\t'
 
-repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+repository_root="$(cd "${script_dir}/.." && pwd)"
+report_helper="${script_dir}/verification-report.sh"
+[[ -r "${report_helper}" ]] || { printf 'FAIL: missing verification report helper\n' >&2; exit 1; }
+# shellcheck source=verification-report.sh
+source "${report_helper}"
+verification_report_start 'scripts/verify-track-03.sh' 'Track 03 bookmark CRUD real-process verification'
+verification_report_gate 'isolated bootstrap, CRUD, ownership, and error contracts'
+verification_report_gate 'OpenAPI, lifecycle JSON Lines, and redaction evidence'
+verification_report_gate 'verified disposable-process cleanup'
 uv_command="${UV:-uv}"
 temporary_base="${TMPDIR:-/tmp}"
 work_dir_prefix="${temporary_base%/}/backend-sample-track03."
-work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
-database_path="${work_dir}/track03.sqlite3"
-process_output_path="${work_dir}/bootstrap-output.log"
-log_path="${work_dir}/application.jsonl"
+work_dir=""
+database_path=""
+process_output_path=""
+log_path=""
 port=""
 child_pid=""
 
@@ -33,10 +42,20 @@ cleanup() {
   fi
   [[ ! -e "${work_dir}" ]] || cleanup_status=1
   [[ "${cleanup_status}" -eq 0 ]] && printf 'Track 03 harness cleanup: removed verified disposable credentials, requests, responses, database, and logs\n'
-  [[ "${original_status}" -ne 0 ]] && exit "${original_status}"
+  verification_report_cleanup "${cleanup_status}" 'verified disposable credentials, requests, responses, database, and logs removal'
+  if [[ "${original_status}" -ne 0 ]]; then
+    verification_report_finish "${original_status}" "${cleanup_status}"
+    exit "${original_status}"
+  fi
+  verification_report_finish 0 "${cleanup_status}"
   exit "${cleanup_status}"
 }
 trap cleanup EXIT
+
+work_dir="$(mktemp -d "${work_dir_prefix}XXXXXX")"
+database_path="${work_dir}/track03.sqlite3"
+process_output_path="${work_dir}/bootstrap-output.log"
+log_path="${work_dir}/application.jsonl"
 
 cd "${repository_root}"
 [[ -d .git && -f Makefile ]] || { printf 'refusing to run outside the repository root\n' >&2; exit 1; }
@@ -234,3 +253,4 @@ for raw in (raw_output, raw_logs):
     for internal in ("Authorization", "Bearer", "$argon2", "password_hash", "sqlite:///"): assert internal not in raw
 print("Track 03 process evidence: real CRUD, ownership concealment, canonical tags, timestamps, bodyless delete, bounded OpenAPI, redacted owning fault")
 PY
+verification_report_summary 'CRUD, ownership, OpenAPI, lifecycle, and redaction evidence completed'

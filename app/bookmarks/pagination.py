@@ -8,7 +8,6 @@ import hashlib
 import hmac
 import json
 import re
-from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from pydantic import SecretStr
@@ -16,6 +15,7 @@ from pydantic import SecretStr
 from app.bookmarks.schemas import BookmarkQuery
 from app.core.clock import normalize_utc
 from app.core.errors import InvalidCursorError
+from app.core.internal_models import FrozenInternalModel
 
 _VERSION = 1
 _DOMAIN = b"bookmarks-api.cursor-pagination.v1"
@@ -24,8 +24,7 @@ _B64_PATTERN = re.compile(r"[A-Za-z0-9_-]+\Z")
 _PAYLOAD_KEYS = frozenset({"v", "ot", "ft", "ca", "id", "p", "ps", "iat", "exp"})
 
 
-@dataclass(frozen=True, slots=True)
-class CursorBoundary:
+class CursorBoundary(FrozenInternalModel):
     """The last row of one descending keyset page and its next logical ordinal."""
 
     created_at: datetime
@@ -177,7 +176,11 @@ class BookmarkCursorCodec:
             now_seconds = int(normalize_utc(now).timestamp())
             if issued_at > now_seconds or now_seconds >= expires_at:
                 raise ValueError("cursor time")
-            return CursorBoundary(_parse_timestamp(payload["ca"]), bookmark_id, page)
+            return CursorBoundary(
+                created_at=_parse_timestamp(payload["ca"]),
+                bookmark_id=bookmark_id,
+                page=page,
+            )
         except (
             TypeError,
             ValueError,

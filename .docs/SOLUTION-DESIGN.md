@@ -60,9 +60,9 @@ The deployment uses one Uvicorn worker. The queue, cache, and worker health stat
 | Migrations | Alembic | Versioned, reviewable schema changes; no runtime `create_all()`. |
 | Authentication | PyJWT with HS256 access tokens | Small, explicit JWT surface without an unnecessary identity subsystem. |
 | Password hashing | `pwdlib[argon2]` | Modern password hashing with library-managed parameters. |
-| Validation/settings | Pydantic through FastAPI and `pydantic-settings` | Typed input contracts and environment-driven configuration. |
-| Tests | pytest, FastAPI TestClient/httpx, temporary SQLite databases | Fast deterministic unit, integration, and contract tests. |
-| Quality | Ruff, mypy, pytest coverage | Consistent formatting/linting, useful static checks, and observable test coverage. |
+| Validation/settings | Pydantic v2 through FastAPI and `pydantic-settings` | Typed transport boundaries, strict internal value models, and environment-driven configuration. |
+| Tests | pytest, `httpx2` TestClient, Schemathesis adapter, temporary SQLite databases | Deterministic unit/integration/contract tests while preserving public response validation. |
+| Quality | Ruff, mypy, pinned standard-mode Pyright, pytest coverage | Formatting/linting, typed application boundaries, and observable test coverage. |
 | Packaging | `pyproject.toml` | One source for dependencies and tool configuration. |
 
 The complete stack and its boundaries are accepted in [ADR-001](../.tracks/ADR/ADR-001-application-stack-and-data-access.md).
@@ -76,6 +76,7 @@ The complete stack and its boundaries are accepted in [ADR-001](../.tracks/ADR/A
 - [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) is an archived weekly-projection design; Track 07 is skipped and it is not delivered.
 - [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md) defines the binding evidence and closure process.
 - [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) defines local rate limiting and authenticated cursor pagination.
+- [ADR-008](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) defines strict internal Pydantic models and typed lifecycle events.
 
 ## 5. Code organization
 
@@ -591,5 +592,30 @@ The goal is not to simulate distributed infrastructure in a take-home. It is to 
 | Identity validation, Argon2, JWT behavior | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) |
 | Event invalidation, queue, worker lifecycle, health, logging | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) |
 | Weekly event-time points and append-only correction revisions (archived design; implementation skipped) | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) |
+| Evidence and closure governance | [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md) |
+| Local rate limiting and authenticated cursors | [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) |
+| Strict internal Pydantic models and typed lifecycle events | [ADR-008](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) |
 
 The ADRs are authoritative when this overview is intentionally concise. Any implementation pressure to violate an accepted decision requires updating the ADR first, including consequences and migration impact.
+
+## 21. Track 09 modernization and current status
+
+Track 09 is **Ready to merge** after its clean-source branch gate. It replaces
+internal and test-helper dataclasses with
+explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
+cross-field event/statistics invariants, keyword construction, cursor payloads, and
+rate-bucket synchronization. Public FastAPI request/response schemas and OpenAPI bodies
+are not reused as internal models and do not change.
+
+The five application lifecycle event values are represented at call sites by a narrow
+`StrEnum`, while JSON output remains the same string values. FastAPI's current lifespan
+plus `@asynccontextmanager` pattern remains intentionally retained. Static analysis uses
+pinned Pyright in standard mode; the small SQLModel metaclass boundaries are explicit and
+narrow rather than broad type suppressions. The current supported `httpx2` TestClient
+dependency uses a public response adapter only where Schemathesis needs a compatible response surface, so
+contract validation continues to assess the unchanged public API.
+
+All eight ADRs are accepted. Track 09 documentation, Docker, and clean-source branch
+receipts have passed; merge and exact post-merge evidence remain pending. Consult
+[Track 09's plan](../.tracks/09-final-cleanup-docs/PLAN.md) for the current closure
+gate rather than inferring merged-main completion from this design overview.

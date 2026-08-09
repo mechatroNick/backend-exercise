@@ -80,7 +80,7 @@ engineering discipline.
 
 ## Evidence and references
 
-- [Assessment](../../docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
+- [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
 - [SQLModel multiple API and table models](https://sqlmodel.tiangolo.com/tutorial/fastapi/multiple-models/)
 - [SQLModel many-to-many link models](https://sqlmodel.tiangolo.com/tutorial/many-to-many/create-models-with-link/)
 - [SQLite foreign-key enforcement](https://www.sqlite.org/foreignkeys.html)

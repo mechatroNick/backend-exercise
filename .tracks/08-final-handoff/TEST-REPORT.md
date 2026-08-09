@@ -73,7 +73,7 @@ passed reports and re-executed harness evidence; WIN-01/WIN-02 are owner-skipped
 Track 07; DEL/DOC/FUT and selected bonus rows are satisfied by the pre-closure reader
 package and this clean-source receipt. The closure documents were added afterward and
 received their own documentation-verifier pass. See [EVIDENCE-MATRIX.md](EVIDENCE-MATRIX.md), the root
-[README](../../README.md), and [release handoff](../../docs/RELEASE-HANDOFF.md).
+[README](../../README.md), and [release handoff](../../.docs/RELEASE-HANDOFF.md).
 
 ## Remaining owner actions
 

@@ -9,12 +9,12 @@ import secrets
 import time
 from collections import OrderedDict
 from collections.abc import Callable
-from dataclasses import dataclass
 from threading import RLock
 
+from app.core.internal_models import FrozenInternalModel, MutableInternalModel
 
-@dataclass(frozen=True, slots=True)
-class RateLimitDecision:
+
+class RateLimitDecision(FrozenInternalModel):
     """The deterministic outcome of consuming one request token."""
 
     allowed: bool
@@ -23,8 +23,7 @@ class RateLimitDecision:
     capacity_exhausted: bool = False
 
 
-@dataclass(slots=True)
-class _BucketEntry:
+class _BucketEntry(MutableInternalModel):
     """Mutable internal state for one bounded bucket key."""
 
     tokens: float
