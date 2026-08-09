@@ -15,7 +15,7 @@ verification_report_start 'scripts/verify-track-09.sh' 'Track 09 final clean-sou
 verification_report_gate 'clean committed source, locked sync, and dependency advisory'
 verification_report_gate 'dataclass, lifecycle, lifespan, and type-source contracts'
 verification_report_gate 'Ruff, mypy, Pyright, warnings, full branch coverage, and migrations'
-verification_report_gate 'documentation, runtime/inherited evidence, security, hygiene, Docker, and cleanup'
+verification_report_gate 'documentation, committed report bundle, runtime/inherited evidence, security, hygiene, Docker, and cleanup'
 
 uv_command="${UV:-uv}"
 development_static="${TRACK09_DEVELOPMENT_STATIC:-0}"
@@ -138,6 +138,9 @@ verify_quality_and_migrations() {
 
 verify_documentation_and_hygiene() {
     (cd "${clone_root}" && run_private verify-docs bash scripts/verify-docs.sh)
+    # The checked-in public receipts are validated in the clean clone.  The helper
+    # keeps this selector's detailed output private with every other final-gate log.
+    (cd "${clone_root}" && run_private verify-testing-reports bash scripts/verify-testing-reports.sh)
     (cd "${clone_root}" && run_private hygiene bash -c '
         git diff --check
         ! git ls-files | rg -q "(^|/)(\\.coverage|.*\\.(db|sqlite|sqlite3|log|pem|key)|__pycache__|\\.pytest_cache|\\.mypy_cache|\\.ruff_cache)(/|$)"
@@ -199,7 +202,7 @@ main() {
     run_cleanup_self_test
     verify_inherited_final_gate
     verify_final_clone_cleanliness
-    verification_report_summary 'clean-source type, warning, coverage, migration, documentation, hygiene, inherited Track 08, Docker, and cleanup evidence completed'
+    verification_report_summary 'clean-source type, warning, coverage, migration, documentation, report-bundle, hygiene, inherited Track 08, Docker, and cleanup evidence completed'
     printf '%s\n' 'FINAL PASS: clean-source Track 09 evidence complete; no external action was performed'
 }
 

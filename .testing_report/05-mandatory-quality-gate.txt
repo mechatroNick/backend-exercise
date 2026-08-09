@@ -1,0 +1,29 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:49:58Z
+COMMAND: bash scripts/verify-track-05.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-05.sh
+TITLE: Track 05 mandatory quality-gate verification
+START: 2026-08-09T10:49:58Z
+GATE: exact inherited Track 01--04 real-process gates
+GATE: mandatory contract collection and 100 percent branch coverage
+GATE: live mandatory API, logging, and cleanup evidence
+Track 05 cleanup self-test: unexpected child status preserved and private workspace removed
+Track 05 upstream selector scripts/verify-track-01.sh: passed
+Track 05 upstream selector scripts/verify-track-02.sh: passed
+Track 05 upstream selector scripts/verify-track-03.sh: passed
+Track 05 upstream selector scripts/verify-track-04.sh: passed
+Track 05 mandatory selector: 82 collected and executed; query-plan, raw-SQL, and JSON Lines evidence included
+Track 05 coverage selector: app statement and branch coverage 100% passed
+Track 05 evidence: migrated live HTTP, OpenAPI/docs, auth/isolation/CRUD/search/live stats/errors, schema and JSONL/redaction validated
+Track 05 live mandatory-core harness: passed (Track 06 health/snapshot/worker behavior excluded)
+SUMMARY: inherited gates, mandatory coverage, live API, JSON Lines, and redaction evidence completed
+Track 05 cleanup: removed verified protected artifacts
+CLEANUP: PASS — verified protected artifacts and process removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:51:33Z
+EXIT: 0

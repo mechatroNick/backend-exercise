@@ -1,0 +1,40 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:51:44Z
+COMMAND: bash scripts/verify-track-06.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-06.sh
+TITLE: Track 06 event-driven statistics verification
+START: 2026-08-09T10:51:44Z
+GATE: exact inherited Track 05 quality gate
+GATE: deterministic worker, overflow, and restart edge selectors
+GATE: live lifecycle, readiness, JSON Lines, and cleanup evidence
+Track 06 cleanup self-test: failure status preserved and private workspace removed
+Track 06 inherited Track 05 gate: passed
+Track 06 focused deterministic ledger: passed
+Track 06 worker topology, retry, join-timeout, and overflow edges: passed
+Track 06 edge selector: tests/unit/test_stats_refresher.py::test_start_once_exact_thread_and_failed_cycle_state
+Track 06 edge selector: tests/unit/test_stats_refresher.py::test_thread_start_and_join_timeout_failures_are_explicit
+Track 06 edge selector: tests/unit/test_stats_refresher.py::test_worker_retry_json_logs_keep_application_source_and_safe_context
+Track 06 edge selector: tests/unit/test_stats_publisher.py::test_overflow_invalidates_sets_reconciliation_and_logs_once_per_episode
+Track 06 full-suite result: 743 passed, 3 subtests passed
+Track 06 coverage result: TOTAL                               2953      0    618      0   100%
+Track 06 quality gate: locked sync, Ruff, mypy, full tests, 100% coverage, make check, docs passed
+Track 06 migration lifecycle: upgrade, downgrade, re-upgrade, drift check passed
+Track 06 application launch: phase=parity port=56180
+Track 06 live-to-snapshot parity and worker identity: passed
+Track 06 application launch: phase=overflow port=56195
+Track 06 committed overflow and durable backlog survival: passed
+Track 06 application launch: phase=recovery port=56204
+Track 06 restart reconciliation and readiness recovery: passed
+Track 06 JSON Lines lifecycle, worker, overflow, readiness, and redaction audit: passed
+Track 06 real-process closure harness: passed
+SUMMARY: inherited quality gate, worker edges, live runtime, JSON Lines, and redaction evidence completed
+Track 06 cleanup: removed verified protected artifacts
+CLEANUP: PASS — verified protected artifacts and process removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:55:08Z
+EXIT: 0

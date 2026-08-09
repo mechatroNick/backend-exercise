@@ -1,0 +1,82 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:55:40Z
+COMMAND: bash scripts/verify-track-08.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-08.sh
+TITLE: Track 08 final clean-clone verification
+START: 2026-08-09T10:55:40Z
+GATE: clean committed source, locked toolchain, and dependency advisory
+GATE: exact inherited Track 01--06 harnesses and closure provenance
+GATE: quality, migration, seed, runtime, hygiene, and cleanup evidence
+GATE: Docker build, post-build contract, and image runtime delivery
+Track 08: receipt: source HEAD=ba3699068a18b2d6e5b453fb0d9698c8b044e95a; command=git clone --no-local --no-hardlinks [local reviewed source]; exit=0
+Track 08: reader/handoff documents: present
+Track 08: receipt: command=uv lock --check; exit=0
+Track 08: receipt: command=uv sync --locked; exit=0
+Track 08: receipt: command=uv run pip-audit --local --progress-spinner off --desc off; exit=0
+Track 08: pip-audit: accepted local bookmarks-api dependency-not-found skip; exit=0
+Track 08: dependency advisory: pip-audit queried PyPA/PyPI known-vulnerability data; this is not source or malware proof
+Track 08: tool versions: Python 3.12.12; uv 0.9.15 (Homebrew 2025-12-03); pytest 9.1.1; Coverage.py, version 7.15.3 with C extension; ruff 0.15.22; mypy 2.3.0 (compiled: yes); alembic 1.19.0; Running uvicorn 0.51.0 with CPython 3.12.12 on Darwin
+Track 08: dependency/license inventory: distribution_count=94 unknown_license_count=1 unknown_license_names=bookmarks-api; UNKNOWN licenses require owner review and do not fail this gate
+Track 08: toolchain: committed Python 3.12 pin, resolved interpreter, lock check, and locked sync verified
+Track 08: receipt: command=bash scripts/verify-docs.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-01.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-02.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-03.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-04.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-05.sh; exit=0
+Track 08: receipt: command=bash scripts/verify-track-06.sh; exit=0
+Track 08: Track 01 provenance: report=.tracks/01-foundation/TEST-REPORT.md; plan=.tracks/01-foundation/PLAN.md; report_commit=22e4555901f2d94291e318a42dde7c2e3d278c7a; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=1; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: Track 02 provenance: report=.tracks/02-auth-errors/TEST-REPORT.md; plan=.tracks/02-auth-errors/PLAN.md; report_commit=db9880a1cbf5d33ef14f1b9228f1848c72e3cc9d; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=6; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: Track 03 provenance: report=.tracks/03-bookmark-crud/TEST-REPORT.md; plan=.tracks/03-bookmark-crud/PLAN.md; report_commit=6e3acf3aead19db2bede432ff43991cb4ac29746; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=8; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: Track 04 provenance: report=.tracks/04-search-stats/TEST-REPORT.md; plan=.tracks/04-search-stats/PLAN.md; report_commit=6e3acf3aead19db2bede432ff43991cb4ac29746; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=10; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: Track 05 provenance: report=.tracks/05-mandatory-quality-gate/TEST-REPORT.md; plan=.tracks/05-mandatory-quality-gate/PLAN.md; report_commit=6e3acf3aead19db2bede432ff43991cb4ac29746; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=8; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: Track 06 provenance: report=.tracks/06-event-driven-stats/TEST-REPORT.md; plan=.tracks/06-event-driven-stats/PLAN.md; report_commit=0afcf51fd80c5d067c37f05429979c571953fff3; plan_commit=bc728b679c82037aec529c27eb8b99d05bbf18dc; valid_cited_commits=13; mode=path-only-docs-migration-after-report; Passed/Complete/provenance chain and current exact harness compatibility exit=0
+Track 08: upstream closure reports: non-circular provenance and current exact harness compatibility verified
+Track 08: receipt: command=uv run pytest -q [focused Track 08 bonus selectors]; exit=0
+Track 08: focused bonus selector: tests/contract/test_docker_delivery.py; exit=0
+Track 08: focused bonus selector: tests/integration/test_seed.py; exit=0
+Track 08: focused bonus selector: tests/unit/test_rate_limit.py; exit=0
+Track 08: focused bonus selector: tests/integration/test_rate_limit_routes.py; exit=0
+Track 08: focused bonus selector: tests/contract/test_rate_limit_openapi.py; exit=0
+Track 08: focused bonus selector: tests/unit/test_bookmark_pagination.py; exit=0
+Track 08: focused bonus selector: tests/unit/test_bookmark_dependencies.py; exit=0
+Track 08: focused bonus selector: tests/integration/test_cursor_pagination.py; exit=0
+Track 08: focused bonus selector: tests/contract/test_openapi_metadata.py; exit=0
+Track 08: focused bonus pytest summary: 100 passed in 5.17s
+Track 08: receipt: command=uv run ruff format --check .; exit=0
+Track 08: receipt: command=uv run ruff check .; exit=0
+Track 08: receipt: command=uv run mypy app; exit=0
+Track 08: receipt: command=uv run alembic upgrade head [empty SQLite]; exit=0
+Track 08: receipt: command=uv run alembic downgrade base [empty SQLite]; exit=0
+Track 08: receipt: command=uv run alembic upgrade head [re-upgrade SQLite]; exit=0
+Track 08: receipt: command=uv run alembic check; exit=0
+Track 08: receipt: command=uv run coverage run --branch -m pytest -q; exit=0
+Track 08: receipt: command=uv run coverage report --fail-under=100; exit=0
+Track 08: full pytest summary: 743 passed, 3 subtests passed in 35.30s
+Track 08: coverage TOTAL: TOTAL                               2953      0    618      0   100%
+Track 08: receipt: command=uv run alembic upgrade head [seed SQLite]; exit=0
+Track 08: receipt: command=uv run python -m app.seed [explicit isolated SQLite]; exit=0
+Track 08: receipt: command=uv run python -m app.seed [idempotency repeat]; exit=0
+Track 08: receipt: selector=explicit isolated SQLite seed state; exit=0; migrated, seeded twice, and exact idempotent state verified
+Track 08: receipt: command=uv run alembic upgrade head [runtime SQLite]; exit=0
+Track 08: receipt: selector=real Uvicorn safe in-memory HTTP driver; exit=0; no tokens or protected response bodies persisted
+Track 08: receipt: selector=Uvicorn supervisor TERM, bounded captured-process wait, recursive KILL fallback; captured=2; exit=0; no captured process remained
+Track 08: receipt: selector=runtime JSON Lines schema/redaction/shutdown lifecycle; exit=0; exact exception ownership selectors ran in Track 01, 05, and 06 receipts
+Track 08: receipt: selector=Track 07 owner-skipped disposition and absence boundary; exit=0
+Track 08: receipt: command=git diff --check + tracked-artifact/secret/lock/clean-status hygiene; exit=0
+Track 08: receipt: command=uv run pytest -q tests/contract/test_docker_delivery.py [after docker build]; exit=0
+Track 08: receipt: selector=tests/contract/test_docker_delivery.py; phase=post-docker-build; exit=0
+Docker JSON Lines schema and shutdown lifecycle audit passed
+Track 08: receipt: command=docker build/run migrate-only + non-root one-worker health/JSON Lines/SIGTERM/removal; exit=0
+SUMMARY: clean clone, inherited gates, quality, runtime, Docker post-build contract, image delivery, and hygiene completed
+Track 08: FINAL PASS: clean-clone Track 08 evidence complete; no external action was performed
+Track 08: receipt: selector=verified cleanup; exit=0; no server/container children and no private workspace remained
+CLEANUP: PASS — verified server, container, image, volume, and private workspace removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T11:01:53Z
+EXIT: 0

@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
+import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -9,8 +13,23 @@ import pytest
 
 _ROOT = Path(__file__).resolve().parents[2]
 _HELPER = _ROOT / "scripts/verification-report.sh"
+_REPORT_VERIFIER = _ROOT / "scripts/verify-testing-reports.sh"
+_TESTING_REPORT_DIR = _ROOT / ".testing_report"
+_REPORT_RECEIPTS = (
+    "00-contract-baseline.txt",
+    "01-foundation.txt",
+    "02-auth-errors.txt",
+    "03-bookmark-crud.txt",
+    "04-search-stats.txt",
+    "05-mandatory-quality-gate.txt",
+    "06-event-driven-stats.txt",
+    "07-weekly-projections-skipped.txt",
+    "08-final-handoff.txt",
+    "09-final-cleanup-docs.txt",
+)
 _VERIFY_SCRIPTS = (
     "verify-docs.sh",
+    "verify-testing-reports.sh",
     "verify-track-01.sh",
     "verify-track-02.sh",
     "verify-track-03.sh",
@@ -28,6 +47,49 @@ def _bash(source: str) -> subprocess.CompletedProcess[str]:
         check=False,
         capture_output=True,
         text=True,
+    )
+
+
+def _write_test_manifest(bundle: Path) -> None:
+    source_head = re.search(
+        r"^SOURCE_HEAD: ([0-9a-f]{40})$",
+        (bundle / _REPORT_RECEIPTS[0]).read_text(encoding="utf-8"),
+        flags=re.MULTILINE,
+    )
+    assert source_head is not None
+    lines = [
+        "# Verification report manifest",
+        f"- Capture source HEAD: `{source_head.group(1)}`",
+        "- Hash algorithm: `SHA-256`",
+        "| Receipt | SHA-256 |",
+        "| --- | --- |",
+    ]
+    for receipt in _REPORT_RECEIPTS:
+        checksum = hashlib.sha256((bundle / receipt).read_bytes()).hexdigest()
+        lines.append(f"| `{receipt}` | `{checksum}` |")
+    (bundle / "MANIFEST.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _copy_report_bundle(tmp_path: Path) -> Path:
+    bundle = tmp_path / ".testing_report"
+    bundle.mkdir()
+    for receipt in _REPORT_RECEIPTS:
+        shutil.copy2(_TESTING_REPORT_DIR / receipt, bundle / receipt)
+    _write_test_manifest(bundle)
+    return bundle
+
+
+def _verify_report_bundle(bundle: Path) -> subprocess.CompletedProcess[str]:
+    environment = os.environ.copy()
+    environment["VERIFY_TESTING_REPORTS_DIR"] = str(bundle)
+    environment["VERIFY_TESTING_REPORTS_TEST_SEAM"] = "1"
+    return subprocess.run(
+        ["bash", str(_REPORT_VERIFIER)],
+        cwd=_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
     )
 
 
@@ -152,6 +214,7 @@ def test_track09_final_harness_is_clean_source_and_imports_exact_track08_gate() 
         "coverage report --fail-under=100",
         "alembic downgrade base",
         "verify-docs",
+        "verify-testing-reports bash scripts/verify-testing-reports.sh",
         "verify-track-08 bash scripts/verify-track-08.sh",
         "final-clone-cleanliness",
         "clean clone changed during final verification",
@@ -161,6 +224,80 @@ def test_track09_final_harness_is_clean_source_and_imports_exact_track08_gate() 
         "FINAL PASS: clean-source Track 09 evidence complete",
     ):
         assert required in source
+
+
+def test_testing_report_verifier_declares_a_strict_tamper_evident_contract() -> None:
+    source = _REPORT_VERIFIER.read_text(encoding="utf-8")
+
+    for required in (
+        "set -Eeuo pipefail",
+        "MANIFEST.md must contain the 15-line checksum contract",
+        "must not contain checksum-table rows beyond the ten receipts",
+        "Capture\\ source\\ HEAD",
+        "Hash algorithm: `SHA-256`",
+        "shasum -a 256",
+        "merge-base --is-ancestor",
+        "VERIFY_TESTING_REPORTS_TEST_SEAM",
+        "is not tracked",
+        'cat-file -e "HEAD:.testing_report/${expected_file}"',
+        'diff --quiet HEAD -- ".testing_report/${expected_file}"',
+        "is not committed at HEAD",
+        "differs from committed HEAD",
+        "^RESULT: PASS$",
+        "^EXIT: 0$",
+        "SKIPPED \\(owner decision\\)",
+        "runtime .log files are forbidden",
+        "absolute local /Users or /private path leaked",
+        "private-key or known token pattern leaked",
+        "token-like assignment leaked",
+    ):
+        assert required in source
+
+
+def test_testing_report_verifier_accepts_a_complete_rehashed_copy(tmp_path: Path) -> None:
+    result = _verify_report_bundle(_copy_report_bundle(tmp_path))
+
+    receipt = result.stdout + result.stderr
+    assert result.returncode == 0, receipt
+    assert "RESULT: PASS" in receipt
+    assert "committed testing-report bundle is complete" in receipt
+
+
+def test_testing_report_verifier_rejects_a_receipt_changed_after_manifesting(
+    tmp_path: Path,
+) -> None:
+    bundle = _copy_report_bundle(tmp_path)
+    receipt_path = bundle / "01-foundation.txt"
+    receipt_path.write_text(
+        receipt_path.read_text(encoding="utf-8") + "tampered after manifest\n",
+        encoding="utf-8",
+    )
+
+    result = _verify_report_bundle(bundle)
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "SHA-256 mismatch for 01-foundation.txt" in output
+    assert "RESULT: PASS" not in output
+
+
+def test_testing_report_verifier_rejects_an_absolute_path_even_when_rehashed(
+    tmp_path: Path,
+) -> None:
+    bundle = _copy_report_bundle(tmp_path)
+    receipt_path = bundle / "00-contract-baseline.txt"
+    receipt_path.write_text(
+        receipt_path.read_text(encoding="utf-8") + "leaked path: /private/unsafe\n",
+        encoding="utf-8",
+    )
+    _write_test_manifest(bundle)
+
+    result = _verify_report_bundle(bundle)
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "absolute local /Users or /private path leaked" in output
+    assert "RESULT: PASS" not in output
 
 
 def test_track09_pyright_inventory_matches_the_locked_toml_shape() -> None:

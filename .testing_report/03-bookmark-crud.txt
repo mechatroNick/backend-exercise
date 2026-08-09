@@ -1,0 +1,21 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:49:26Z
+COMMAND: bash scripts/verify-track-03.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-03.sh
+TITLE: Track 03 bookmark CRUD real-process verification
+START: 2026-08-09T10:49:26Z
+GATE: isolated bootstrap, CRUD, ownership, and error contracts
+GATE: OpenAPI, lifecycle JSON Lines, and redaction evidence
+GATE: verified disposable-process cleanup
+Track 03 process evidence: real CRUD, ownership concealment, canonical tags, timestamps, bodyless delete, bounded OpenAPI, redacted owning fault
+SUMMARY: CRUD, ownership, OpenAPI, lifecycle, and redaction evidence completed
+Track 03 harness cleanup: removed verified disposable credentials, requests, responses, database, and logs
+CLEANUP: PASS — verified disposable credentials, requests, responses, database, and logs removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:49:29Z
+EXIT: 0

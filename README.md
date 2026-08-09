@@ -96,6 +96,7 @@ documentation and completed-track receipts directly:
 
 ```sh
 bash scripts/verify-docs.sh
+bash scripts/verify-testing-reports.sh
 bash scripts/verify-track-01.sh
 bash scripts/verify-track-02.sh
 bash scripts/verify-track-03.sh
@@ -117,6 +118,11 @@ The current clean-source Track 09 branch evidence is **743 tests plus 3 subtests
 **2,953 statements / 618 branches at 100% coverage**. The exact commands, receipts,
 and merged-main receipt are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
 and [final test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
+
+The committed [testing-report manifest](.testing_report/MANIFEST.md) indexes the
+captured public terminal output for Tracks 00–09, including exact commands, UTC
+bounds, source commit, exit results, and SHA-256 checksums. Track 07 is recorded only
+as the owner-authorized skip; it is not represented as a passing executable track.
 
 For ordinary local checks:
 

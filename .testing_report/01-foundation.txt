@@ -1,0 +1,25 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:48:59Z
+COMMAND: bash scripts/verify-track-01.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-01.sh
+TITLE: Track 01 foundation real-process verification
+START: 2026-08-09T10:48:59Z
+GATE: isolated migration and factory bootstrap
+GATE: OpenAPI, JSON Lines lifecycle, and owning fault boundary
+GATE: verified disposable-process cleanup
+   Building bookmarks-api @ file://<repository-root>
+      Built bookmarks-api @ file://<repository-root>
+Uninstalled 1 package in 2ms
+Installed 1 package in 2ms
+Track 01 process evidence: factory bootstrap, one worker, OpenAPI, JSON lifecycle, request exception boundary
+SUMMARY: foundation bootstrap, lifecycle, fault-boundary, and redaction evidence completed
+Track 01 harness cleanup: removed verified disposable resources
+CLEANUP: PASS — verified disposable process and workspace removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:49:04Z
+EXIT: 0

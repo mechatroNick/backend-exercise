@@ -1,0 +1,20 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:48:50Z
+COMMAND: bash scripts/verify-docs.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-docs.sh
+TITLE: Documentation integrity verification
+START: 2026-08-09T10:48:50Z
+GATE: documentation inventory and durable control-plane files
+GATE: current Markdown link and repository-path resolution
+GATE: whitespace and Git diff hygiene
+SUMMARY: 43 requirement IDs, 8 accepted ADRs, and 10 tracks verified
+PASS: documentation-only verification (43 requirement IDs, 8 accepted ADRs, 10 tracks).
+CLEANUP: PASS — no disposable resources were created
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:48:51Z
+EXIT: 0

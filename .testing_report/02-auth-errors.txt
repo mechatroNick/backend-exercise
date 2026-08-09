@@ -1,0 +1,21 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
+START: 2026-08-09T10:49:12Z
+COMMAND: bash scripts/verify-track-02.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-02.sh
+TITLE: Track 02 authentication and error verification
+START: 2026-08-09T10:49:12Z
+GATE: isolated bootstrap and bearer authentication contract
+GATE: error envelope, OpenAPI, and redacted owning fault evidence
+GATE: verified disposable-process cleanup
+Track 02 process evidence: bootstrap, auth contract, protected bearer, redacted owning fault
+SUMMARY: authentication, error-boundary, OpenAPI, and redaction evidence completed
+Track 02 harness cleanup: removed verified disposable resources
+CLEANUP: PASS — verified disposable process and workspace removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-09T10:49:15Z
+EXIT: 0

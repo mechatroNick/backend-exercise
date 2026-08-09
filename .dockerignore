@@ -30,6 +30,7 @@ coverage.xml
 # Repository material that is not required to build the runtime image.
 .tracks/
 .docs/
+.testing_report/
 tests/
 tmp/
 build/
