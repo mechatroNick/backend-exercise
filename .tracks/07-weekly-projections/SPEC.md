@@ -1,56 +1,92 @@
 # Track 07 specification: weekly event-time projections and correction revisions
 
-- Status: **Skipped (owner decision)**
-- Specification version: 1.2
+- Status: **Complete**
+- Specification version: 2.0
 - Originally planned: 2026-08-05
-- Skipped: 2026-08-06
-- Owner: Repository owner
-- Depends on: None; no Track 07 implementation will run
-- Governing records: ADR-004, ADR-005, ADR-006
-- Assessment disposition: WIN-01 and WIN-02 are not selected; WIN-03 remains owned by Track 06
+- Revived: 2026-08-09
+- Owner: Primary engineering thread
+- Depends on: Track 06 Complete with reviewed closure evidence
+- Governing ADRs: ADR-004, ADR-005, ADR-006, ADR-009
+- Assessment requirements: WIN-01 and WIN-02; preserves WIN-03 and the current-statistics boundaries
 
-## Decision
+## Intent and scope
 
-Track 07 is intentionally skipped. The repository will not implement weekly
-developing points, developed points, append-only correction revisions, historical
-backfill, a historical consumer, or a statistics-history API.
+The 2026-08-09 repository-owner revival supersedes only the prior Track 07 skip
+disposition. It authorizes implementation planning and dependency review; it is not
+implementation, test, migration, harness, or closure evidence. ADR-005's event-time
+weekly design is selected for implementation. `/api/bookmarks/stats` remains the
+canonical all-current, user-scoped view, and no public history route or OpenAPI
+operation is in scope.
 
-This is an explicit scope decision, not passing implementation evidence. Track 07
-must never be shown as Complete, verified, or implemented, and it does not receive a
-runtime harness or `TEST-REPORT.md`.
+Track 06's one-worker, named non-daemon `bookmark-stats-refresher`, canonical raw-SQL
+fallback, current snapshot behavior, liveness, and generation-safe current completion
+remain fixed. Projection failure, backlog, incompleteness, or overdue state degrades
+readiness only; it must not affect liveness or current-statistics correctness, JSON,
+or headers.
 
-## Consequences
+## Persistence and canonical payload contract
 
-- Track 06 current statistics remain the only statistics runtime. Its canonical raw
-  SQL, optional current snapshots, durable dirty-marker recovery, health, and
-  observability contracts remain unchanged.
-- Track 06's current-only generation completion is the terminal dirty-marker policy.
-  No retention/backfill/dual-consumer cutover is required.
-- `bookmark_stats_window_working`, `bookmark_stats_window_point`, projection
-  completion columns, calculation versions, historical payload hashes, and correction
-  revisions must not be added.
-- ADR-005 remains an archived accepted design describing how the feature could be
-  implemented if explicitly revived. It is not delivered architecture.
-- Track 08 depends on completed Tracks 01–06 plus this recorded skip decision. It
-  must not require Track 07 code, a Track 07 closure report, or
-  `scripts/verify-track-07.sh`.
-- Final documentation must disclose that WIN-01/WIN-02 and weekly historical
-  projections were deliberately not selected; it must not claim their evidence.
+- Add private `bookmark_stats_window_working` rows at unique `(user_id, window_start)`
+  grain and append-only `bookmark_stats_window_point` revisions at unique
+  `(user_id, window_start, revision)` grain. User deletion cascades through working,
+  dirty, and point rows. A correction points only to the immediate predecessor for the
+  same user/window; the effective point is the highest valid revision.
+- Windows are UTC `[Monday 00:00:00Z, next Monday 00:00:00Z)`. The canonical weekly
+  aggregate includes `total_bookmarks`, `total_tags`, deterministically ordered
+  `top_tags`, and deterministically ordered `bookmarks_per_month`, calculated from
+  surviving canonical bookmarks whose immutable `created_at` is in that window.
+- Persist a private canonical JSON payload with an explicit schema wrapper and schema
+  version. Serialize stable key/array order as compact UTF-8 bytes. `content_hash` is
+  SHA-256 over domain-separated calculation-version text and those exact bytes.
+- `calculation_version` explicitly identifies the aggregate algorithm, payload schema,
+  and `TOP_TAGS_LIMIT`. Compare hashes only inside the same version. A version change
+  or stored/runtime mismatch fails projection readiness and requires a future explicit,
+  restartable recomputation decision. It never auto-rewrites or auto-appends solely for
+  a mismatch; any later authorized recompute remains append-only for developed history.
 
-## Scope guard
+## Baseline, lifecycle, and durable completion
 
-Any later request to revive weekly projections is a new scope decision. It requires
-an updated Track 07 specification and plan, review of ADR-004/ADR-005 against the
-then-current Track 06 implementation, a new migration design, deterministic tests,
-and its own real-process evidence before implementation begins.
+Before normal projection consumption, install a durable singleton baseline checkpoint
+with observable status. A bounded, restartable, user-page backfill scans only surviving
+canonical data. Closed windows get revision 1; current-window evidence gets a
+developing row; empty elapsed weeks and deleted pre-install data are not synthesized.
+Baseline rows use `source_generation = 0`; observed dirty-marker generations are
+strictly positive. A multi-week clock jump finalizes only evidenced working windows,
+creates the window containing now, and skips empty intermediate weeks.
 
-## Skip acceptance
+Extend durable dirty rows with `current_completed_generation` and
+`projection_completed_generation`, initialized to zero. For observed generation `g`,
+each consumer guarded-completes only the row still at generation `g`. Remove a marker
+only when its generation and both completion values equal `g`, in a successful durable
+transaction. A newer increment therefore stays pending, and a crash before projection
+durability is recoverable. Developing rows are replaced; boundary finalization appends
+revision 1; late material changes append a correction only when the compatible
+canonical payload changed.
 
-The skip is correctly represented when:
+`STATS_PROJECTION_ENABLED` defaults to `true`. If current refresh remains enabled but
+projection is disabled, retain durable markers and report readiness degraded; current
+statistics remain correct and live independently.
 
-1. every current control-plane and reader document identifies Track 07 as skipped;
-2. Track 08 has no Track 07 completion, report, branch, or harness dependency;
-3. Track 06 documents current-only dirty completion as final;
-4. weekly tables, routes, consumers, and correction behavior remain absent; and
-5. documentation verification rejects a return to Planned/Complete wording or an
-   accidental Track 07 harness requirement.
+## Acceptance evidence and stop conditions
+
+Implementation must prove migrations and FK/cascade behavior; Monday boundaries;
+stable payload/hash/version behavior; restartable baseline; idempotent developing,
+finalization, and correction paths; revision and generation races; projection
+failure/readiness versus liveness/current-stats independence; JSON-Line safe logs; and
+no public history surface. Completion additionally requires deterministic tests, a
+real-process `scripts/verify-track-07.sh`, and a truthful `TEST-REPORT.md` under
+ADR-006. Those deterministic, migration, and real-process receipts were completed by
+the continuous Track 07 verification run recorded in `TEST-REPORT.md` at commit
+`08a86b3`; this track is **Complete**. That receipt does not claim a post-merge run
+or downstream Track 08/09 validation.
+
+Stop for ADR/owner review before changing event-time semantics, immutability,
+supersession, marker generation semantics, user-cascade privacy behavior, Track 06
+current-statistics contracts, or adding a public history surface.
+
+## Downstream integration boundary
+
+Track 08 and Track 09 active documents still describe the pre-revival skip/absence
+state and are therefore stale for this completed dependency. They must be reopened and
+updated in a later downstream integration checkpoint; they are intentionally not edited
+by this Track 07 closure and receive no post-merge or downstream-validation claim here.

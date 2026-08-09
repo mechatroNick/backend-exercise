@@ -43,6 +43,15 @@ class BookmarkStatsWindowDirty(SQLModel, table=True):
         ),
         CheckConstraint("generation > 0", name="ck_stats_dirty_generation_positive"),
         CheckConstraint(
+            "current_completed_generation >= 0 AND current_completed_generation <= generation",
+            name="ck_stats_dirty_current_completion_generation",
+        ),
+        CheckConstraint(
+            "projection_completed_generation >= 0 "
+            "AND projection_completed_generation <= generation",
+            name="ck_stats_dirty_projection_completion_generation",
+        ),
+        CheckConstraint(
             "length(reason) > 0 AND length(reason) <= 32", name="ck_stats_dirty_reason_bounded"
         ),
         CheckConstraint(
@@ -76,6 +85,14 @@ class BookmarkStatsWindowDirty(SQLModel, table=True):
         sa_column=Column(UTCDateTime(), nullable=False, primary_key=True)
     )
     generation: int = Field(sa_column=Column(Integer, nullable=False))
+    current_completed_generation: int = Field(
+        default=0,
+        sa_column=Column(Integer, nullable=False, server_default=text("0")),
+    )
+    projection_completed_generation: int = Field(
+        default=0,
+        sa_column=Column(Integer, nullable=False, server_default=text("0")),
+    )
     reason: str = Field(sa_column=Column(String(32), nullable=False))
     first_marked_at: datetime = Field(sa_column=Column(UTCDateTime(), nullable=False))
     last_marked_at: datetime = Field(sa_column=Column(UTCDateTime(), nullable=False))
@@ -105,6 +122,8 @@ class DirtyMarker(FrozenInternalModel):
     user_id: int
     window_start: datetime
     generation: int
+    current_completed_generation: int
+    projection_completed_generation: int
     reason: DirtyReason
     first_marked_at: datetime
     last_marked_at: datetime
@@ -113,6 +132,20 @@ class DirtyMarker(FrozenInternalModel):
 class DirtyBacklog(FrozenInternalModel):
     count: int
     oldest_marked_at: datetime | None
+
+
+class DirtyAcknowledgementStatus(StrEnum):
+    """The durable outcome of one guarded consumer acknowledgement."""
+
+    STALE = "stale"
+    ACKNOWLEDGED = "acknowledged"
+    DELETED = "deleted"
+
+
+class DirtyAcknowledgement(FrozenInternalModel):
+    """A precise outcome for a generation-guarded acknowledgement attempt."""
+
+    status: DirtyAcknowledgementStatus
 
 
 def _encoded(value: datetime) -> str:
@@ -134,10 +167,23 @@ def _marker(row: dict[str, Any]) -> DirtyMarker:
         user_id=_positive(row["user_id"], "persisted user_id"),
         window_start=window_start,
         generation=_positive(row["generation"], "persisted generation"),
+        current_completed_generation=_nonnegative(
+            row["current_completed_generation"], "persisted current_completed_generation"
+        ),
+        projection_completed_generation=_nonnegative(
+            row["projection_completed_generation"],
+            "persisted projection_completed_generation",
+        ),
         reason=DirtyReason(row["reason"]),
         first_marked_at=_decoded(row["first_marked_at"]),
         last_marked_at=_decoded(row["last_marked_at"]),
     )
+
+
+def _nonnegative(value: int, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise ValueError(f"{name} must be a nonnegative integer")
+    return value
 
 
 class BookmarkStatsDirtyRepository:
@@ -159,10 +205,12 @@ class BookmarkStatsDirtyRepository:
         window, marked = _encoded(utc_monday(window_start)), _encoded(marked_at)
         statement = text(
             "INSERT INTO bookmark_stats_window_dirty "
-            "(user_id, window_start, generation, reason, first_marked_at, last_marked_at) "
-            "VALUES (:user_id, :window, 1, :reason, :marked, :marked) "
+            "(user_id, window_start, generation, current_completed_generation, "
+            "projection_completed_generation, reason, first_marked_at, last_marked_at) "
+            "VALUES (:user_id, :window, 1, 0, 0, :reason, :marked, :marked) "
             "ON CONFLICT(user_id, window_start) DO UPDATE SET "
             "generation = generation + 1, reason = excluded.reason, "
+            "current_completed_generation = 0, projection_completed_generation = 0, "
             "last_marked_at = excluded.last_marked_at"
         )
         self._session.execute(
@@ -174,7 +222,8 @@ class BookmarkStatsDirtyRepository:
         if limit > 100:
             raise ValueError("limit must be at most 100")
         statement = text(
-            "SELECT user_id, window_start, generation, reason, first_marked_at, last_marked_at "
+            "SELECT user_id, window_start, generation, current_completed_generation, "
+            "projection_completed_generation, reason, first_marked_at, last_marked_at "
             "FROM bookmark_stats_window_dirty "
             "ORDER BY last_marked_at ASC, user_id ASC, window_start ASC LIMIT :limit"
         )
@@ -214,29 +263,70 @@ class BookmarkStatsDirtyRepository:
             else _decoded(row["oldest_marked_at"]),
         )
 
-    def complete(self, user_id: int, window_start: datetime, generation: int) -> bool:
+    def acknowledge_current(
+        self, user_id: int, window_start: datetime, generation: int
+    ) -> DirtyAcknowledgement:
+        """Durably acknowledge current work without deleting pending projection work."""
+        return self._acknowledge("current_completed_generation", user_id, window_start, generation)
+
+    def acknowledge_projection(
+        self, user_id: int, window_start: datetime, generation: int
+    ) -> DirtyAcknowledgement:
+        """Durably acknowledge projection work and delete only fully acknowledged work."""
+        return self._acknowledge(
+            "projection_completed_generation", user_id, window_start, generation
+        )
+
+    def _acknowledge(
+        self,
+        completion_column: str,
+        user_id: int,
+        window_start: datetime,
+        generation: int,
+    ) -> DirtyAcknowledgement:
         _positive(user_id, "user_id")
         _positive(generation, "generation")
-        result = cast(
+        window = _encoded(utc_monday(window_start))
+        parameters = {"user_id": user_id, "window": window, "generation": generation}
+        acknowledged = cast(
+            CursorResult[Any],
+            self._session.execute(
+                text(
+                    "UPDATE bookmark_stats_window_dirty "
+                    f"SET {completion_column}=:generation "
+                    "WHERE user_id=:user_id AND window_start=:window AND generation=:generation"
+                ),
+                parameters,
+            ),
+        )
+        if acknowledged.rowcount != 1:
+            return DirtyAcknowledgement(status=DirtyAcknowledgementStatus.STALE)
+        deleted = cast(
             CursorResult[Any],
             self._session.execute(
                 text(
                     "DELETE FROM bookmark_stats_window_dirty WHERE user_id=:user_id "
-                    "AND window_start=:window AND generation=:generation"
+                    "AND window_start=:window AND generation=:generation "
+                    "AND current_completed_generation=:generation "
+                    "AND projection_completed_generation=:generation"
                 ),
-                {
-                    "user_id": user_id,
-                    "window": _encoded(utc_monday(window_start)),
-                    "generation": generation,
-                },
+                parameters,
             ),
         )
-        return result.rowcount == 1
+        return DirtyAcknowledgement(
+            status=(
+                DirtyAcknowledgementStatus.DELETED
+                if deleted.rowcount == 1
+                else DirtyAcknowledgementStatus.ACKNOWLEDGED
+            )
+        )
 
 
 __all__ = [
     "BookmarkStatsDirtyRepository",
     "BookmarkStatsWindowDirty",
+    "DirtyAcknowledgement",
+    "DirtyAcknowledgementStatus",
     "DirtyBacklog",
     "DirtyMarker",
     "DirtyReason",

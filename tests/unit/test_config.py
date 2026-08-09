@@ -14,6 +14,7 @@ _SETTINGS_ENV_NAMES = (
     "ACCESS_TOKEN_TTL_MINUTES",
     "TOP_TAGS_LIMIT",
     "STATS_REFRESH_ENABLED",
+    "STATS_PROJECTION_ENABLED",
     "STATS_REFRESH_INTERVAL_SECONDS",
     "STATS_STALE_AFTER_SECONDS",
     "STATS_INITIAL_REFRESH_TIMEOUT_SECONDS",
@@ -50,6 +51,7 @@ def test_defaults_are_safe_for_non_production() -> None:
     assert settings.access_token_ttl_minutes == 30
     assert settings.top_tags_limit == 5
     assert settings.stats_refresh_enabled is True
+    assert settings.stats_projection_enabled is True
     assert settings.app_worker_count == 1
     assert settings.rate_limit_enabled is True
     assert settings.rate_limit_auth_requests == 10
@@ -69,6 +71,7 @@ def test_environment_aliases_load_without_double_app_prefix(
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     monkeypatch.setenv("TOP_TAGS_LIMIT", "9")
+    monkeypatch.setenv("STATS_PROJECTION_ENABLED", "false")
     monkeypatch.setenv("RATE_LIMIT_AUTH_REQUESTS", "9")
     monkeypatch.setenv("LOG_LEVEL", "debug")
 
@@ -77,6 +80,7 @@ def test_environment_aliases_load_without_double_app_prefix(
     assert settings.app_env == "test"
     assert settings.database_url == "sqlite:///:memory:"
     assert settings.top_tags_limit == 9
+    assert settings.stats_projection_enabled is False
     assert settings.rate_limit_auth_requests == 9
     assert settings.log_level == "DEBUG"
 
@@ -145,6 +149,7 @@ def test_database_url_must_be_local_sqlite(database_url: str, message: str) -> N
             {"stats_refresh_enabled": False, "app_worker_count": 1_000_001},
             "less than or equal",
         ),
+        ({"stats_projection_enabled": "not-a-boolean"}, "bool_parsing"),
         ({"log_level": "TRACE"}, "literal_error"),
         ({"app_env": "staging"}, "literal_error"),
     ],

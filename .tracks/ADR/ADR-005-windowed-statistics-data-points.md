@@ -3,15 +3,14 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 06, 08; Track 07 skip record
+- Affected tracks: 06, 07; downstream integration required for 08 and 09
 - Affected SPEC versions: Baseline
 - Supersedes: ADR-004 open question about snapshot versus historical persistence
 - Superseded by: None
-- Implementation disposition: **Not selected; Track 07 skipped by owner on 2026-08-06**
+- Implementation disposition: **Selected for Track 07 implementation by ADR-009 on 2026-08-09**
 
-> This ADR remains an accepted design record for possible future revival. Its weekly
-> tables, consumers, backfill, and correction revisions are not part of the delivered
-> scope. Track 06 current-only generation completion is terminal.
+> ADR-009 revives Track 07. This design is implementation authority only after the
+> Track 06 closure/seam gate; it does not itself claim weekly runtime evidence.
 
 ## Context
 
@@ -137,10 +136,12 @@ bookmark_stats_window_dirty
 ```
 
 Unique key: `(user_id, window_start)`. Marker completion is generation-safe. Because
-Track 07 is skipped, only the current-snapshot consumer is installed: successful
-canonical recomputation may complete and remove its observed generation under
-ADR-004, while a concurrent increment remains pending. The historical backfill and
-dual-consumer protocol described by this ADR are archived and not implemented.
+Before Track 07 installs its baseline and dual-consumer protocol, Track 06's current
+consumer remains the only installed completion participant. Track 07 then adds
+`current_completed_generation` and `projection_completed_generation`, both initialized
+to zero; observed generations remain positive. Each consumer guarded-completes its
+observed generation and deletion requires the generation and both completions to equal
+that same value. A concurrent increment remains pending.
 
 ## Rejected alternative: observation-time snapshot
 
@@ -197,4 +198,5 @@ Under observation-time semantics:
 ## Evidence and references
 
 - [ADR-004](ADR-004-event-driven-statistics-service.md)
+- [ADR-009](ADR-009-track-07-weekly-projection-revival.md)
 - [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)

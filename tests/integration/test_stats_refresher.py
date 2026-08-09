@@ -21,7 +21,11 @@ from app.bookmarks.events import (
 from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository, DirtyReason
 from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.raw_sql import TOTALS_SQL, BookmarkStatsReader
-from app.bookmarks.stats.refresher import StatsRefresher
+from app.bookmarks.stats.refresher import (
+    ProjectionLifecycleStatus,
+    StatsRefresher,
+    _ProjectionCycleResult,
+)
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.config import Settings
 from app.db.engine import create_session_factory
@@ -53,6 +57,7 @@ def _runtime(
     engine: Engine,
     *,
     batch_size: int = 100,
+    projection_enabled: bool = False,
 ) -> tuple[StatsRefresher, StatsInvalidationPublisher, StatsSnapshotStore]:
     store = StatsSnapshotStore()
     publisher = StatsInvalidationPublisher(
@@ -72,8 +77,50 @@ def _runtime(
         batch_size=batch_size,
         logger=_logger(),
         service_instance_id=_INSTANCE_ID,
+        projection_enabled=projection_enabled,
     )
     return refresher, publisher, store
+
+
+def test_projection_failure_degrades_only_projection_not_current_refresh(
+    migrated_engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    refresher, _publisher, _store = _runtime(migrated_engine)
+    monkeypatch.setattr(
+        refresher,
+        "_run_projection_phase",
+        lambda: _ProjectionCycleResult(
+            status=ProjectionLifecycleStatus.FAILED,
+            successful=False,
+            error_code="projection_cycle_failed",
+        ),
+    )
+
+    assert refresher.run_cycle(full=True)
+    state = refresher.state()
+    assert state.successful_cycles == 1
+    assert state.consecutive_failures == 0
+    assert state.projection_consecutive_failures == 1
+
+
+def test_default_enabled_projection_baselines_then_completes_dirty_generation(
+    migrated_engine: Engine,
+) -> None:
+    refresher, _publisher, _store = _runtime(migrated_engine, projection_enabled=True)
+
+    assert refresher.run_cycle(full=True)
+    assert refresher.state().projection_baseline_status is ProjectionLifecycleStatus.ACTIVE
+
+    _seed_users(migrated_engine, count=1)
+    _seed_bookmark(migrated_engine)
+    with Session(migrated_engine) as session:
+        BookmarkStatsDirtyRepository(session).mark_dirty(1, _NOW, DirtyReason.CREATE, _NOW)
+        session.commit()
+
+    assert refresher.run_cycle()
+    assert refresher.state().projection_successful
+    with Session(migrated_engine) as session:
+        assert BookmarkStatsDirtyRepository(session).backlog().count == 0
 
 
 def _seed_users(engine: Engine, count: int = 2) -> None:
@@ -143,9 +190,13 @@ def test_full_reconciliation_publishes_zero_baseline_and_positive_marker_generat
     assert owner.stats.total_bookmarks == 1
     assert empty is not None and empty.source_generation == 0
     assert empty.stats.total_bookmarks == 0
-    assert not publisher.state().reconciliation_required
+    assert publisher.state().reconciliation_required
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            2,
+            0,
+        )
 
 
 def test_lost_and_duplicate_hints_coalesce_behind_durable_marker(
@@ -183,7 +234,11 @@ def test_lost_and_duplicate_hints_coalesce_behind_durable_marker(
     compiled_totals = str(TOTALS_SQL.compile(dialect=migrated_engine.dialect)).strip()
     assert statements.count(compiled_totals) == 1
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            1,
+            0,
+        )
 
 
 def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
@@ -197,15 +252,15 @@ def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
         session.commit()
 
     refresher, publisher, store = _runtime(migrated_engine)
-    original_complete = BookmarkStatsDirtyRepository.complete
+    original_acknowledge_current = BookmarkStatsDirtyRepository.acknowledge_current
     incremented = False
 
-    def increment_then_complete(
+    def increment_then_acknowledge_current(
         repository: BookmarkStatsDirtyRepository,
         user_id: int,
         window_start: datetime,
         generation: int,
-    ) -> bool:
+    ) -> Any:
         nonlocal incremented
         if not incremented:
             incremented = True
@@ -218,9 +273,13 @@ def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
                 )
                 writer.commit()
             assert publisher.publish(_event()).value == "enqueued"
-        return original_complete(repository, user_id, window_start, generation)
+        return original_acknowledge_current(repository, user_id, window_start, generation)
 
-    monkeypatch.setattr(BookmarkStatsDirtyRepository, "complete", increment_then_complete)
+    monkeypatch.setattr(
+        BookmarkStatsDirtyRepository,
+        "acknowledge_current",
+        increment_then_acknowledge_current,
+    )
     assert not refresher.run_cycle()
     assert store.get(1) is None
     with Session(migrated_engine) as verification:
@@ -253,7 +312,11 @@ def test_compute_failure_keeps_marker_and_retry_recovers(
     assert refresher.run_cycle()
     assert store.get(1) is not None
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            1,
+            0,
+        )
 
 
 def test_manual_cycles_never_overlap(
@@ -349,19 +412,23 @@ def test_snapshot_cas_rejection_rolls_back_marker_completion(
         session.commit()
 
     refresher, _publisher, store = _runtime(migrated_engine)
-    original_complete = BookmarkStatsDirtyRepository.complete
+    original_acknowledge_current = BookmarkStatsDirtyRepository.acknowledge_current
 
-    def complete_then_invalidate(
+    def acknowledge_current_then_invalidate(
         repository: BookmarkStatsDirtyRepository,
         user_id: int,
         window_start: datetime,
         generation: int,
-    ) -> bool:
-        completed = original_complete(repository, user_id, window_start, generation)
+    ) -> Any:
+        completed = original_acknowledge_current(repository, user_id, window_start, generation)
         store.invalidate(user_id)
         return completed
 
-    monkeypatch.setattr(BookmarkStatsDirtyRepository, "complete", complete_then_invalidate)
+    monkeypatch.setattr(
+        BookmarkStatsDirtyRepository,
+        "acknowledge_current",
+        acknowledge_current_then_invalidate,
+    )
     assert not refresher.run_cycle()
     assert store.get(1) is None
     with Session(migrated_engine) as verification:
@@ -441,10 +508,10 @@ def test_reconciliation_waits_for_every_dirty_batch_before_acknowledging(
     assert refresher.run_cycle()
     assert publisher.state().reconciliation_required
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 1
+        assert BookmarkStatsDirtyRepository(verification).backlog().count == 3
 
     assert refresher.run_cycle()
-    assert not publisher.state().reconciliation_required
+    assert publisher.state().reconciliation_required
 
 
 def test_new_reconciliation_epoch_cannot_be_cleared_by_an_older_full_scan(

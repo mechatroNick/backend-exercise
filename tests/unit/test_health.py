@@ -19,8 +19,9 @@ from app.api.health import (
     get_readiness_evaluator,
 )
 from app.bookmarks.stats.dirty import DirtyBacklog
+from app.bookmarks.stats.projection_repository import ProjectionReadinessSnapshot
 from app.bookmarks.stats.publisher import PublisherState
-from app.bookmarks.stats.refresher import RefresherState
+from app.bookmarks.stats.refresher import ProjectionLifecycleStatus, RefresherState
 from app.core.config import Settings
 from app.core.logging import configure_logging
 
@@ -65,6 +66,15 @@ def _worker(**changes: object) -> RefresherState:
         last_marker_count=0,
         last_error_code=None,
         shutdown_timed_out=False,
+        projection_enabled=True,
+        projection_baseline_status=ProjectionLifecycleStatus.ACTIVE,
+        projection_version_compatible=True,
+        projection_pending_count=0,
+        projection_overdue_count=0,
+        projection_successful=True,
+        projection_last_success_at=_NOW,
+        projection_consecutive_failures=0,
+        projection_last_error_code=None,
     )
     values.update(changes)
     return RefresherState(**values)
@@ -94,6 +104,7 @@ def _evaluator(
     backlog_failure=None,
     clock=_NOW,
     stream=None,
+    projection=None,
 ):
     settings = Settings(
         app_env="test",
@@ -126,6 +137,15 @@ def _evaluator(
             else DirtyBacklog(count=0, oldest_marked_at=None)
             if backlog is None
             else backlog
+        ),
+        projection_readiness_reader=lambda session, top_tags_limit, now: (
+            projection
+            or ProjectionReadinessSnapshot.model_construct(
+                state=SimpleNamespace(status=ProjectionLifecycleStatus.ACTIVE),
+                calculation_version_compatible=True,
+                pending_projection_count=0,
+                overdue_working_count=0,
+            )
         ),
     )
 
@@ -429,6 +449,105 @@ def test_logging_failure_cannot_break_readiness() -> None:
     evaluator = _evaluator()
     evaluator._logger = BrokenLogger("broken-health")
     assert evaluator.evaluate().ready
+
+
+def _projection(
+    status: ProjectionLifecycleStatus,
+    *,
+    compatible: bool = True,
+    pending: int = 0,
+    overdue: int = 0,
+) -> ProjectionReadinessSnapshot:
+    return ProjectionReadinessSnapshot.model_construct(
+        state=SimpleNamespace(status=status),
+        calculation_version_compatible=compatible,
+        pending_projection_count=pending,
+        overdue_working_count=overdue,
+    )
+
+
+@pytest.mark.parametrize(
+    ("status", "reason"),
+    [
+        (ProjectionLifecycleStatus.PENDING, ReadinessReason.PROJECTION_BASELINE_PENDING),
+        (ProjectionLifecycleStatus.RUNNING, ReadinessReason.PROJECTION_BASELINE_RUNNING),
+        (ProjectionLifecycleStatus.FAILED, ReadinessReason.PROJECTION_BASELINE_FAILED),
+    ],
+)
+def test_durable_projection_baseline_state_is_readiness_authority(status, reason) -> None:
+    snapshot = _evaluator(
+        worker=_worker(projection_baseline_status=ProjectionLifecycleStatus.ACTIVE),
+        projection=_projection(status),
+    ).evaluate()
+
+    assert not snapshot.ready and snapshot.reason is reason
+
+
+def test_durable_active_projection_state_allows_a_lagging_worker_status() -> None:
+    snapshot = _evaluator(
+        worker=_worker(projection_baseline_status=ProjectionLifecycleStatus.RUNNING),
+        projection=_projection(ProjectionLifecycleStatus.ACTIVE),
+    ).evaluate()
+
+    assert snapshot.ready and snapshot.reason is ReadinessReason.READY
+
+
+def test_projection_reason_precedence_after_current_worker_is_healthy() -> None:
+    assert (
+        _evaluator(worker=_worker(projection_enabled=False)).evaluate().reason
+        is ReadinessReason.PROJECTION_DISABLED
+    )
+    assert (
+        _evaluator(projection=_projection(ProjectionLifecycleStatus.ACTIVE, compatible=False))
+        .evaluate()
+        .reason
+        is ReadinessReason.PROJECTION_VERSION_MISMATCH
+    )
+    assert (
+        _evaluator(worker=_worker(projection_consecutive_failures=1)).evaluate().reason
+        is ReadinessReason.PROJECTION_CYCLE_FAILED
+    )
+    assert (
+        _evaluator(projection=_projection(ProjectionLifecycleStatus.ACTIVE, pending=1))
+        .evaluate()
+        .reason
+        is ReadinessReason.PROJECTION_PENDING_BACKLOG
+    )
+    assert (
+        _evaluator(projection=_projection(ProjectionLifecycleStatus.ACTIVE, overdue=1))
+        .evaluate()
+        .reason
+        is ReadinessReason.PROJECTION_OVERDUE
+    )
+
+
+def test_projection_state_errors_and_malformed_status_fail_closed() -> None:
+    unavailable = ProjectionReadinessSnapshot.model_construct(
+        state=None,
+        calculation_version_compatible=False,
+        pending_projection_count=0,
+        overdue_working_count=0,
+    )
+    assert (
+        _evaluator(projection=unavailable).evaluate().reason
+        is ReadinessReason.PROJECTION_STATE_UNAVAILABLE
+    )
+    malformed = ProjectionReadinessSnapshot.model_construct(
+        state=SimpleNamespace(status=SimpleNamespace(value="unknown")),
+        calculation_version_compatible=True,
+        pending_projection_count=0,
+        overdue_working_count=0,
+    )
+    assert (
+        _evaluator(projection=malformed).evaluate().reason
+        is ReadinessReason.PROJECTION_STATE_UNAVAILABLE
+    )
+
+    evaluator = _evaluator()
+    evaluator._projection_readiness_reader = lambda _session, _limit, _now: (_ for _ in ()).throw(
+        RuntimeError("private-projection-sentinel")
+    )
+    assert evaluator.evaluate().reason is ReadinessReason.PROJECTION_STATE_UNAVAILABLE
 
 
 def test_dependency_rejects_an_invalid_lifespan_state() -> None:

@@ -24,9 +24,9 @@ The baseline must preserve the assessment's mandatory outcomes, capture every co
 - The required `/api/bookmarks/stats` endpoint is an all-current canonical view.
 - Bookmark actions emit loosely coupled post-commit invalidations to a bounded queue once the extension is implemented.
 - A named, lifespan-managed refresher batches invalidations at a configurable default ten-second cadence and has meaningful readiness evidence.
-- Weekly historical points and correction revisions remain an accepted archived design,
-  but their Track 07 implementation is owner-skipped. The delivered statistics
-  extension remains current-only.
+- Weekly historical points and correction revisions are selected for Track 07
+  implementation by ADR-009. Until its evidence closes, current statistics remain the
+  only delivered statistics runtime.
 - One local bootstrap starts the API and its in-process supporting services with service-attributed logs.
 - The final README and AI-process explanation describe verified implementation evidence rather than an invented future narrative.
 
@@ -48,7 +48,7 @@ An ADR update and repository-owner confirmation are required before changing:
 - public route paths, status codes, authentication model, or response semantics;
 - accepted identity/tag/date/timestamp normalization;
 - the one-worker runtime constraint for an in-process queue/cache;
-- current statistics meaning or the Track 07 skip boundary;
+- current statistics meaning or the Track 07 public-history boundary;
 - revival of weekly event-time windows or append-only correction semantics;
 - ORM/raw-SQL ownership boundaries;
 - a decision that materially expands submission scope.
@@ -97,10 +97,10 @@ Inputs:
 | --- | --- |
 | T00-REQ-01 | The assessment interpretation identifies every mandatory behavior and non-functional expectation with a stable ID, classification, owning track, and closure evidence. |
 | T00-REQ-02 | Accepted decisions are recorded as ADRs with context, decision, consequences, alternatives, and follow-up evidence. |
-| T00-REQ-03 | ADR-005 preserves the accepted weekly event-time/correction design as an archived record and identifies Track 07 implementation as owner-skipped. |
-| T00-REQ-04 | The solution design identifies all-current statistics as the terminal delivered boundary and weekly historical points as not implemented. |
+| T00-REQ-03 | ADR-005 and ADR-009 preserve the accepted weekly event-time/correction design and its controlled revival to Track 07 In progress. |
+| T00-REQ-04 | The solution design identifies all-current statistics as the canonical contract while weekly historical points remain unimplemented pending Track 07 evidence. |
 | T00-REQ-05 | The solution design describes the complete local runtime, dependency boundaries, data model, API behavior, background lifecycle, health, security, testing, and production evolution. |
-| T00-REQ-06 | The delivery plan reaches a mandatory API quality gate before the current-statistics extension and the owner-selected Track 08 bonuses; Track 07 is skipped. |
+| T00-REQ-06 | The delivery plan reaches a mandatory API quality gate before extensions; Track 07 requires Track 06 closure evidence and ADR-006 closure proof. |
 | T00-REQ-07 | Every delivery track declares an outcome, scope, acceptance evidence, dependencies, and a proposed commit boundary. |
 | T00-REQ-08 | Material ambiguities are resolved with the repository owner rather than silently assumed. Local reversible implementation choices remain documented as decision latitude. |
 | T00-REQ-09 | A fresh-reader audit can understand the assignment, decisions, solution, and next implementation step without chat history. |
@@ -152,7 +152,7 @@ Stop and request direction if:
 | Requirement | Primary evidence |
 | --- | --- |
 | T00-REQ-01 | `.docs/ASSESSMENT.md` requirement matrix |
-| T00-REQ-02 | `.tracks/ADR/ADR-001...ADR-006`, including ADR-006 closure evidence process |
+| T00-REQ-02 | `.tracks/ADR/ADR-001...ADR-009`, including ADR-006 closure process and ADR-009 revival decision |
 | T00-REQ-03 | `.tracks/ADR/ADR-005-windowed-statistics-data-points.md`, Event-time design |
 | T00-REQ-04 | `.docs/SOLUTION-DESIGN.md`, sections 10 and 12 |
 | T00-REQ-05 | `.docs/SOLUTION-DESIGN.md`, sections 3–19 |

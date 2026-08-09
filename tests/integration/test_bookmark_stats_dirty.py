@@ -13,6 +13,7 @@ from sqlmodel import Session
 from alembic import command
 from app.bookmarks.stats.dirty import (
     BookmarkStatsDirtyRepository,
+    DirtyAcknowledgementStatus,
     DirtyReason,
     utc_monday,
 )
@@ -51,6 +52,87 @@ def test_atomic_upsert_preserves_first_mark_and_updates_generation(
         assert marker.reason is DirtyReason.UPDATE
         assert marker.first_marked_at == first
         assert marker.last_marked_at == second
+        assert marker.current_completed_generation == 0
+        assert marker.projection_completed_generation == 0
+
+
+def test_two_consumer_acknowledgements_delete_only_after_both_and_reset_on_increment(
+    migrated_engine: Engine,
+) -> None:
+    moment = datetime(2026, 8, 6, 12, tzinfo=UTC)
+    with Session(migrated_engine) as session:
+        _insert_users(session, moment)
+        repository = BookmarkStatsDirtyRepository(session)
+        repository.mark_dirty(1, moment, DirtyReason.CREATE, moment)
+        repository.mark_dirty(2, moment, DirtyReason.CREATE, moment)
+        session.commit()
+
+        assert (
+            repository.acknowledge_projection(2, moment, 1).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
+        assert (
+            repository.acknowledge_current(2, moment, 1).status
+            is DirtyAcknowledgementStatus.DELETED
+        )
+        session.commit()
+        marker = repository.observe()[0]
+        assert marker.user_id == 1
+        assert (
+            repository.acknowledge_current(1, moment, 1).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
+        session.commit()
+        marker = repository.observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            1,
+            0,
+        )
+
+        repository.mark_dirty(1, moment, DirtyReason.UPDATE, moment + timedelta(seconds=1))
+        session.commit()
+        marker = repository.observe()[0]
+        assert (
+            marker.generation,
+            marker.current_completed_generation,
+            marker.projection_completed_generation,
+        ) == (
+            2,
+            0,
+            0,
+        )
+        assert (
+            repository.acknowledge_projection(1, moment, 2).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
+        assert (
+            repository.acknowledge_current(1, moment, 2).status
+            is DirtyAcknowledgementStatus.DELETED
+        )
+        session.commit()
+        assert repository.backlog().count == 0
+
+
+def test_current_acknowledgement_rolls_back_with_caller_transaction(
+    migrated_engine: Engine,
+) -> None:
+    moment = datetime(2026, 8, 6, 12, tzinfo=UTC)
+    with Session(migrated_engine) as session:
+        _insert_users(session, moment)
+        repository = BookmarkStatsDirtyRepository(session)
+        repository.mark_dirty(1, moment, DirtyReason.CREATE, moment)
+        session.commit()
+
+        assert (
+            repository.acknowledge_current(1, moment, 1).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
+        session.rollback()
+        marker = repository.observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            0,
+            0,
+        )
 
 
 def test_observation_backlog_bounds_order_and_generation_completion(
@@ -75,10 +157,22 @@ def test_observation_backlog_bounds_order_and_generation_completion(
         assert repository.backlog().count == 3
         assert repository.backlog().oldest_marked_at == moment
 
-        assert not repository.complete(2, moment, generation=2)
+        assert (
+            repository.acknowledge_current(2, moment, generation=2).status
+            is DirtyAcknowledgementStatus.STALE
+        )
         session.commit()
         assert repository.backlog().count == 3
-        assert repository.complete(2, moment, generation=1)
+        assert (
+            repository.acknowledge_current(2, moment, generation=1).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
+        session.commit()
+        assert repository.backlog().count == 3
+        assert (
+            repository.acknowledge_projection(2, moment, generation=1).status
+            is DirtyAcknowledgementStatus.DELETED
+        )
         session.commit()
         assert repository.backlog().count == 2
 
@@ -187,13 +281,19 @@ def test_conditional_completion_preserves_concurrent_generation_and_rolls_back(
             writer.commit()
 
         worker_repository = BookmarkStatsDirtyRepository(worker)
-        assert not worker_repository.complete(1, moment, observed_generation)
+        assert (
+            worker_repository.acknowledge_current(1, moment, observed_generation).status
+            is DirtyAcknowledgementStatus.STALE
+        )
         worker.commit()
 
     with Session(migrated_engine) as verification:
         marker = BookmarkStatsDirtyRepository(verification).observe()[0]
         assert marker.generation == 2
-        assert BookmarkStatsDirtyRepository(verification).complete(1, moment, 2)
+        assert (
+            BookmarkStatsDirtyRepository(verification).acknowledge_current(1, moment, 2).status
+            is DirtyAcknowledgementStatus.ACKNOWLEDGED
+        )
         verification.rollback()
 
     with Session(migrated_engine) as after_rollback:
@@ -223,7 +323,7 @@ def test_marker_validates_inputs_and_database_constraints(migrated_engine: Engin
                 repository.observe(invalid_limit)
         for invalid_generation in (0, -1, True):
             with pytest.raises(ValueError, match="generation must be a positive integer"):
-                repository.complete(1, moment, invalid_generation)
+                repository.acknowledge_current(1, moment, invalid_generation)
 
         invalid_parameters = {
             "user_id": 1,
@@ -293,6 +393,20 @@ def test_observation_fails_closed_for_corrupt_persisted_timestamps(
                 },
             )
             with pytest.raises(ValueError, match="persisted dirty window"):
+                BookmarkStatsDirtyRepository(session).observe()
+            session.execute(text("DELETE FROM bookmark_stats_window_dirty"))
+
+            session.execute(
+                insert_corrupt,
+                {
+                    "window": "2026-08-03T00:00:00.000000Z",
+                    "marked": canonical_marked,
+                },
+            )
+            session.execute(
+                text("UPDATE bookmark_stats_window_dirty SET current_completed_generation = -1")
+            )
+            with pytest.raises(ValueError, match="persisted current_completed_generation"):
                 BookmarkStatsDirtyRepository(session).observe()
             session.execute(text("DELETE FROM bookmark_stats_window_dirty"))
         finally:
@@ -395,7 +509,14 @@ def test_committed_marker_recovers_after_engine_restart(
             recovered = repository.observe()
             assert len(recovered) == 1
             assert recovered[0].generation == 1
-            assert repository.complete(1, moment, 1)
+            assert (
+                repository.acknowledge_current(1, moment, 1).status
+                is DirtyAcknowledgementStatus.ACKNOWLEDGED
+            )
+            assert (
+                repository.acknowledge_projection(1, moment, 1).status
+                is DirtyAcknowledgementStatus.DELETED
+            )
             session.commit()
     finally:
         second_engine.dispose()

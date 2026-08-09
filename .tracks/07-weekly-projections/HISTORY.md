@@ -1,5 +1,140 @@
 # Track 07 history
 
+## 2026-08-10 — T07-08/T07-09 continuous closure evidence completed
+
+- The primary ran `bash scripts/verify-track-07.sh` continuously on commit `08a86b3`
+  and received `RESULT: PASS`. The receipt includes the exact inherited Track 06 gate,
+  focused weekly/schema/baseline/lifecycle/correction/dirty/refresher/health selectors,
+  locked sync, Ruff, mypy, Pyright, `make check`, docs, and whitespace validation.
+- The full deterministic run passed with 862 tests plus 3 subtests and 100% branch
+  coverage over 3,922 statements and 908 branches. Disposable Alembic upgrade,
+  downgrade, re-upgrade, and drift check also passed.
+- Real-process evidence covered disabled bootstrap plus protected historic backdate;
+  default baseline with a `source_generation=0` root and positive-generation current
+  working row; current totals 1 to 2; historic public deletion producing revision 2;
+  post-correction restart idempotence with two points and current total 1; disabled
+  retention with no fabricated private rows; incompatible-version fail-closed behavior;
+  and strict JSON Lines, redaction, exactly one named non-daemon worker, and cleanup.
+- The actual incremental implementation ledger is `472867b`, `194050d`, `26b4fae`,
+  `db87448`, `86d7207`, `f9f4152`, `4879a3a`, `49992d7`, and `08a86b3`.
+- Track 07 is now Complete. Tracks 08 and 09 still contain pre-revival skip/absence
+  records, are reopened/stale downstream work, and require their own update and
+  validation. This entry does not claim a post-merge run or downstream validation.
+
+## 2026-08-09 — T07-07 existing-worker and readiness integration implemented
+
+- Added `STATS_PROJECTION_ENABLED=true` and integrated bounded baseline, dirty, and
+  overdue projection phases into the exact existing named non-daemon refresher. The
+  projection phase starts only after the current SQLite session closes and uses short
+  independent transactions; no second worker, thread, process, or public route exists.
+- Kept current refresh success, snapshots, reconciliation, liveness, response bodies,
+  headers, raw SQL, and OpenAPI independent from projection failure or disablement.
+  Disabled projection retains its completion obligation and degrades readiness while
+  current statistics continue successfully.
+- Added an identifier-free durable readiness snapshot and deterministic projection
+  precedence for state absence/malformed data, baseline pending/running/failed,
+  calculation-version mismatch, projection failure, pending generations, overdue
+  working rows, and recovery. Public readiness remains the redacted ready/not-ready
+  contract.
+- Added low-cardinality transition logs for disabled, baseline progress/completion,
+  failure/recovery, and backlog detection/clearance. Tests prove exact-one worker,
+  default-enabled migrated baseline and generation completion, disabled retention,
+  current/projection fault isolation, cleanup, readiness precedence, and public parity.
+- Primary full-suite review found and removed an eager health import that changed the
+  frozen SQLModel metadata registration order; readiness dependencies now load only
+  inside the reader boundary. Ruff, mypy, and Pyright passed; the full suite passed
+  with 855 tests plus 3 subtests and 100% coverage over 3,922 statements and 908
+  branches. The real-process harness and closure report remain T07-08/T07-09.
+
+## 2026-08-09 — T07-05/T07-06 lifecycle and corrections implemented
+
+- Added one caller-transaction-owned projection processor for dirty generations and
+  overdue developing rows. Current rows are replaceable; closed rows are developed
+  from a fresh canonical read; a boundary transaction guarded-deletes the exact old
+  working row and creates only the window containing `now`.
+- Added same-hash no-op completion, append-only `late_recalculation` revisions, exact
+  immediate predecessors, zero corrections after last-bookmark deletion, compatible
+  positive-generation preservation, active/version guards, and atomic projection
+  success plus generation acknowledgement. Stale acknowledgement rolls every
+  candidate write back.
+- Proved actual developing-row rollover at the exact boundary, corrupted-working
+  canonical recalculation, absent/non-overdue/deferred paths, multi-week skips, A-B-A,
+  user deletion without recreation, and read/acknowledgement/caller-commit/guarded-
+  delete failures. Real Barrier-controlled SQLite races proved generation increment
+  rollback/retry and one revision winner followed by an immediate-predecessor retry.
+- Full formatting/lint, mypy, and Pyright passed. The focused 95-test projection gate
+  covered both changed modules at 100% statement and branch coverage; the full suite
+  passed with 831 tests plus 3 subtests and 100% coverage over 3,697 statements and
+  840 branches. Worker, readiness, logs, and process-harness integration remain T07-07
+  and T07-08 work.
+
+## 2026-08-09 — T07-04 restartable surviving-data baseline implemented
+
+- Added a durable pending/running/active/failed projection state and a bounded
+  lexicographic `(user_id, window_start)` checkpoint query over surviving bookmarks.
+  Each baseline step owns one short-lived session and commits its projection rows and
+  checkpoint or terminal activation atomically.
+- Closed windows create only absent revision-1 points; current-window evidence creates
+  or replaces one working row. Baseline rows use `source_generation=0`, synthesize no
+  empty weeks, make no deleted pre-install audit claim, and never acknowledge or delete
+  dirty markers.
+- Proved empty activation, bounded pages, restart/rewind, rollback and session cleanup,
+  deleted-data absence, no duplicate roots, working replay, Unicode payloads, future and
+  malformed candidates, transition races, typed calculation-version mismatch, and
+  dirty-marker noninterference in migrated SQLite.
+- Full formatting/lint, mypy, and Pyright passed. The full suite passed with 802 tests
+  plus 3 subtests and 100% branch coverage over 3,537 statements and 780 branches.
+  Developing-row finalization, dirty corrections, and worker integration remain
+  pending under T07-05 through T07-07.
+
+## 2026-08-09 — T07-03 canonical weekly domain and repository implemented
+
+- Added the sole UTC Monday-to-Monday calculator and a separate private weekly
+  raw-SQL reader with bound user/start/end/limit parameters. The all-current Track 04
+  statements and public statistics route remain unchanged.
+- Added compact schema-wrapped UTF-8 payload bytes, the explicit
+  `weekly-v1;payload-schema=1;top-tags-limit=N` calculation version, domain-separated
+  SHA-256 hashes, and explicit same/changed/version-mismatch comparison.
+- Added caller-transaction-owned working/effective-point repository operations with
+  immediate-predecessor validation, append-only A-B-A history, bounded overdue reads,
+  and low-cardinality correction reasons enforced at both Python and SQLite bounds.
+- UTC/leap/month/year boundaries, exact half-open inclusion, user isolation, ties and
+  ordering, Unicode/SQL-like content safety, deterministic bytes, version mismatch,
+  rollback, malformed persistence, immutable revisions, and no public route were
+  tested. The full suite passed with 774 tests plus 3 subtests and 100% coverage over
+  3,294 statements and 684 branches. Baseline and worker integration remain pending.
+
+## 2026-08-09 — T07-02 durable schema and completion protocol implemented
+
+- Added Alembic revision `0003_weekly_stats_projections` with working rows,
+  immutable point revisions, a singleton restartable projection-state record, and
+  zero-initialized current/projection completion generations on existing dirty rows.
+- Replaced current-only dirty deletion with generation-guarded consumer
+  acknowledgements. Either consumer may delete only after both acknowledgements and
+  the stored generation equal its observed generation; increments reset both values.
+- Proved empty/populated upgrade, downgrade/re-upgrade, named constraints/indexes,
+  self/user foreign keys, user cascade, both completion orders, stale generations,
+  rollback, A-B-A revision history, and inert model imports in migrated SQLite.
+- The full deterministic suite passed with 754 tests plus 3 subtests. Application
+  coverage remained 100% across 3,031 statements and 622 branches; Ruff, mypy, and
+  Pyright passed. No calculator, baseline runner, projection consumer, harness, or
+  closure report is claimed by this checkpoint.
+
+## 2026-08-09 — Revival authorized; implementation dependency review started
+
+- Repository owner revived Track 07 from the active **Skipped (owner decision)**
+  disposition to **In progress**. This supersedes only that active disposition;
+  it does not erase the 2026-08-06 skip record or claim implementation evidence.
+- Accepted ADR-009 selects ADR-005's event-time weekly design for implementation while
+  preserving ADR-004's one-worker/current-statistics invariants. Track 06 closure
+  evidence was reviewed against its delivered migration, dirty-marker repository,
+  mutation publisher, refresher, current raw-SQL/snapshot path, health, logs, and
+  deterministic seams. T07-01 is complete; T07-02 is the first product-code boundary.
+- No Track 07 application code, migration, tests, `TEST-REPORT.md`, or
+  `scripts/verify-track-07.sh` was created or run by this governance checkpoint.
+- Track 08 and Track 09 active records still describe the pre-revival state. Their
+  downstream integration update is explicitly pending and outside this change.
+
 ## 2026-08-09 — Dedicated archived-skip branch verified
 
 - Created `codex/track-07-archived-skip` from the verified Track 06-integrated

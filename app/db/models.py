@@ -6,7 +6,22 @@ from sqlmodel import SQLModel
 from app.auth.models import User
 from app.bookmarks.models import Bookmark, BookmarkTag, Tag
 from app.bookmarks.stats.dirty import BookmarkStatsWindowDirty
+from app.bookmarks.stats.projection_models import (
+    BookmarkStatsProjectionState,
+    BookmarkStatsWindowPoint,
+    BookmarkStatsWindowWorking,
+)
 
 metadata = SQLModel.metadata
 
-__all__ = ["Bookmark", "BookmarkStatsWindowDirty", "BookmarkTag", "Tag", "User", "metadata"]
+__all__ = [
+    "Bookmark",
+    "BookmarkStatsProjectionState",
+    "BookmarkStatsWindowDirty",
+    "BookmarkStatsWindowPoint",
+    "BookmarkStatsWindowWorking",
+    "BookmarkTag",
+    "Tag",
+    "User",
+    "metadata",
+]

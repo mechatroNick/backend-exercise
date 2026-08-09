@@ -6,6 +6,7 @@ import logging
 from collections.abc import Callable
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from threading import Event, Lock, Thread, current_thread
 from time import perf_counter
 from typing import Protocol
@@ -13,10 +14,25 @@ from uuid import UUID
 
 from sqlmodel import Session
 
-from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository, DirtyMarker
+from app.bookmarks.stats.dirty import (
+    BookmarkStatsDirtyRepository,
+    DirtyAcknowledgementStatus,
+    DirtyMarker,
+)
+from app.bookmarks.stats.projection_repository import (
+    ProjectionCalculationVersionMismatchError,
+    ProjectionReadinessSnapshot,
+    WeeklyProjectionRepository,
+)
+from app.bookmarks.stats.projection_service import (
+    BaselineRunner,
+    ProjectionProcessor,
+    ProjectionProcessOutcome,
+)
 from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
+from app.bookmarks.stats.weekly import calculation_version
 from app.core.clock import Clock, normalize_utc
 from app.core.internal_models import FrozenInternalModel
 from app.core.logging import log_event, log_exception
@@ -41,6 +57,26 @@ class _RefresherBoundaryError(RuntimeError):
     """Sanitized exception that retains worker frames without adapter text."""
 
 
+class ProjectionLifecycleStatus(StrEnum):
+    """Safe private projection lifecycle values consumed by readiness."""
+
+    DISABLED = "disabled"
+    ABSENT = "absent"
+    PENDING = "pending"
+    RUNNING = "running"
+    ACTIVE = "active"
+    FAILED = "failed"
+
+
+class _ProjectionCycleResult(FrozenInternalModel):
+    status: ProjectionLifecycleStatus
+    successful: bool
+    pending_count: int = 0
+    overdue_count: int = 0
+    version_compatible: bool = True
+    error_code: str | None = None
+
+
 class RefresherState(FrozenInternalModel):
     """Bounded operational state without user, resource, or content identifiers."""
 
@@ -59,6 +95,15 @@ class RefresherState(FrozenInternalModel):
     last_marker_count: int
     last_error_code: str | None
     shutdown_timed_out: bool
+    projection_enabled: bool = True
+    projection_baseline_status: ProjectionLifecycleStatus = ProjectionLifecycleStatus.ABSENT
+    projection_version_compatible: bool = False
+    projection_pending_count: int = 0
+    projection_overdue_count: int = 0
+    projection_successful: bool = False
+    projection_last_success_at: datetime | None = None
+    projection_consecutive_failures: int = 0
+    projection_last_error_code: str | None = None
 
 
 def _positive(value: int, name: str, *, maximum: int | None = None) -> int:
@@ -91,6 +136,12 @@ class StatsRefresher:
         batch_size: int,
         logger: logging.Logger,
         service_instance_id: UUID,
+        projection_enabled: bool = True,
+        baseline_runner_factory: Callable[..., BaselineRunner] = BaselineRunner,
+        projection_processor_factory: Callable[..., ProjectionProcessor] = ProjectionProcessor,
+        projection_repository_factory: Callable[[Session], WeeklyProjectionRepository] = (
+            WeeklyProjectionRepository
+        ),
         thread_factory: _ThreadFactory = Thread,
     ) -> None:
         _positive(top_tags_limit, "top_tags_limit", maximum=100)
@@ -99,6 +150,14 @@ class StatsRefresher:
         if full_reconciliation_seconds < interval_seconds:
             raise ValueError("full_reconciliation_seconds must be at least interval_seconds")
         _positive(batch_size, "batch_size", maximum=_MAX_BATCH_SIZE)
+        if not isinstance(projection_enabled, bool):
+            raise TypeError("projection_enabled must be a boolean")
+        if not callable(baseline_runner_factory):
+            raise TypeError("baseline_runner_factory must be callable")
+        if not callable(projection_processor_factory):
+            raise TypeError("projection_processor_factory must be callable")
+        if not callable(projection_repository_factory):
+            raise TypeError("projection_repository_factory must be callable")
         if not isinstance(service_instance_id, UUID) or service_instance_id.int == 0:
             raise ValueError("service_instance_id must be a non-nil UUID")
         self._session_factory = session_factory
@@ -112,6 +171,24 @@ class StatsRefresher:
         self._logger = logger
         self._service_instance_id = str(service_instance_id)
         self._thread_factory = thread_factory
+        self._projection_enabled = projection_enabled
+        self._baseline_runner_factory = baseline_runner_factory
+        self._projection_processor_factory = projection_processor_factory
+        self._projection_repository_factory = projection_repository_factory
+        self._projection_successful = not projection_enabled
+        self._projection_baseline_status = (
+            ProjectionLifecycleStatus.DISABLED
+            if not projection_enabled
+            else ProjectionLifecycleStatus.ABSENT
+        )
+        self._projection_version_compatible = not projection_enabled
+        self._projection_pending_count = 0
+        self._projection_overdue_count = 0
+        self._projection_last_success_at: datetime | None = None
+        self._projection_consecutive_failures = 0
+        self._projection_last_error_code: str | None = None
+        self._projection_backlog_observed = False
+        self._projection_disabled_logged = False
 
         self._stop_event = Event()
         self._initial_event = Event()
@@ -307,6 +384,8 @@ class StatsRefresher:
                     success = False
                     with suppress(Exception):
                         self._publisher.require_full_reconciliation()
+            projection = self._run_projection_phase()
+            self._record_projection_cycle(projection, started_at)
             completed_at = self._safe_now(started_at)
             duration_ms = max(0, round((perf_counter() - started_monotonic) * 1000))
             with self._state_lock:
@@ -344,6 +423,218 @@ class StatsRefresher:
             self._log_failure(first_error, context)
         return success
 
+    def _run_projection_phase(self) -> _ProjectionCycleResult:
+        """Best-effort private projection work after the current session has closed."""
+        if not self._projection_enabled:
+            return _ProjectionCycleResult(
+                status=ProjectionLifecycleStatus.DISABLED,
+                successful=True,
+            )
+        try:
+            baseline = self._baseline_runner_factory(
+                session_factory=self._session_factory,
+                clock=self._clock,
+                top_tags_limit=self._top_tags_limit,
+                batch_size=self._batch_size,
+            )
+            baseline_result = baseline.run_step()
+            if not baseline_result.active:
+                return _ProjectionCycleResult(
+                    status=ProjectionLifecycleStatus.RUNNING,
+                    successful=True,
+                )
+            processor = self._projection_processor_factory(
+                clock=self._clock, top_tags_limit=self._top_tags_limit
+            )
+            session = self._session_factory()
+            try:
+                readiness = self._projection_repository_factory(session).readiness_snapshot(
+                    calculation_version(self._top_tags_limit), self._now()
+                )
+                status = self._projection_status(readiness)
+                if status is not ProjectionLifecycleStatus.ACTIVE:
+                    return _ProjectionCycleResult(
+                        status=status,
+                        successful=status is not ProjectionLifecycleStatus.FAILED,
+                        pending_count=readiness.pending_projection_count,
+                        overdue_count=readiness.overdue_working_count,
+                        version_compatible=readiness.calculation_version_compatible,
+                        error_code=(
+                            "calculation_version_mismatch"
+                            if not readiness.calculation_version_compatible
+                            else None
+                        ),
+                    )
+                markers = tuple(
+                    marker
+                    for marker in BookmarkStatsDirtyRepository(session).observe(self._batch_size)
+                    if marker.projection_completed_generation != marker.generation
+                )
+                overdue = self._projection_repository_factory(session).observe_overdue(
+                    self._now(), self._batch_size
+                )
+            finally:
+                self._close_observation_session(session)
+            for marker in markers:
+                session = self._session_factory()
+                try:
+                    outcome = processor.process_dirty(session, marker)
+                    if outcome.outcome is ProjectionProcessOutcome.APPLIED:
+                        session.commit()
+                    else:
+                        session.rollback()
+                except Exception:
+                    self._rollback_safely(session)
+                    raise
+                finally:
+                    session.close()
+            for observed in overdue:
+                session = self._session_factory()
+                try:
+                    outcome = processor.process_overdue(session, observed)
+                    if outcome.outcome is ProjectionProcessOutcome.APPLIED:
+                        session.commit()
+                    else:
+                        session.rollback()
+                except Exception:
+                    self._rollback_safely(session)
+                    raise
+                finally:
+                    session.close()
+            session = self._session_factory()
+            try:
+                final = self._projection_repository_factory(session).readiness_snapshot(
+                    calculation_version(self._top_tags_limit), self._now()
+                )
+            finally:
+                self._close_observation_session(session)
+        except ProjectionCalculationVersionMismatchError:
+            return _ProjectionCycleResult(
+                status=ProjectionLifecycleStatus.ACTIVE,
+                successful=False,
+                version_compatible=False,
+                error_code="calculation_version_mismatch",
+            )
+        except Exception:
+            return _ProjectionCycleResult(
+                status=ProjectionLifecycleStatus.FAILED,
+                successful=False,
+                error_code="projection_cycle_failed",
+            )
+        return _ProjectionCycleResult(
+            status=self._projection_status(final),
+            successful=self._projection_status(final) is ProjectionLifecycleStatus.ACTIVE,
+            pending_count=final.pending_projection_count,
+            overdue_count=final.overdue_working_count,
+            version_compatible=final.calculation_version_compatible,
+            error_code=(
+                "calculation_version_mismatch" if not final.calculation_version_compatible else None
+            ),
+        )
+
+    @staticmethod
+    def _close_observation_session(session: Session) -> None:
+        """Always close a read-only projection session, even if rollback itself fails."""
+        try:
+            session.rollback()
+        finally:
+            session.close()
+
+    @staticmethod
+    def _projection_status(snapshot: ProjectionReadinessSnapshot) -> ProjectionLifecycleStatus:
+        if snapshot.state is None:
+            return ProjectionLifecycleStatus.ABSENT
+        if not snapshot.calculation_version_compatible:
+            return ProjectionLifecycleStatus.FAILED
+        return ProjectionLifecycleStatus(snapshot.state.status.value)
+
+    def _record_projection_cycle(
+        self, result: _ProjectionCycleResult, started_at: datetime
+    ) -> None:
+        with self._state_lock:
+            previous_status = self._projection_baseline_status
+            prior_failures = self._projection_consecutive_failures
+            recovered = prior_failures > 0 and result.successful
+            self._projection_baseline_status = result.status
+            self._projection_version_compatible = result.version_compatible
+            self._projection_pending_count = result.pending_count
+            self._projection_overdue_count = result.overdue_count
+            if result.successful:
+                self._projection_successful = result.status is ProjectionLifecycleStatus.ACTIVE
+                if result.status is ProjectionLifecycleStatus.ACTIVE:
+                    self._projection_last_success_at = self._safe_now(started_at)
+                self._projection_consecutive_failures = 0
+                self._projection_last_error_code = None
+            else:
+                self._projection_successful = False
+                self._projection_consecutive_failures += 1
+                self._projection_last_error_code = result.error_code
+            failure_count = self._projection_consecutive_failures
+            backlog_observed = result.pending_count > 0 or result.overdue_count > 0
+            log_disabled = (
+                result.status is ProjectionLifecycleStatus.DISABLED
+                and not self._projection_disabled_logged
+            )
+            if log_disabled:
+                self._projection_disabled_logged = True
+            backlog_changed = backlog_observed != self._projection_backlog_observed
+            self._projection_backlog_observed = backlog_observed
+        if log_disabled:
+            self._log_event(
+                logging.WARNING,
+                "bookmark_stats.projection_disabled",
+                outcome="degraded",
+                message="weekly projection is disabled",
+            )
+        elif (
+            result.status in {ProjectionLifecycleStatus.PENDING, ProjectionLifecycleStatus.RUNNING}
+            and previous_status is not result.status
+        ):
+            self._log_event(
+                logging.INFO,
+                "bookmark_stats.projection_baseline_progressed",
+                message="weekly projection baseline progressed",
+                context={"projection_status": result.status.value},
+            )
+        elif (
+            result.status is ProjectionLifecycleStatus.ACTIVE
+            and previous_status is not result.status
+        ):
+            self._log_event(
+                logging.INFO,
+                "bookmark_stats.projection_baseline_completed",
+                message="weekly projection baseline completed",
+            )
+        if not result.successful and prior_failures == 0:
+            self._log_event(
+                logging.WARNING,
+                "bookmark_stats.projection_failed",
+                outcome="degraded",
+                message="weekly projection failed",
+                context={"failure_count": failure_count},
+            )
+        elif recovered:
+            self._log_event(
+                logging.INFO,
+                "bookmark_stats.projection_recovered",
+                message="weekly projection recovered",
+            )
+        if backlog_changed:
+            self._log_event(
+                logging.WARNING if backlog_observed else logging.INFO,
+                "bookmark_stats.projection_backlog_detected"
+                if backlog_observed
+                else "bookmark_stats.projection_backlog_cleared",
+                outcome="degraded" if backlog_observed else "success",
+                message="weekly projection backlog detected"
+                if backlog_observed
+                else "weekly projection backlog cleared",
+                context={
+                    "pending_count": result.pending_count,
+                    "overdue_count": result.overdue_count,
+                },
+            )
+
     def snapshot_healthy(self) -> bool:
         """Report whether the enabled worker has a successful current lifecycle."""
         with self._state_lock:
@@ -379,6 +670,15 @@ class StatsRefresher:
                 last_marker_count=self._last_marker_count,
                 last_error_code=self._last_error_code,
                 shutdown_timed_out=self._shutdown_timed_out,
+                projection_enabled=self._projection_enabled,
+                projection_baseline_status=self._projection_baseline_status,
+                projection_version_compatible=self._projection_version_compatible,
+                projection_pending_count=self._projection_pending_count,
+                projection_overdue_count=self._projection_overdue_count,
+                projection_successful=self._projection_successful,
+                projection_last_success_at=self._projection_last_success_at,
+                projection_consecutive_failures=self._projection_consecutive_failures,
+                projection_last_error_code=self._projection_last_error_code,
             )
 
     def _refresh_user(
@@ -394,7 +694,10 @@ class StatsRefresher:
 
         repository = BookmarkStatsDirtyRepository(session)
         for marker in markers:
-            if not repository.complete(marker.user_id, marker.window_start, marker.generation):
+            acknowledgement = repository.acknowledge_current(
+                marker.user_id, marker.window_start, marker.generation
+            )
+            if acknowledgement.status is DirtyAcknowledgementStatus.STALE:
                 self._rollback_safely(session)
                 return False
 
@@ -532,4 +835,4 @@ class StatsRefresher:
             )
 
 
-__all__ = ["RefresherState", "StatsRefresher"]
+__all__ = ["ProjectionLifecycleStatus", "RefresherState", "StatsRefresher"]

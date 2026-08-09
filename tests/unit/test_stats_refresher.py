@@ -7,12 +7,23 @@ import json
 import logging
 from datetime import UTC, datetime
 from threading import Thread, current_thread
+from types import SimpleNamespace
 from typing import Any
 from uuid import UUID, uuid4
 
 import pytest
 
-from app.bookmarks.stats.refresher import StatsRefresher
+import app.bookmarks.stats.refresher as refresher_module
+from app.bookmarks.stats.projection_repository import (
+    ProjectionCalculationVersionMismatchError,
+    ProjectionReadinessSnapshot,
+)
+from app.bookmarks.stats.projection_service import ProjectionProcessOutcome
+from app.bookmarks.stats.refresher import (
+    ProjectionLifecycleStatus,
+    StatsRefresher,
+    _ProjectionCycleResult,
+)
 from app.core.config import Settings
 from app.core.logging import configure_logging
 
@@ -143,6 +154,7 @@ def _refresher(**overrides: Any) -> StatsRefresher:
         "batch_size": 10,
         "logger": logging.getLogger("test.stats.refresher.unit"),
         "service_instance_id": uuid4(),
+        "projection_enabled": False,
         "thread_factory": _Thread,
     }
     arguments.update(overrides)
@@ -242,6 +254,7 @@ def test_worker_loop_uses_interruptible_wait_without_sleeping() -> None:
     assert value.state().consecutive_failures == 2
     assert value.state().initial_completed
     assert events == [
+        ("bookmark_stats.projection_disabled", None),
         (
             "bookmark_stats.refresher_started",
             {
@@ -367,3 +380,326 @@ def test_deferred_cleanup_validates_and_runs_immediately_after_exit() -> None:
     value.defer_until_stopped(
         lambda: (_ for _ in ()).throw(RuntimeError("private-callback-sentinel"))
     )
+
+
+def test_projection_lifecycle_keeps_running_progress_out_of_failure_accounting() -> None:
+    value = _refresher()
+    events: list[str] = []
+    value._log_event = lambda _level, event, **_kwargs: events.append(event)  # type: ignore[method-assign]
+
+    value._record_projection_cycle(
+        _ProjectionCycleResult(
+            status=ProjectionLifecycleStatus.RUNNING,
+            successful=True,
+        ),
+        datetime(2026, 8, 10, tzinfo=UTC),
+    )
+
+    state = value.state()
+    assert state.projection_baseline_status is ProjectionLifecycleStatus.RUNNING
+    assert not state.projection_successful
+    assert state.projection_last_success_at is None
+    assert state.projection_consecutive_failures == 0
+    assert events == ["bookmark_stats.projection_baseline_progressed"]
+
+
+def test_projection_failure_is_logged_once_and_current_lifecycle_remains_separate() -> None:
+    value = _refresher()
+    events: list[str] = []
+    value._log_event = lambda _level, event, **_kwargs: events.append(event)  # type: ignore[method-assign]
+    failure = _ProjectionCycleResult(
+        status=ProjectionLifecycleStatus.FAILED,
+        successful=False,
+        error_code="projection_cycle_failed",
+    )
+
+    value._record_projection_cycle(failure, datetime(2026, 8, 10, tzinfo=UTC))
+    value._record_projection_cycle(failure, datetime(2026, 8, 10, tzinfo=UTC))
+    state = value.state()
+
+    assert state.projection_consecutive_failures == 2
+    assert state.consecutive_failures == 0
+    assert events == ["bookmark_stats.projection_failed"]
+
+    value._record_projection_cycle(
+        _ProjectionCycleResult(
+            status=ProjectionLifecycleStatus.ACTIVE,
+            successful=True,
+        ),
+        datetime(2026, 8, 10, tzinfo=UTC),
+    )
+    assert value.state().projection_last_success_at is not None
+    assert events[-2:] == [
+        "bookmark_stats.projection_baseline_completed",
+        "bookmark_stats.projection_recovered",
+    ]
+
+
+class _ProjectionSession:
+    def __init__(self) -> None:
+        self.commits = 0
+        self.rollbacks = 0
+        self.closed = False
+
+    def commit(self) -> None:
+        self.commits += 1
+
+    def rollback(self) -> None:
+        self.rollbacks += 1
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def test_projection_phase_skips_dirty_processing_until_baseline_is_active() -> None:
+    class IncompleteBaseline:
+        def run_step(self):
+            return type("Result", (), {"active": False})()
+
+    value = _refresher(
+        projection_enabled=True,
+        baseline_runner_factory=lambda **_kwargs: IncompleteBaseline(),
+    )
+
+    result = value._run_projection_phase()
+
+    assert result.status is ProjectionLifecycleStatus.RUNNING
+    assert result.successful
+    assert value._projection_last_success_at is None
+
+
+def test_projection_phase_maps_version_mismatch_without_a_generic_failure() -> None:
+    class FailingBaseline:
+        def run_step(self):
+            raise ProjectionCalculationVersionMismatchError("private-version-sentinel")
+
+    value = _refresher(
+        projection_enabled=True,
+        baseline_runner_factory=lambda **_kwargs: FailingBaseline(),
+    )
+
+    result = value._run_projection_phase()
+
+    assert result.status is ProjectionLifecycleStatus.ACTIVE
+    assert not result.successful
+    assert not result.version_compatible
+    assert result.error_code == "calculation_version_mismatch"
+
+
+def test_projection_phase_closes_observation_session_when_rollback_fails() -> None:
+    class ActiveBaseline:
+        def run_step(self):
+            return type("Result", (), {"active": True})()
+
+    class RollbackFailingSession(_ProjectionSession):
+        def rollback(self) -> None:
+            self.rollbacks += 1
+            raise RuntimeError("private-rollback-sentinel")
+
+    session = RollbackFailingSession()
+    value = _refresher(
+        projection_enabled=True,
+        session_factory=lambda: session,
+        baseline_runner_factory=lambda **_kwargs: ActiveBaseline(),
+        projection_repository_factory=lambda _session: type(
+            "Repository",
+            (),
+            {
+                "readiness_snapshot": lambda self, _version, _now: (
+                    ProjectionReadinessSnapshot.model_construct(
+                        state=None,
+                        calculation_version_compatible=True,
+                        pending_projection_count=0,
+                        overdue_working_count=0,
+                    )
+                )
+            },
+        )(),
+    )
+
+    result = value._run_projection_phase()
+
+    assert result.status is ProjectionLifecycleStatus.FAILED
+    assert session.closed
+
+
+def test_projection_status_distinguishes_absent_and_version_mismatch() -> None:
+    absent = ProjectionReadinessSnapshot.model_construct(
+        state=None,
+        calculation_version_compatible=True,
+        pending_projection_count=0,
+        overdue_working_count=0,
+    )
+    mismatch = ProjectionReadinessSnapshot.model_construct(
+        state=type("State", (), {"status": ProjectionLifecycleStatus.ACTIVE})(),
+        calculation_version_compatible=False,
+        pending_projection_count=0,
+        overdue_working_count=0,
+    )
+
+    assert StatsRefresher._projection_status(absent) is ProjectionLifecycleStatus.ABSENT
+    assert StatsRefresher._projection_status(mismatch) is ProjectionLifecycleStatus.FAILED
+
+
+def test_projection_lifecycle_logs_backlog_transition_once_per_change() -> None:
+    value = _refresher()
+    events: list[str] = []
+    value._log_event = lambda _level, event, **_kwargs: events.append(event)  # type: ignore[method-assign]
+    active_with_backlog = _ProjectionCycleResult(
+        status=ProjectionLifecycleStatus.ACTIVE,
+        successful=True,
+        pending_count=1,
+    )
+
+    value._record_projection_cycle(active_with_backlog, datetime(2026, 8, 10, tzinfo=UTC))
+    value._record_projection_cycle(active_with_backlog, datetime(2026, 8, 10, tzinfo=UTC))
+    value._record_projection_cycle(
+        _ProjectionCycleResult(status=ProjectionLifecycleStatus.ACTIVE, successful=True),
+        datetime(2026, 8, 10, tzinfo=UTC),
+    )
+
+    assert events == [
+        "bookmark_stats.projection_baseline_completed",
+        "bookmark_stats.projection_backlog_detected",
+        "bookmark_stats.projection_backlog_cleared",
+    ]
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "baseline_runner_factory",
+        "projection_processor_factory",
+        "projection_repository_factory",
+    ],
+)
+def test_projection_factories_must_be_callable(name: str) -> None:
+    with pytest.raises(TypeError, match=name):
+        _refresher(**{name: None})
+
+
+def test_projection_enabled_must_be_boolean() -> None:
+    with pytest.raises(TypeError, match="projection_enabled"):
+        _refresher(projection_enabled=1)
+
+
+def _active_projection_snapshot() -> ProjectionReadinessSnapshot:
+    return ProjectionReadinessSnapshot.model_construct(
+        state=SimpleNamespace(status=ProjectionLifecycleStatus.ACTIVE),
+        calculation_version_compatible=True,
+        pending_projection_count=0,
+        overdue_working_count=0,
+    )
+
+
+def _projection_phase_refresher(
+    monkeypatch: pytest.MonkeyPatch, *, dirty_outcome: object, overdue_outcome: object
+) -> tuple[StatsRefresher, list[_ProjectionSession]]:
+    class ActiveBaseline:
+        def run_step(self):
+            return SimpleNamespace(active=True)
+
+    class DirtyRepository:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def observe(self, _limit: int) -> tuple[object, ...]:
+            return (SimpleNamespace(projection_completed_generation=0, generation=1),)
+
+    class Repository:
+        def readiness_snapshot(self, _version: str, _now: datetime) -> ProjectionReadinessSnapshot:
+            return _active_projection_snapshot()
+
+        def observe_overdue(self, _now: datetime, _limit: int) -> tuple[object, ...]:
+            return (object(),)
+
+    class Processor:
+        def __init__(self, **_kwargs: object) -> None:
+            pass
+
+        def process_dirty(self, _session: object, _marker: object) -> object:
+            if isinstance(dirty_outcome, Exception):
+                raise dirty_outcome
+            return SimpleNamespace(outcome=dirty_outcome)
+
+        def process_overdue(self, _session: object, _observed: object) -> object:
+            if isinstance(overdue_outcome, Exception):
+                raise overdue_outcome
+            return SimpleNamespace(outcome=overdue_outcome)
+
+    sessions = [_ProjectionSession() for _ in range(4)]
+    session_index = 0
+
+    def session_factory() -> _ProjectionSession:
+        nonlocal session_index
+        session = sessions[session_index]
+        session_index += 1
+        return session
+
+    monkeypatch.setattr(refresher_module, "BookmarkStatsDirtyRepository", DirtyRepository)
+    value = _refresher(
+        projection_enabled=True,
+        session_factory=session_factory,
+        baseline_runner_factory=lambda **_kwargs: ActiveBaseline(),
+        projection_processor_factory=Processor,
+        projection_repository_factory=lambda _session: Repository(),
+    )
+    return value, sessions
+
+
+def test_projection_phase_rolls_back_stale_and_deferred_candidates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value, sessions = _projection_phase_refresher(
+        monkeypatch,
+        dirty_outcome=ProjectionProcessOutcome.STALE,
+        overdue_outcome=ProjectionProcessOutcome.DEFERRED,
+    )
+
+    result = value._run_projection_phase()
+
+    assert result.successful
+    assert all(session.closed for session in sessions)
+    assert all(session.commits == 0 for session in sessions)
+    assert all(session.rollbacks == 1 for session in sessions)
+
+
+def test_projection_phase_commits_applied_dirty_and_overdue_candidates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value, sessions = _projection_phase_refresher(
+        monkeypatch,
+        dirty_outcome=ProjectionProcessOutcome.APPLIED,
+        overdue_outcome=ProjectionProcessOutcome.APPLIED,
+    )
+
+    result = value._run_projection_phase()
+
+    assert result.successful
+    assert sessions[1].commits == 1
+    assert sessions[2].commits == 1
+
+
+@pytest.mark.parametrize("failure_phase", ["dirty", "overdue"])
+def test_projection_phase_rolls_back_and_degrades_when_processor_raises(
+    monkeypatch: pytest.MonkeyPatch, failure_phase: str
+) -> None:
+    value, sessions = _projection_phase_refresher(
+        monkeypatch,
+        dirty_outcome=(
+            RuntimeError("private-dirty-sentinel")
+            if failure_phase == "dirty"
+            else ProjectionProcessOutcome.APPLIED
+        ),
+        overdue_outcome=(
+            RuntimeError("private-overdue-sentinel")
+            if failure_phase == "overdue"
+            else ProjectionProcessOutcome.APPLIED
+        ),
+    )
+
+    result = value._run_projection_phase()
+
+    assert not result.successful
+    assert result.error_code == "projection_cycle_failed"
+    assert all(session.closed for session in sessions[: 2 if failure_phase == "dirty" else 3])

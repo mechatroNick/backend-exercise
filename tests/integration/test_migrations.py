@@ -20,6 +20,9 @@ _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _EXPECTED_TABLES = {
     "alembic_version",
     "bookmark_stats_window_dirty",
+    "bookmark_stats_window_working",
+    "bookmark_stats_window_point",
+    "bookmark_stats_projection_state",
     "bookmark_tags",
     "bookmarks",
     "tags",
@@ -41,7 +44,7 @@ def test_upgrade_builds_exact_schema_and_connection_policy(migrated_engine: Engi
         assert first_connection.execute(text("PRAGMA foreign_key_check")).all() == []
         assert (
             MigrationContext.configure(first_connection).get_current_revision()
-            == "0002_bookmark_stats_window_dirty"
+            == "0003_weekly_stats_projections"
         )
 
 
@@ -63,6 +66,16 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             ],
             "ix_stats_dirty_window_user": ["window_start", "user_id"],
         },
+        "bookmark_stats_window_working": {
+            "ix_stats_working_window_end_user": ["window_end", "user_id"],
+        },
+        "bookmark_stats_window_point": {
+            "ix_stats_point_effective_user_window_revision": [
+                "user_id",
+                "window_start",
+                "revision",
+            ],
+        },
     }
     expected_foreign_keys = {
         "bookmarks": {"fk_bookmarks_user_id_users": ("user_id", "users", "CASCADE")},
@@ -71,6 +84,15 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             "fk_bookmark_tags_tag_id_tags": ("tag_id", "tags", "CASCADE"),
         },
         "bookmark_stats_window_dirty": {"fk_stats_dirty_user": ("user_id", "users", "CASCADE")},
+        "bookmark_stats_window_working": {"fk_stats_working_user": ("user_id", "users", "CASCADE")},
+        "bookmark_stats_window_point": {
+            "fk_stats_point_user": ("user_id", "users", "CASCADE"),
+            "fk_stats_point_supersedes_same_window": (
+                "supersedes_id",
+                "bookmark_stats_window_point",
+                None,
+            ),
+        },
     }
     expected_constraint_names = {
         "users": {
@@ -107,6 +129,27 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
             "fk_stats_dirty_user",
             "pk_stats_dirty_user_window",
         },
+        "bookmark_stats_window_working": {
+            "pk_stats_working_user_window",
+            "fk_stats_working_user",
+            "ck_stats_working_window_start_monday_utc",
+            "ck_stats_working_window_end_one_week",
+        },
+        "bookmark_stats_window_point": {
+            "pk_stats_point",
+            "fk_stats_point_user",
+            "fk_stats_point_supersedes_same_window",
+            "uq_stats_point_user_window_revision",
+            "uq_stats_point_supersedes",
+            "uq_stats_point_id_user_window",
+            "ck_stats_point_root_iff_revision_one",
+        },
+        "bookmark_stats_projection_state": {
+            "pk_stats_projection_state",
+            "ck_stats_projection_state_singleton",
+            "ck_stats_projection_state_status",
+            "ck_stats_projection_state_checkpoint_pair",
+        },
     }
 
     for table_name, expected in expected_indexes.items():
@@ -139,6 +182,8 @@ def test_emitted_schema_has_named_constraints_foreign_keys_and_ordered_indexes(
         ("reason", False),
         ("first_marked_at", False),
         ("last_marked_at", False),
+        ("current_completed_generation", False),
+        ("projection_completed_generation", False),
     ]
     assert inspector.get_pk_constraint("bookmark_stats_window_dirty")["constrained_columns"] == [
         "user_id",
@@ -171,6 +216,50 @@ def test_downgrade_removes_core_tables_and_reupgrade_restores_them(
         engine.dispose()
 
 
+def test_track07_upgrade_downgrade_reupgrade_preserves_dirty_data(
+    migration_config: Config, database_url: str
+) -> None:
+    command.upgrade(migration_config, "0002_bookmark_stats_window_dirty")
+    engine = create_database_engine(database_url=database_url, busy_timeout_milliseconds=4_321)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO users (id, username, email, password_hash, created_at) "
+                    "VALUES (1, 'existing', 'existing@example.test', 'hash', "
+                    "'2026-08-01T00:00:00.000000Z')"
+                )
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO bookmark_stats_window_dirty "
+                    "(user_id, window_start, generation, reason, first_marked_at, last_marked_at) "
+                    "VALUES (1, '2026-08-03T00:00:00.000000Z', 2, 'update', "
+                    "'2026-08-06T12:00:00.000000Z', '2026-08-06T12:01:00.000000Z')"
+                )
+            )
+    finally:
+        engine.dispose()
+
+    command.upgrade(migration_config, "0003_weekly_stats_projections")
+    command.downgrade(migration_config, "0002_bookmark_stats_window_dirty")
+    command.upgrade(migration_config, "0003_weekly_stats_projections")
+    engine = create_database_engine(database_url=database_url, busy_timeout_milliseconds=4_321)
+    try:
+        with engine.connect() as connection:
+            row = connection.execute(
+                text(
+                    "SELECT generation, current_completed_generation, "
+                    "projection_completed_generation, "
+                    "reason FROM bookmark_stats_window_dirty"
+                )
+            ).one()
+            assert row == (2, 0, 0, "update")
+            assert connection.execute(text("PRAGMA foreign_key_check")).all() == []
+    finally:
+        engine.dispose()
+
+
 def test_current_heads_and_autogenerate_check_are_clean(migration_config: Config) -> None:
     command.upgrade(migration_config, "head")
 
@@ -193,7 +282,7 @@ def test_command_uses_settings_database_url_when_alembic_config_has_none(
         with engine.connect() as connection:
             assert (
                 MigrationContext.configure(connection).get_current_revision()
-                == "0002_bookmark_stats_window_dirty"
+                == "0003_weekly_stats_projections"
             )
     finally:
         engine.dispose()

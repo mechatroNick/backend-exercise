@@ -29,9 +29,10 @@ statistics when a snapshot is unavailable or stale. The requirement map contains
 
 This is not a production topology. It intentionally uses local SQLite, one Uvicorn
 worker, process-local snapshots/queue/rate state, and HS256 JWTs. It does not provide
-PostgreSQL, Redis or a broker, multi-worker coordination, a public weekly-history API,
-or weekly projection tables. Track 07 is an owner-authorized skip, not incomplete
-evidence: it has no verifier, implementation, migration, consumer, or closure report.
+PostgreSQL, Redis or a broker, multi-worker coordination, or a public weekly-history
+API. Track 07 weekly projections are **In progress** under ADR-009; no Track 07
+verifier, implementation, migration, consumer, or closure report exists at this
+checkpoint.
 
 ## Run locally
 
@@ -107,22 +108,20 @@ bash scripts/verify-track-08.sh
 bash scripts/verify-track-09.sh
 ```
 
-Track 07 deliberately has no verifier. Track 08 and Track 09 are clean-committed-source
-gates and include Docker delivery evidence. A dirty/non-clean source is a **failure**;
-explicit development seams and an unavailable Docker daemon are nonzero **incomplete**
-results, never a pass or skip. Run them only when their documented prerequisites are
-met. Track 09 is **Complete**: its clean-source branch gate and exact merged-`main`
-rerun passed.
+Track 07 has no verifier yet; future completion requires deterministic evidence, a
+real-process harness, and `TEST-REPORT.md`. Track 08 and Track 09 retain pre-revival
+clean-source evidence records but must be reopened and updated at a later downstream
+integration checkpoint. A dirty/non-clean source is a **failure**; explicit development
+seams and an unavailable Docker daemon are nonzero **incomplete** results, never pass.
 
-The current clean-source Track 09 branch evidence is **743 tests plus 3 subtests** and
+The historical clean-source Track 09 branch evidence is **743 tests plus 3 subtests** and
 **2,953 statements / 618 branches at 100% coverage**. The exact commands, receipts,
 and merged-main receipt are recorded in the [Track 09 plan](.tracks/09-final-cleanup-docs/PLAN.md)
 and [final test report](.tracks/09-final-cleanup-docs/TEST-REPORT.md).
 
-The committed [testing-report manifest](.testing_report/MANIFEST.md) indexes the
-captured public terminal output for Tracks 00–09, including exact commands, UTC
-bounds, source commit, exit results, and SHA-256 checksums. Track 07 is recorded only
-as the owner-authorized skip; it is not represented as a passing executable track.
+The committed [testing-report manifest](.testing_report/MANIFEST.md) indexes historical
+public terminal output. Its Track 07 skip receipt predates ADR-009 and is not current
+implementation or passing executable evidence.
 
 For ordinary local checks:
 
@@ -182,9 +181,9 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 04 | Complete — search and current raw-SQL statistics. |
 | 05 | Complete — mandatory quality and OpenAPI gate. |
 | 06 | Complete — event-driven current snapshots, health, and observability. |
-| 07 | Skipped by owner — no weekly projection/history delivery or verifier. |
-| 08 | Complete — final handoff and selected delivery extensions. |
-| 09 | Complete — cleanup, documentation migration, typed-model/lifecycle modernization, final reporting, and merged-main verification. |
+| 07 | In progress — dependency-gated weekly projections; no implementation evidence yet. |
+| 08 | Complete pre-revival record — downstream re-open/update pending. |
+| 09 | Complete pre-revival record — downstream re-open/update pending. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,

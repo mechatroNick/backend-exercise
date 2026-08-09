@@ -14,6 +14,9 @@ def test_core_metadata_has_the_expected_table_and_column_inventory() -> None:
         "tags",
         "bookmark_tags",
         "bookmark_stats_window_dirty",
+        "bookmark_stats_window_working",
+        "bookmark_stats_window_point",
+        "bookmark_stats_projection_state",
     )
 
     users = metadata.tables["users"]
@@ -21,6 +24,9 @@ def test_core_metadata_has_the_expected_table_and_column_inventory() -> None:
     tags = metadata.tables["tags"]
     bookmark_tags = metadata.tables["bookmark_tags"]
     dirty = metadata.tables["bookmark_stats_window_dirty"]
+    working = metadata.tables["bookmark_stats_window_working"]
+    point = metadata.tables["bookmark_stats_window_point"]
+    state = metadata.tables["bookmark_stats_projection_state"]
 
     assert [(column.name, column.nullable) for column in users.columns] == [
         ("id", False),
@@ -50,6 +56,8 @@ def test_core_metadata_has_the_expected_table_and_column_inventory() -> None:
         ("user_id", False),
         ("window_start", False),
         ("generation", False),
+        ("current_completed_generation", False),
+        ("projection_completed_generation", False),
         ("reason", False),
         ("first_marked_at", False),
         ("last_marked_at", False),
@@ -60,6 +68,43 @@ def test_core_metadata_has_the_expected_table_and_column_inventory() -> None:
     assert isinstance(dirty.c.window_start.type, UTCDateTime)
     assert isinstance(dirty.c.first_marked_at.type, UTCDateTime)
     assert isinstance(dirty.c.last_marked_at.type, UTCDateTime)
+    assert [column.name for column in working.columns] == [
+        "user_id",
+        "window_start",
+        "window_end",
+        "payload",
+        "calculated_at",
+        "source_generation",
+        "calculation_version",
+        "content_hash",
+    ]
+    assert [column.name for column in point.columns] == [
+        "id",
+        "user_id",
+        "window_start",
+        "window_end",
+        "revision",
+        "supersedes_id",
+        "payload",
+        "calculated_at",
+        "developed_at",
+        "correction_reason",
+        "source_generation",
+        "calculation_version",
+        "content_hash",
+    ]
+    assert [column.name for column in state.columns] == [
+        "id",
+        "status",
+        "calculation_version",
+        "checkpoint_user_id",
+        "checkpoint_window_start",
+        "baseline_started_at",
+        "baseline_completed_at",
+        "updated_at",
+        "last_projection_success_at",
+        "failure_code",
+    ]
 
 
 def test_core_metadata_has_deterministic_constraints_foreign_keys_and_indexes() -> None:
@@ -97,6 +142,8 @@ def test_core_metadata_has_deterministic_constraints_foreign_keys_and_indexes() 
             "ck_stats_dirty_window_monday_utc",
             "ck_stats_dirty_first_marked_utc",
             "ck_stats_dirty_last_marked_utc",
+            "ck_stats_dirty_current_completion_generation",
+            "ck_stats_dirty_projection_completion_generation",
         },
     }
     expected_indexes = {
@@ -115,6 +162,13 @@ def test_core_metadata_has_deterministic_constraints_foreign_keys_and_indexes() 
             ),
             "ix_stats_dirty_window_user": ("window_start", "user_id"),
         },
+        "bookmark_stats_window_working": {
+            "ix_stats_working_window_end_user": ("window_end", "user_id")
+        },
+        "bookmark_stats_window_point": {
+            "ix_stats_point_effective_user_window_revision": ("user_id", "window_start", "revision")
+        },
+        "bookmark_stats_projection_state": {},
     }
 
     for table_name, expected_names in expected_constraints.items():
@@ -127,6 +181,8 @@ def test_core_metadata_has_deterministic_constraints_foreign_keys_and_indexes() 
     bookmarks = metadata.tables["bookmarks"]
     bookmark_tags = metadata.tables["bookmark_tags"]
     dirty = metadata.tables["bookmark_stats_window_dirty"]
+    working = metadata.tables["bookmark_stats_window_working"]
+    point = metadata.tables["bookmark_stats_window_point"]
     assert [
         (foreign_key.name, tuple(foreign_key.column_keys), foreign_key.ondelete)
         for foreign_key in bookmarks.constraints
@@ -145,6 +201,23 @@ def test_core_metadata_has_deterministic_constraints_foreign_keys_and_indexes() 
         for foreign_key in dirty.constraints
         if isinstance(foreign_key, ForeignKeyConstraint)
     ] == [("fk_stats_dirty_user", ("user_id",), "CASCADE")]
+    assert [
+        (foreign_key.name, tuple(foreign_key.column_keys), foreign_key.ondelete)
+        for foreign_key in working.constraints
+        if isinstance(foreign_key, ForeignKeyConstraint)
+    ] == [("fk_stats_working_user", ("user_id",), "CASCADE")]
+    assert {
+        (foreign_key.name, tuple(foreign_key.column_keys), foreign_key.ondelete)
+        for foreign_key in point.constraints
+        if isinstance(foreign_key, ForeignKeyConstraint)
+    } == {
+        ("fk_stats_point_user", ("user_id",), "CASCADE"),
+        (
+            "fk_stats_point_supersedes_same_window",
+            ("supersedes_id", "user_id", "window_start"),
+            None,
+        ),
+    }
 
 
 def test_metadata_uses_expected_constraint_kinds() -> None:
@@ -159,5 +232,5 @@ def test_metadata_uses_expected_constraint_kinds() -> None:
     assert sum(isinstance(item, PrimaryKeyConstraint) for item in bookmark_tags.constraints) == 1
     assert tuple(bookmark_tags.primary_key.columns.keys()) == ("bookmark_id", "tag_id")
     assert tuple(dirty.primary_key.columns.keys()) == ("user_id", "window_start")
-    assert sum(isinstance(item, CheckConstraint) for item in dirty.constraints) == 6
+    assert sum(isinstance(item, CheckConstraint) for item in dirty.constraints) == 8
     assert all(isinstance(index, Index) for index in bookmarks.indexes)

@@ -24,10 +24,11 @@ assessment. Durable execution state and architecture decisions live under
 - [ADR-002: API contract and timestamps](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md)
 - [ADR-003: Identity and token security](../.tracks/ADR/ADR-003-identity-and-token-security.md)
 - [ADR-004: Event-driven statistics service](../.tracks/ADR/ADR-004-event-driven-statistics-service.md)
-- [ADR-005: Archived windowed-statistics design; implementation skipped](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
+- [ADR-005: Windowed-statistics implementation design](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md)
 - [ADR-006: Engineering verification and closure evidence](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 - [ADR-007: Local rate limiting and cursor pagination](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
 - [ADR-008: Pydantic internal models and typed lifecycle events](../.tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md)
+- [ADR-009: Track 07 weekly-projection revival](../.tracks/ADR/ADR-009-track-07-weekly-projection-revival.md)
 - [Track 00: closed contract baseline](../.tracks/00-contract-baseline/SPEC.md)
 - [Track 00: validation report](../.tracks/00-contract-baseline/TEST-REPORT.md)
 - [Track 01: foundation specification](../.tracks/01-foundation/SPEC.md)
@@ -42,8 +43,8 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 05: mandatory quality-gate execution plan](../.tracks/05-mandatory-quality-gate/PLAN.md)
 - [Track 06: event-driven statistics specification](../.tracks/06-event-driven-stats/SPEC.md)
 - [Track 06: event-driven statistics execution plan](../.tracks/06-event-driven-stats/PLAN.md)
-- [Track 07: skipped weekly-projections scope](../.tracks/07-weekly-projections/SPEC.md)
-- [Track 07: skipped-work plan](../.tracks/07-weekly-projections/PLAN.md)
+- [Track 07: weekly-projections specification](../.tracks/07-weekly-projections/SPEC.md)
+- [Track 07: weekly-projections plan](../.tracks/07-weekly-projections/PLAN.md)
 - [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 - [Track 08: final test report](../.tracks/08-final-handoff/TEST-REPORT.md)
@@ -52,11 +53,10 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 09: final cleanup history](../.tracks/09-final-cleanup-docs/HISTORY.md)
 - [Track 09: final test report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md)
 
-Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
-Track 08 is complete. The selected seed, Docker, rate-limit, and cursor checkpoints
-passed their combined final clean-source harness and are recorded in its final report.
-Track 09 is complete with passing clean-source branch and merged-main evidence.
-External release actions remain owner-only and were not performed.
+Track 07 is **In progress** under ADR-009 and has no implementation, harness, or
+closure evidence yet. Track 08 and Track 09 are pre-revival completion records; their
+active documents must be reopened and updated in a later downstream integration
+checkpoint. External release actions remain owner-only and were not performed.
 
 ## Authority
 
