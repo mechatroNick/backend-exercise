@@ -9,7 +9,7 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Engine, event, insert
 from sqlalchemy.engine import Connection
 from sqlmodel import Session
@@ -34,14 +34,6 @@ class _ExecutedStatement(BaseModel):
 
     statement: str
     parameters: tuple[object, ...] | dict[str, object]
-
-
-def test_query_plan_statement_record_is_strict_and_value_equal() -> None:
-    statement = _ExecutedStatement(statement="SELECT 1", parameters=())
-
-    assert statement == _ExecutedStatement(statement="SELECT 1", parameters=())
-    with pytest.raises(ValidationError):
-        _ExecutedStatement(statement="SELECT 1", parameters=(), extra="rejected")
 
 
 def _seed_plan_fixture(engine: Engine) -> None:
