@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
+import requests
 import schemathesis
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator
@@ -85,11 +86,38 @@ def _bookmark(client: TestClient, token: str) -> int:
     return response.json()["id"]
 
 
+def _schemathesis_response(response: Any) -> schemathesis.Response:
+    """Bridge Starlette's supported httpx2 response to Schemathesis's value model.
+
+    Schemathesis 4.24.3 recognizes plain ``httpx.Response`` but does not yet detect
+    the API-compatible ``httpx2.Response`` returned by Starlette 1.4 TestClient.
+    Constructing Schemathesis's public response value keeps conformance validation
+    independent of either client's private attributes.
+    """
+    request = requests.Request(
+        method=response.request.method,
+        url=str(response.request.url),
+        headers=dict(response.request.headers),
+        data=response.request.content,
+    ).prepare()
+    return schemathesis.Response(
+        status_code=response.status_code,
+        headers={name: response.headers.get_list(name) for name in response.headers},
+        content=response.content,
+        request=request,
+        elapsed=response.elapsed.total_seconds(),
+        message=response.reason_phrase,
+        encoding=response.encoding,
+        http_version=response.http_version,
+        verify=True,
+    )
+
+
 def _validate(document: dict[str, Any], app: Any, path: str, method: str, response: Any) -> None:
     status = str(response.status_code)
     operation = document["paths"][path][method.lower()]
     schemathesis.openapi.from_asgi("/openapi.json", app)[path][method.lower()].validate_response(
-        response
+        _schemathesis_response(response)
     )
     if status == "204":
         assert response.content == b"" and "content-type" not in response.headers
