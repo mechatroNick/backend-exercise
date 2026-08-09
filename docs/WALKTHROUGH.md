@@ -1,6 +1,6 @@
 # Local reviewer walkthrough
 
-This walkthrough demonstrates the delivered local service without retaining credentials, tokens, or protected response bodies. It is not the final Track 08 clean-clone receipt; that combined harness remains pending.
+This walkthrough demonstrates the delivered local service without retaining credentials, tokens, or protected response bodies. The final Track 08 clean-source harness passed separately; this walkthrough remains a reader guide rather than a substitute for that receipt.
 
 ## 1. Prepare a disposable database
 
@@ -15,7 +15,7 @@ Expected safe outcome: Alembic upgrades the explicitly selected SQLite database,
 
 ## 2. Inspect public contracts
 
-Open `http://127.0.0.1:8000/docs` or request `/openapi.json`. The static development inventory is OpenAPI 3.1.0 with 10 operations and 45 documented status pairs. Do not infer that this is a final runtime receipt; runtime final verification is pending.
+Open `http://127.0.0.1:8000/docs` or request `/openapi.json`. The OpenAPI inventory is 3.1.0 with 10 operations and 45 documented status pairs; the final clean-source runtime verification passed these selectors.
 
 ## 3. Register, log in, and exercise protected routes
 
@@ -41,8 +41,8 @@ After migration, run the documented `app.seed` command against a fresh, explicit
 
 ## 7. Optional container check
 
-Follow the Docker commands in the root README. Verify `/health/live`; test `migrate-only` separately. The image’s one-worker/non-root/volume/entrypoint contract is implemented, but final clean-clone Docker validation has not yet been recorded.
+Follow the Docker commands in the root README. Verify `/health/live`; test `migrate-only` separately. The final clean-source Docker validation passed the one-worker/non-root/volume/entrypoint, health, JSON Lines lifecycle, SIGTERM, removal, and cleanup checks.
 
 ## 8. Run evidence available today
 
-Run focused local tests for seed, Docker, rate limiting, and cursor pagination, then `uv run pytest`, coverage, and `bash scripts/verify-docs.sh`. Current development evidence is recorded in the Track 08 matrix; do not call the work final until `bash scripts/verify-track-08.sh` has a current clean-clone pass and the final report exists.
+Run focused local tests for seed, Docker, rate limiting, and cursor pagination, then `uv run pytest`, coverage, and `bash scripts/verify-docs.sh`. The passing final clean-source evidence is recorded in the Track 08 matrix and final report.

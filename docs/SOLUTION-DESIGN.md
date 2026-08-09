@@ -538,8 +538,8 @@ The repository exposes `make bootstrap`, which:
 6. stop the refresher cooperatively on shutdown.
 
 Direct `uvicorn` execution remains possible for development, but it does not silently
-create schema. Track 08 has delivered a reproducible Docker workflow; its final
-clean-clone verification remains in progress.
+create schema. Track 08 delivered a reproducible Docker workflow and its final
+clean-source verification passed.
 
 ## 18. Security considerations
 
@@ -559,7 +559,7 @@ Rate limiting is bounded and ownership-safe with an exact documented 429 contrac
 Cursor pagination preserves deterministic ordering, owner isolation, and
 malformed/tampered cursor handling while retaining page-pagination compatibility.
 Seed data is idempotent and contains no real credentials. Final combined evidence
-for these delivered boundaries remains in progress.
+for these delivered boundaries passed.
 
 [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
 fixes those bonus contracts: socket-peer auth buckets, authenticated-user bookmark

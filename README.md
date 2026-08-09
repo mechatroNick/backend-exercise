@@ -96,7 +96,7 @@ Remove the named volume only when its local SQLite data is no longer needed:
 docker volume rm bookmarks-api-data
 ```
 
-The image runs as a non-root `app` user, exposes 8000, declares `/data` as its volume, health-checks `/health/live`, uses one Uvicorn worker, and uses an exec-form entrypoint with `SIGTERM` configured. Static Docker contract tests are present, but the first durable build/run receipt from the final clean-clone harness is still pending.
+The image runs as a non-root `app` user (UID 10001), exposes 8000, declares `/data` as its volume, health-checks `/health/live`, uses one Uvicorn worker, and uses an exec-form entrypoint with `SIGTERM` configured. The final clean-source harness passed build, migrate-only, live/ready/health, JSON Lines lifecycle, SIGTERM, removal, and named-volume cleanup checks.
 
 ## Verify
 
@@ -119,7 +119,7 @@ dependency-metadata license inventory finds only that same local distribution wi
 unknown license metadata; it needs repository-owner review and is not presented as
 an assessment failure.
 
-An uncommitted local development receipt at `cee847f` observed a full suite of 719 tests and 2,958 statements / 630 branches at 100% coverage, plus a passing Track 06 harness after the cursor correction. The static OpenAPI development inventory is OpenAPI 3.1.0 with 10 operations and 45 status pairs. These observations are non-durable and are not a substitute for the pending combined clean-clone Track 08 harness and final report; see [Track 08 evidence](.tracks/08-final-handoff/EVIDENCE-MATRIX.md).
+The final clean-source Track 08 receipt at `ff32511e9cc0e2df8d7681e2c16b3dddb579faae` records 723 tests passed (one warning and three subtests), 2,958 statements / 630 branches at 100% coverage, and a passing inherited Track 01–06 harness chain. The static/runtime OpenAPI inventory is 3.1.0 with 10 operations and 45 status pairs; see the passing [Track 08 report](.tracks/08-final-handoff/TEST-REPORT.md).
 
 ## Security, limits, and evolution
 
@@ -132,7 +132,7 @@ For production evolution, move SQLite to a managed relational database, use a sh
 - [Walkthrough](docs/WALKTHROUGH.md) — safe local demonstration steps.
 - [Solution design](docs/SOLUTION-DESIGN.md) — architecture and contract rationale.
 - [AI-assisted work disclosure](docs/AI-ASSISTED-WORK.md) — evidence-bounded provenance statement.
-- [Release handoff](docs/RELEASE-HANDOFF.md) — implemented state, pending final evidence, and owner-only actions.
+- [Release handoff](docs/RELEASE-HANDOFF.md) — completed repository evidence and owner-only actions.
 - [Documentation index](docs/README.md) and [Track index](.tracks/README.md) — decisions and execution records.
 
-Track 07 weekly projections were owner-skipped. Track 08 is in progress: it does not yet have a final clean-clone receipt or final `TEST-REPORT.md`. Only the repository owner may choose a final ref, push, archive, share, deploy, or submit the work.
+Track 07 weekly projections were owner-skipped. Track 08 is complete with a passing final clean-source receipt. Only the repository owner may review local project license metadata and private AI wording/provenance, choose a final ref, push, archive, share, deploy, or submit the work.

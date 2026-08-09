@@ -58,7 +58,7 @@ flowchart LR
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Complete |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
 | 07 | Weekly developing points and append-only correction revisions | None | **Skipped (owner decision)** |
-| 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | In progress |
+| 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Complete |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -68,10 +68,10 @@ are satisfied. Decisions that change observable behavior require an ADR update b
 implementation.
 
 Current scope decision: Track 07 is skipped and produces no implementation, harness,
-or closure report. Track 08 has implemented all four selected bonuses—deterministic
-seed data, Docker setup, rate limiting, and cursor pagination—but its preflight,
-final-evidence dependencies, combined clean-clone harness, and final report remain
-in progress.
+or closure report. Track 08 completed all four selected bonuses—deterministic seed
+data, Docker setup, rate limiting, and cursor pagination—and its clean-source final
+harness/report. External push, archive, sharing, deployment, and submission remain
+owner-only actions outside repository completion.
 
 Track completion uses the shared
 [engineering verification guideline](../docs/ENGINEERING-VERIFICATION-GUIDELINE.md):
@@ -106,3 +106,4 @@ deterministic tests and real-process harness evidence.
 - [Track 08 specification](08-final-handoff/SPEC.md)
 - [Track 08 execution plan](08-final-handoff/PLAN.md)
 - [Track 08 history](08-final-handoff/HISTORY.md)
+- [Track 08 final test report](08-final-handoff/TEST-REPORT.md)
