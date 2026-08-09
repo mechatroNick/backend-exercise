@@ -229,6 +229,8 @@ class JsonFormatter(logging.Formatter):
 class FailClosedStreamHandler(logging.StreamHandler[TextIO]):
     """Suppress stdlib plaintext diagnostics if a formatter or stream fails."""
 
+    _bookmarks_json_handler = False
+
     def emit(self, record: logging.LogRecord) -> None:
         try:
             message = self.format(record)
@@ -268,7 +270,7 @@ def configure_logging(
             logger.removeHandler(handler)
             handler.close()
     handler = FailClosedStreamHandler(stream or sys.stderr)
-    handler._bookmarks_json_handler = True  # type: ignore[attr-defined]
+    handler._bookmarks_json_handler = True
     handler.setFormatter(JsonFormatter())
     handler.addFilter(_ApplicationFieldsFilter(settings.app_env, application, component))
     logger.addHandler(handler)

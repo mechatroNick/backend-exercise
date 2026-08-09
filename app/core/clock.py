@@ -11,6 +11,7 @@ class Clock(Protocol):
 
     def now(self) -> datetime:
         """Return the current instant as an aware UTC datetime."""
+        ...
 
 
 def normalize_utc(value: datetime) -> datetime:

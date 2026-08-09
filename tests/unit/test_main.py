@@ -16,6 +16,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import Settings
+from app.core.lifecycle import ApplicationLifecycleEvent
 from app.main import create_app
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -106,10 +107,10 @@ def test_lifespan_emits_json_lifecycle_events_redacts_and_disposes_engine(
 
     records = _records(stream)
     assert [record["event"] for record in records] == [
-        "application.starting",
-        "application.started",
-        "application.stopping",
-        "application.stopped",
+        ApplicationLifecycleEvent.STARTING,
+        ApplicationLifecycleEvent.STARTED,
+        ApplicationLifecycleEvent.STOPPING,
+        ApplicationLifecycleEvent.STOPPED,
     ]
     assert all(record["component"] == "lifecycle" for record in records)
     assert all(record["source"]["module"] == "app.main" for record in records)
@@ -288,7 +289,9 @@ def test_startup_initialization_failure_logs_once_and_disposes_partial_engine(
 
     assert disposed is True
     startup_failures = [
-        record for record in _records(stream) if record["event"] == "application.startup_failed"
+        record
+        for record in _records(stream)
+        if record["event"] == ApplicationLifecycleEvent.STARTUP_FAILED
     ]
     assert len(startup_failures) == 1
     assert startup_failures[0]["exception"]["type"] == "RuntimeError"
@@ -323,7 +326,9 @@ def test_startup_engine_creation_failure_is_logged_once_without_partial_disposal
     with pytest.raises(RuntimeError), TestClient(app):
         pass
 
-    assert [record["event"] for record in _records(stream)].count("application.startup_failed") == 1
+    assert [record["event"] for record in _records(stream)].count(
+        ApplicationLifecycleEvent.STARTUP_FAILED
+    ) == 1
     assert "track01-secret-sentinel-do-not-emit" not in stream.getvalue()
 
 

@@ -22,7 +22,7 @@ from app.db.types import UTCDateTime
 class Bookmark(SQLModel, table=True):
     """A private saved URL owned by exactly one application user."""
 
-    __tablename__ = "bookmarks"
+    __tablename__ = "bookmarks"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_bookmarks"),
         ForeignKeyConstraint(
@@ -52,7 +52,7 @@ class Bookmark(SQLModel, table=True):
 class Tag(SQLModel, table=True):
     """A globally unique, service-normalized tag name."""
 
-    __tablename__ = "tags"
+    __tablename__ = "tags"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("id", name="pk_tags"),
         UniqueConstraint("name", name="uq_tags_name"),
@@ -67,7 +67,7 @@ class Tag(SQLModel, table=True):
 class BookmarkTag(SQLModel, table=True):
     """Explicit many-to-many link table between bookmarks and globally shared tags."""
 
-    __tablename__ = "bookmark_tags"
+    __tablename__ = "bookmark_tags"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("bookmark_id", "tag_id", name="pk_bookmark_tags"),
         ForeignKeyConstraint(

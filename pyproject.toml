@@ -19,9 +19,11 @@ dependencies = [
 dev = [
     "coverage[toml]>=7.15.3,<7.16",
     "httpx==0.28.1",
+    "httpx2==2.9.1",
     "jsonschema>=4.26.0,<4.27",
     "mypy>=2.3.0,<2.4",
     "pip-audit>=2.10.1,<2.11",
+    "pyright[nodejs]==1.1.411",
     "pytest>=9.1.1,<9.2",
     "ruff>=0.15.22,<0.16",
     "schemathesis==4.24.3",
@@ -46,6 +48,13 @@ skip_empty = true
 python_version = "3.12"
 strict = true
 files = ["app"]
+
+[tool.pyright]
+include = ["app"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
 
 [tool.pytest.ini_options]
 addopts = "-ra"
