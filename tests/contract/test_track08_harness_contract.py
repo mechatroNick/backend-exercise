@@ -142,6 +142,9 @@ def test_track08_harness_discriminates_live_filter_and_patch_contracts() -> None
         '"alpha-tag"',
         '"from": "2999-01-01"',
         "from datetime import datetime",
+        "nonce = secrets.token_hex(10)",
+        '"email": f"{label}-{nonce}@example.com"',
+        "runtime safe-driver failed",
         "query filter did not return the exact owner item",
         "tag filter did not return the exact owner item",
         "future created-from filter was ignored",
@@ -149,3 +152,6 @@ def test_track08_harness_discriminates_live_filter_and_patch_contracts() -> None
         "PATCH response did not advance updated_at",
     ):
         assert required in source
+    assert "nonce = secrets.token_urlsafe" not in source
+    assert '"email": f"{label}-{nonce}@example.test"' not in source
+    assert 'password = f"Track08-{secrets.token_urlsafe(24)}"' in source

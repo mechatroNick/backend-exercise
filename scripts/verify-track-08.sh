@@ -470,7 +470,7 @@ start_server() {
 
 exercise_runtime() {
     local port="$1"
-    (cd "${clone_root}" && "${uv_command}" run python - "${port}" <<'PY'
+    if ! (cd "${clone_root}" && "${uv_command}" run python - "${port}" <<'PY'
 import secrets
 import sys
 from datetime import datetime
@@ -479,14 +479,14 @@ import httpx
 port = sys.argv[1]
 base = f"http://127.0.0.1:{port}"
 password = f"Track08-{secrets.token_urlsafe(24)}"
-nonce = secrets.token_urlsafe(10)
+nonce = secrets.token_hex(10)
 
 def require(response: httpx.Response, status: int) -> None:
     if response.status_code != status:
         raise SystemExit(f"unexpected safe status: {response.request.method} {response.request.url.path}")
 
 def user(label: str) -> dict[str, str]:
-    return {"username": f"{label}-{nonce}", "email": f"{label}-{nonce}@example.test", "password": password}
+    return {"username": f"{label}-{nonce}", "email": f"{label}-{nonce}@example.com", "password": password}
 
 def bookmark(label: str, title: str, tag: str) -> dict[str, object]:
     return {
@@ -589,7 +589,9 @@ with httpx.Client(base_url=base, timeout=10) as client:
         raise SystemExit("rate limit envelope changed")
 print("Track 08 runtime safe-driver: health/OpenAPI/docs, auth, owner isolation, CRUD/search, cursor, current stats, and 429 contract passed")
 PY
-    ) >"${workspace}/receipts/runtime-driver.log" 2>&1
+    ) >"${workspace}/receipts/runtime-driver.log" 2>&1; then
+        fail 'runtime safe-driver failed'
+    fi
     rg -q 'Track 08 runtime safe-driver:' "${workspace}/receipts/runtime-driver.log" || fail 'runtime driver lacked a safe completion receipt'
     safe_message 'receipt: selector=real Uvicorn safe in-memory HTTP driver; exit=0; no tokens or protected response bodies persisted'
 }
