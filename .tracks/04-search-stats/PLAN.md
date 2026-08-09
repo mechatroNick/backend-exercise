@@ -17,7 +17,7 @@
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing Track 04's ORM/raw-SQL boundary, public DTO, or Track 05 ownership.
 Planned, Ready, or Blocked is not done. T04-07 may mark Track 04 Complete only after

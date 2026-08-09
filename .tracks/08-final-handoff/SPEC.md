@@ -5,8 +5,8 @@
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
 - Depends on: Completed Tracks 01–06 and the recorded Track 07 skip decision
-- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`,
-  `docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-007
+- Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`,
+  `.docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-007
 
 ## Intent anchor
 
@@ -98,7 +98,7 @@ planned claims:
 - the final report identifies the repository owner as the sole owner of submission
   link/archive creation and any external submission.
 
-Track 08 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+Track 08 imports the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 closure invariant without changing any accepted product contract: **Complete**
 requires recorded passing deterministic, integration, contract, migration, quality,

@@ -116,7 +116,7 @@
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing Track 02 contracts or Track 05's full OpenAPI ownership. A Planned,
 Ready, or Blocked state is not done. T02-07 may mark Track 02 Complete only after

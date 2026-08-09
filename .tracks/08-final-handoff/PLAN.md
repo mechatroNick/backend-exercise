@@ -1,7 +1,7 @@
 # Track 08 plan: final hardening, documentation, and assessment handoff
 
 - Specification: [SPEC.md](SPEC.md), version 1.3
-- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`, `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-007
+- Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`, `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-007
 - Status: Complete
 - Active item: None
 
@@ -33,7 +33,7 @@ Track 08 without it.
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 to Track 08 without changing its status, task IDs/dependencies, mandatory bonus
 boundary, FUT-01/documentation-only boundary, no-public-history boundary, or the

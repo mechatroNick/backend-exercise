@@ -69,7 +69,7 @@
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 to Track 01 without changing its product contract. A Pending or Ready item is not
 done. T01-08 can mark the track Complete only after recorded passing deterministic

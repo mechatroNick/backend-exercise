@@ -88,7 +88,7 @@ exactly once at its owning boundary.
 The process smoke does not establish N+1 or index claims: Track 04 retains
 deterministic query-count instrumentation and recorded `EXPLAIN QUERY PLAN` evidence
 for those assertions. Track 04 imports the shared
-[engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+[engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md)
 closure invariant: Complete requires recorded passing deterministic tests and a
 real-process harness receipt, never planned work or code presence. The harness does

@@ -17,7 +17,7 @@
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing the mandatory-core scope or the Track 06 stop. Planned, Ready, or
 Blocked is not done. T05-07 may mark Track 05 Complete only after recorded passing

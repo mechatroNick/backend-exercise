@@ -22,7 +22,7 @@ its verifier can prove documentation integrity, but cannot prove executable beha
 
 ## Decision
 
-Adopt the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+Adopt the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 as the binding process for closure and evidence across Tracks 00-08. It requires
 honest status and evidence receipts: an unrun, planned, blocked, or skipped command
 is not a passing result.
@@ -68,6 +68,6 @@ semantics.
 
 ## Evidence and references
 
-- [Engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+- [Engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 - [Track 00 specification](../00-contract-baseline/SPEC.md)
 - [Track 00 test report](../00-contract-baseline/TEST-REPORT.md)

@@ -22,7 +22,7 @@ Detailed execution artifacts may be created sequentially after upstream plan rev
 when that helps bound later work. Their presence does not authorize implementation:
 each track remains dependency-gated until its upstream implementation and closure
 evidence are complete. This preserves stable requirements and architectural decisions
-in `docs/` and `.tracks/ADR/` without treating planned detail as runtime readiness.
+in `.docs/` and `.tracks/ADR/` without treating planned detail as runtime readiness.
 
 ## 2. Working rules
 
@@ -61,7 +61,7 @@ Create a durable and internally consistent interpretation of the exercise before
 
 ### Included
 
-- preserve the supplied assessment in `docs/`;
+- preserve the supplied assessment in `.docs/`;
 - extract a requirement-to-evidence matrix;
 - record all confirmed choices and rejected alternatives in accepted ADRs;
 - distinguish delivered current statistics from the owner-skipped weekly projection design;

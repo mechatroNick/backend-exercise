@@ -197,7 +197,7 @@ cross-user data are absent from application logs, indexed fields, command or dia
 output, assertion failures, unsafe debug bundles, and retained artifacts. Health stays
 bounded and redacted, with no SQL, content, credentials, paths, or raw exceptions.
 Cleanup removes disposable response/token/debug state unless an explicit safe debug
-mode retains an approved artifact. The shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+mode retains an approved artifact. The shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) govern
 unexpected-exception evidence: the final owning request, task, thread, or process
 boundary logs it exactly once with redacted structured type, safe message, ordered

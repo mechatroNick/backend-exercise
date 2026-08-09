@@ -9,14 +9,14 @@
 | ID | Work item | Status | Evidence / exit condition |
 | --- | --- | --- | --- |
 | T00-01 | Inspect repository instructions, current worktree, and supplied assessment. | Complete | Repository state and six-page assessment contents inspected; user-owned PDF move preserved. |
-| T00-02 | Extract and classify assessment requirements. | Complete | `docs/ASSESSMENT.md` maps stable IDs to tracks and evidence. |
+| T00-02 | Extract and classify assessment requirements. | Complete | `.docs/ASSESSMENT.md` maps stable IDs to tracks and evidence. |
 | T00-03 | Resolve material choices and accept the ADR baseline. | Complete | ADR-001 through ADR-005 are Accepted and include user confirmations. |
-| T00-04 | Write solution architecture and dependency-ordered delivery design. | Complete | `docs/SOLUTION-DESIGN.md` and `docs/DELIVERY-PLAN.md` created. |
+| T00-04 | Write solution architecture and dependency-ordered delivery design. | Complete | `.docs/SOLUTION-DESIGN.md` and `.docs/DELIVERY-PLAN.md` created. |
 | T00-05 | Validate internal consistency, links, status, and traceability. | Complete | 43 unique requirement IDs, five accepted ADRs, nine tracks, valid local link targets, no stale terms, and clean whitespace checks. |
 | T00-06 | Run a fresh-reader review and address findings. | Complete | Independent re-audit passed all six repaired contract checks with no blocking contradiction. |
 | T00-07 | Close Track 00 and make Track 01 ready for detailed planning. | Complete | TEST-REPORT and HISTORY contain evidence; indexes updated; no open blocker. |
 | T00-08 | Sequentially re-review and stabilize the completed Track 00 record before Track 01 review. | Complete | Bounded read-only fresh-reader review, provenance clarification, ADR-005 ownership correction, and portable validation receipt recorded without changing accepted product semantics. |
-| T00-09 | Adopt and index the shared engineering verification guideline and its documentation-only checker. | Complete | `docs/ENGINEERING-VERIFICATION-GUIDELINE.md` is indexed; `bash scripts/verify-docs.sh` passed and is recorded in `TEST-REPORT.md`. |
+| T00-09 | Adopt and index the shared engineering verification guideline and its documentation-only checker. | Complete | `.docs/ENGINEERING-VERIFICATION-GUIDELINE.md` is indexed; `bash scripts/verify-docs.sh` passed and is recorded in `TEST-REPORT.md`. |
 | T00-10 | Accept ADR-006 and revalidate the expanded documentation gate. | Complete | ADR-006 binds evidence and closure process without changing product semantics; the six-ADR documentation gate is revalidated and recorded in `TEST-REPORT.md`. |
 | T00-11 | Reconcile the final cross-track governance audit. | Complete | The live delivery Definition of Done covers all six accepted ADRs, stale Track 01 next-step text is resolved, and the documentation gate is revalidated. |
 | T00-12 | Reconcile the owner decision to skip Track 07 and require all four Track 08 bonuses. | Complete | The baseline preserves ADR-005 as archived design, removes weekly implementation as an active invariant, and points final delivery to current-only Track 06 plus the full Track 08 bonus set. |
@@ -33,7 +33,7 @@ The exact portable commands and results are recorded in `TEST-REPORT.md`. Valida
 - key terminology and scope: current statistics, dirty generation, live fallback,
   the Track 07 skip, and the complete Track 08 bonus set;
 - fresh-reader comprehension and contradictions.
-- the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and its documentation-only verifier; no runtime proof is implied for Track 00.
+- the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and its documentation-only verifier; no runtime proof is implied for Track 00.
 
 ## Next-track planning boundary
 

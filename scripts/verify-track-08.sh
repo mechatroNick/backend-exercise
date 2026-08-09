@@ -226,15 +226,15 @@ assert_reader_documents() {
     local missing=0
     local document
     # The root reader document is deliberately a final handoff gate.  The existing
-    # docs index remains required so a future README cannot point at a missing handoff.
+    # .docs index remains required so a future README cannot point at a missing handoff.
     for document in \
         README.md \
-        docs/README.md \
-        docs/SOLUTION-DESIGN.md \
-        docs/DELIVERY-PLAN.md \
-        docs/WALKTHROUGH.md \
-        docs/AI-ASSISTED-WORK.md \
-        docs/RELEASE-HANDOFF.md; do
+        .docs/README.md \
+        .docs/SOLUTION-DESIGN.md \
+        .docs/DELIVERY-PLAN.md \
+        .docs/WALKTHROUGH.md \
+        .docs/AI-ASSISTED-WORK.md \
+        .docs/RELEASE-HANDOFF.md; do
         if [[ ! -f "${clone_root}/${document}" ]]; then
             missing=1
         fi

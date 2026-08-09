@@ -68,7 +68,7 @@ change; stop if a required invariant is absent.
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing Track 03 contracts or downstream ownership. Planned, Ready, or
 Blocked is not done. T03-08 may mark Track 03 Complete only after recorded passing

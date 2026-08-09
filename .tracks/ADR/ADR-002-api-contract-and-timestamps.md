@@ -102,5 +102,5 @@ contract tests do not diverge.
 
 ## Evidence and references
 
-- [Assessment](../../docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
+- [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
 - [SQLModel partial updates](https://sqlmodel.tiangolo.com/tutorial/fastapi/update/)

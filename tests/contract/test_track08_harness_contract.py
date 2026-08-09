@@ -9,6 +9,22 @@ def _harness() -> str:
     return (_ROOT / "scripts/verify-track-08.sh").read_text(encoding="utf-8")
 
 
+def test_docs_migration_contract_preserves_fastapi_docs_route() -> None:
+    docs_verifier = (_ROOT / "scripts/verify-docs.sh").read_text(encoding="utf-8")
+    harness = _harness()
+
+    for required in (
+        ".docs must be a real documentation directory",
+        "docs compatibility directory or symlink must not exist",
+        "historical_literal_docs_paths",
+        "FastAPI's /docs route",
+        ".docs/ASSESSMENT.md",
+    ):
+        assert required in docs_verifier
+    assert "docs/" not in harness.replace(".docs/", "")
+    assert 'for path in ("/health/live", "/health/ready", "/docs"):' in harness
+
+
 def test_track08_harness_is_strict_clean_clone_orchestration() -> None:
     source = _harness()
 
@@ -41,9 +57,9 @@ def test_track08_harness_is_strict_clean_clone_orchestration() -> None:
         'kill -TERM "${server_pid}"',
         "Uvicorn supervisor TERM, bounded captured-process wait, recursive KILL fallback",
         "no private workspace remained",
-        "docs/WALKTHROUGH.md",
-        "docs/AI-ASSISTED-WORK.md",
-        "docs/RELEASE-HANDOFF.md",
+        ".docs/WALKTHROUGH.md",
+        ".docs/AI-ASSISTED-WORK.md",
+        ".docs/RELEASE-HANDOFF.md",
     ):
         assert required in source
 

@@ -78,7 +78,7 @@ coverage, so deterministic evidence remains required.
 `TEST-REPORT.md` must contain actual receipts. Track 06 remains blocked unless this
 gate is green and no known critical/high defect remains.
 
-Track 05 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing evidence, never planned work or code presence. It does not expand the mandatory-core scope or weaken the Track 06 stop.
+Track 05 imports the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded passing evidence, never planned work or code presence. It does not expand the mandatory-core scope or weaken the Track 06 stop.
 
 ## Traceability and defect routing
 

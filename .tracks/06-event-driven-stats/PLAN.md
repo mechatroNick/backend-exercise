@@ -27,7 +27,7 @@ not adapt a public or durable-state contract silently.
 
 ## Shared completion gate
 
-The [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
+The [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md)
 and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) apply
 without changing Track 06's status, task IDs/dependencies, marker-generation
 rules, transaction/publication ordering, current-stats fallback contract, one-worker

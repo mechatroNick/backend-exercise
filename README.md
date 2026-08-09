@@ -129,10 +129,10 @@ For production evolution, move SQLite to a managed relational database, use a sh
 
 ## Reader and handoff material
 
-- [Walkthrough](docs/WALKTHROUGH.md) — safe local demonstration steps.
-- [Solution design](docs/SOLUTION-DESIGN.md) — architecture and contract rationale.
-- [AI-assisted work disclosure](docs/AI-ASSISTED-WORK.md) — evidence-bounded provenance statement.
-- [Release handoff](docs/RELEASE-HANDOFF.md) — completed repository evidence and owner-only actions.
-- [Documentation index](docs/README.md) and [Track index](.tracks/README.md) — decisions and execution records.
+- [Walkthrough](.docs/WALKTHROUGH.md) — safe local demonstration steps.
+- [Solution design](.docs/SOLUTION-DESIGN.md) — architecture and contract rationale.
+- [AI-assisted work disclosure](.docs/AI-ASSISTED-WORK.md) — evidence-bounded provenance statement.
+- [Release handoff](.docs/RELEASE-HANDOFF.md) — completed repository evidence and owner-only actions.
+- [Documentation index](.docs/README.md) and [Track index](.tracks/README.md) — decisions and execution records.
 
 Track 07 weekly projections were owner-skipped. Track 08 is complete with a passing final clean-source receipt. Only the repository owner may review local project license metadata and private AI wording/provenance, choose a final ref, push, archive, share, deploy, or submit the work.

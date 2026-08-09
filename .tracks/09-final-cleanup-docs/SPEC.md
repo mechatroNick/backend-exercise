@@ -5,8 +5,8 @@
 - Planned: 2026-08-09
 - Owner: Primary engineering thread
 - Depends on: Completed Track 08 at `9092f30`
-- Governing records: `docs/ASSESSMENT.md`, `docs/SOLUTION-DESIGN.md`,
-  `docs/DELIVERY-PLAN.md`, ADR-001 through ADR-008, and every Track 00–08
+- Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`,
+  `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-008, and every Track 00–08
   closure/skip record
 
 ## Intent anchor
@@ -143,4 +143,3 @@ or if a demonstrated deprecation has no behavior-preserving supported replacemen
 | Deprecation and type modernization | T09-REQ-05, T09-REQ-06 |
 | Standalone Bash reports and Docker order | T09-REQ-07, T09-REQ-08 |
 | Comprehensive final proof and Git closure | T09-REQ-10, T09-REQ-11, ADR-006 |
-

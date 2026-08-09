@@ -1,7 +1,7 @@
 # Engineering tracks and decisions
 
 This directory is the durable control plane for the Bookmarks API assessment. The
-assessment source is stored in `../docs/Technical Assessment Senior
+assessment source is stored in `../.docs/Technical Assessment Senior
 Software_Engineer.pdf`.
 
 ## Intent anchor
@@ -76,7 +76,7 @@ harness/report. External push, archive, sharing, deployment, and submission rema
 owner-only actions outside repository completion.
 
 Track completion uses the shared
-[engineering verification guideline](../docs/ENGINEERING-VERIFICATION-GUIDELINE.md):
+[engineering verification guideline](../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md):
 Complete means the track's recorded evidence actually passed. Planned, Ready, and
 Blocked states are not completion, and executable tracks also require their
 deterministic tests and real-process harness evidence.

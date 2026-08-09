@@ -65,6 +65,6 @@ policy, token lifetime, or refresh behavior.
 
 ## Evidence and references
 
-- [Assessment](../../docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
+- [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
 - [FastAPI JWT and password hashing guidance](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)
 - [NIST password guidance](https://pages.nist.gov/800-63-4/sp800-63b.html)

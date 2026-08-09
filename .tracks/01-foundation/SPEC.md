@@ -210,7 +210,7 @@ Track 01 closes only when all of the following pass from the locked environment:
 - formatting, linting, type checks, and all Track 01 tests pass;
 - no secret or generated database/coverage/cache artifact appears in repository status.
 
-Track 01 imports the shared [engineering verification guideline](../../docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded, passing deterministic unit/integration evidence and a passing real-process harness receipt, not a planned command or code presence. Track 01 owns delivery of `scripts/verify-track-01.sh` as the first such harness contract. It supplements tests and must use the delivered Uvicorn factory/bootstrap rather than a fake server. Worker-specific ADR-004 logging fields remain out of scope until their owning track.
+Track 01 imports the shared [engineering verification guideline](../../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md) and [ADR-006](../ADR/ADR-006-engineering-verification-and-closure-evidence.md) closure invariant: Complete requires recorded, passing deterministic unit/integration evidence and a passing real-process harness receipt, not a planned command or code presence. Track 01 owns delivery of `scripts/verify-track-01.sh` as the first such harness contract. It supplements tests and must use the delivered Uvicorn factory/bootstrap rather than a fake server. Worker-specific ADR-004 logging fields remain out of scope until their owning track.
 
 ## 11. Risks and mitigations
 

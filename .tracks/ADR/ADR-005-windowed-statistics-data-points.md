@@ -197,4 +197,4 @@ Under observation-time semantics:
 ## Evidence and references
 
 - [ADR-004](ADR-004-event-driven-statistics-service.md)
-- [Assessment](../../docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
+- [Assessment](../../.docs/Technical%20Assessment%20Senior%20Software_Engineer.pdf)
