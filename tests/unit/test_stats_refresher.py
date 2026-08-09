@@ -244,7 +244,12 @@ def test_worker_loop_uses_interruptible_wait_without_sleeping() -> None:
     assert events == [
         (
             "bookmark_stats.refresher_started",
-            {"initial_success": False, "failure_count": 1, "interval_seconds": 1},
+            {
+                "initial_success": False,
+                "failure_count": 1,
+                "interval_seconds": 1,
+                "worker_is_daemon": current_thread().daemon,
+            },
         ),
         ("bookmark_stats.refresh_retrying", {"failure_count": 1}),
     ]
@@ -281,7 +286,12 @@ def test_worker_loop_logs_successful_start_without_a_retry_transition() -> None:
     assert events == [
         (
             "bookmark_stats.refresher_started",
-            {"initial_success": True, "failure_count": 0, "interval_seconds": 1},
+            {
+                "initial_success": True,
+                "failure_count": 0,
+                "interval_seconds": 1,
+                "worker_is_daemon": current_thread().daemon,
+            },
         )
     ]
 
@@ -304,6 +314,11 @@ def test_worker_retry_json_logs_keep_application_source_and_safe_context() -> No
     assert "bookmark_stats.refresh_retrying" in events
     assert all(record["source"]["package"].startswith("app") for record in records)
     assert all(record["source"]["module"].startswith("app.") for record in records)
+    started = next(
+        record for record in records if record["event"] == "bookmark_stats.refresher_started"
+    )
+    assert type(started["context"]["worker_is_daemon"]) is bool
+    assert started["context"]["worker_is_daemon"] is current_thread().daemon
     retry = next(
         record for record in records if record["event"] == "bookmark_stats.refresh_retrying"
     )

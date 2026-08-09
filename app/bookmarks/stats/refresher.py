@@ -438,6 +438,7 @@ class StatsRefresher:
                     "initial_success": initial_success,
                     "failure_count": 0 if initial_success else 1,
                     "interval_seconds": self._interval_seconds,
+                    "worker_is_daemon": current_thread().daemon,
                 },
             )
             while not self._stop_event.wait(self._interval_seconds):
