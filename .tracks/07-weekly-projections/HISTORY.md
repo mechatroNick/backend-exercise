@@ -1,5 +1,22 @@
 # Track 07 history
 
+## 2026-08-09 — Dedicated archived-skip branch verified
+
+- Created `codex/track-07-archived-skip` from the verified Track 06-integrated
+  `main` state so the owner's per-track branch requirement remains explicit even
+  though no Track 07 implementation is authorized.
+- `bash scripts/verify-docs.sh` passed with 43 requirement IDs, six accepted ADRs,
+  and nine tracks. The verifier confirmed the skipped SPEC/PLAN statuses, Track 08's
+  absence-based dependency, and the prohibition on a Track 07 test report or harness.
+- Direct absence checks confirmed there is no
+  `.tracks/07-weekly-projections/TEST-REPORT.md`, no
+  `scripts/verify-track-07.sh`, and no weekly working/point table, projection class,
+  history route, revision, calculation-version, or payload-hash implementation under
+  `app` or `alembic/versions`.
+- `git diff --check` passed. This branch changes documentation history only and does
+  not claim passing weekly-projection behavior, tests, migrations, or runtime
+  evidence. The Track remains **Skipped (owner decision)** rather than Complete.
+
 ## 2026-08-06 — Track skipped by owner decision
 
 - Changed Track 07 from **Planned (implementation-gated)** to **Skipped (owner
