@@ -45,6 +45,7 @@ flowchart LR
 | [ADR-005](ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design; implementation skipped | Archived developing-window and append-only correction design if Track 07 is ever revived |
 | [ADR-006](ADR/ADR-006-engineering-verification-and-closure-evidence.md) | Accepted | Binding engineering verification, evidence, and closure process |
 | [ADR-007](ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) | Accepted | Local one-worker rate limiting and authenticated keyset cursors |
+| [ADR-008](ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) | Accepted | Strict Pydantic internal models and typed application lifecycle events |
 
 ## Planned delivery tracks
 
@@ -59,6 +60,7 @@ flowchart LR
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
 | 07 | Weekly developing points and append-only correction revisions | None | **Skipped (owner decision)** |
 | 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Complete |
+| 09 | Final cleanup, documentation migration, and standalone test reports | 08 | **In progress** |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -107,3 +109,6 @@ deterministic tests and real-process harness evidence.
 - [Track 08 execution plan](08-final-handoff/PLAN.md)
 - [Track 08 history](08-final-handoff/HISTORY.md)
 - [Track 08 final test report](08-final-handoff/TEST-REPORT.md)
+- [Track 09 specification](09-final-cleanup-docs/SPEC.md)
+- [Track 09 execution plan](09-final-cleanup-docs/PLAN.md)
+- [Track 09 history](09-final-cleanup-docs/HISTORY.md)
