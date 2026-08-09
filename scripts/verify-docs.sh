@@ -36,6 +36,7 @@ require_file .tracks/ADR/ADR-003-identity-and-token-security.md
 require_file .tracks/ADR/ADR-004-event-driven-statistics-service.md
 require_file .tracks/ADR/ADR-005-windowed-statistics-data-points.md
 require_file .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md
+require_file .tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md
 require_file .tracks/07-weekly-projections/SPEC.md
 require_file .tracks/07-weekly-projections/PLAN.md
 require_file .tracks/07-weekly-projections/HISTORY.md
@@ -64,12 +65,16 @@ unique_requirement_id_count="$(sed -n '/^## Requirement matrix$/,/^## Accepted d
 [[ "${unique_requirement_id_count}" -eq 43 ]] || fail 'requirement IDs are not unique'
 
 accepted_adr_count="$(rg -l -- '- Status: Accepted' .tracks/ADR/*.md | wc -l | tr -d ' ')"
-[[ "${accepted_adr_count}" -eq 6 ]] || fail "expected 6 accepted ADRs; found ${accepted_adr_count}"
+[[ "${accepted_adr_count}" -eq 7 ]] || fail "expected 7 accepted ADRs; found ${accepted_adr_count}"
 
 rg -q 'ADR-006-engineering-verification-and-closure-evidence\.md' docs/README.md \
     || fail 'docs index does not link ADR-006'
 rg -q 'ADR-006-engineering-verification-and-closure-evidence\.md' .tracks/README.md \
     || fail 'track index does not link ADR-006'
+rg -q 'ADR-007-local-rate-limiting-and-cursor-pagination\.md' docs/README.md \
+    || fail 'docs index does not link ADR-007'
+rg -q 'ADR-007-local-rate-limiting-and-cursor-pagination\.md' .tracks/README.md \
+    || fail 'track index does not link ADR-007'
 
 track_dir_count="$(find .tracks -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9]-*' -print | wc -l | tr -d ' ')"
 [[ "${track_dir_count}" -eq 9 ]] || fail "expected 9 track directories; found ${track_dir_count}"
@@ -129,4 +134,4 @@ if rg -n '[[:blank:]]$' docs .tracks; then
 fi
 
 git diff --check
-printf 'PASS: documentation-only verification (43 requirement IDs, 6 accepted ADRs, 9 tracks).\n'
+printf 'PASS: documentation-only verification (43 requirement IDs, 7 accepted ADRs, 9 tracks).\n'

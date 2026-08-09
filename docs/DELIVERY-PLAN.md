@@ -381,7 +381,7 @@ Turn the working solution into a concise, reproducible senior-level submission w
 The project is done only when:
 
 - every mandatory assessment requirement has passing evidence;
-- all six accepted ADRs are implemented, adopted as governance constraints, archived
+- all seven accepted ADRs are implemented, adopted as governance constraints, archived
   by an explicit owner skip, or explicitly superseded;
 - current statistics remain correct and weekly historical projections remain explicitly skipped;
 - the application bootstraps locally with all internal services visible in logs;

@@ -115,7 +115,7 @@ validation, and reviewer-explainable ownership.
 | --- | --- | --- | --- | --- |
 | DOC-01 | Required support | Provide setup, migration, run, API, testing, architecture, deployment, and trade-off documentation. | 08 | Fresh-clone and fresh-reader verification. |
 | BONUS-01 | Optional in assessment; selected by owner | Seed script. | 08 | Deterministic, idempotent sample data and documented invocation after mandatory green. |
-| BONUS-02 | Optional in assessment; all selected by owner | Docker setup, rate limiting, and cursor pagination. | 08 | Each capability has isolated contract/edge evidence; combined final regression passes. |
+| BONUS-02 | Optional in assessment; all selected by owner | Docker setup, rate limiting, and cursor pagination. | 08 | ADR-007 governs rate/cursor behavior; each capability has isolated contract/edge evidence and the combined final regression passes. |
 | FUT-01 | Future only | External worker/broker, multi-process coordination, PostgreSQL, and production infrastructure. | 08 | Documentation only; no assessment dependency. |
 
 ## Accepted decisions
@@ -127,6 +127,7 @@ validation, and reviewer-explainable ownership.
 | Canonical identity, Argon2, and access-only JWT | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) | Proportionate local authentication without refresh-token scope. |
 | Event queue and managed statistics thread | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) | Eventual snapshot acceleration while preserving a canonical live raw-SQL path. |
 | UTC weekly event-time windows and immutable corrections | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design retained for reference; Track 07 implementation is owner-skipped. |
+| Local rate limiting and authenticated keyset cursors | [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) | Bounded one-worker limits and opt-in cursor traversal preserve mandatory API compatibility. |
 
 ## Completion invariant
 
