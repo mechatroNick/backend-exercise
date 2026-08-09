@@ -267,7 +267,19 @@ with httpx.Client(base_url=base, timeout=10) as client:
         for path, methods in api["paths"].items()
         for method, operation in methods.items()
     }
-    require(len(inventory) == 10 and sum(map(len, inventory.values())) == 37, "OpenAPI inventory changed")
+    require(len(inventory) == 10 and sum(map(len, inventory.values())) == 45, "OpenAPI inventory changed")
+    limited = {
+        ("/api/auth/register", "POST"),
+        ("/api/auth/login", "POST"),
+        ("/api/bookmarks", "POST"),
+        ("/api/bookmarks", "GET"),
+        ("/api/bookmarks/stats", "GET"),
+        ("/api/bookmarks/{bookmark_id}", "GET"),
+        ("/api/bookmarks/{bookmark_id}", "PATCH"),
+        ("/api/bookmarks/{bookmark_id}", "DELETE"),
+    }
+    require(all(429 in inventory[operation] for operation in limited), "rate-limit inventory missing")
+    require(all(429 not in statuses for operation, statuses in inventory.items() if operation not in limited), "rate-limit inventory escaped selected operations")
     require(inventory[("/health/live", "GET")] == {200}, "liveness statuses changed")
     require(inventory[("/health/ready", "GET")] == {200, 503}, "readiness statuses changed")
     require(api["paths"]["/health/live"]["get"].get("security") in (None, []), "liveness acquired authentication")

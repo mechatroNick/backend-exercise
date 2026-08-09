@@ -8,7 +8,7 @@ from typing import Annotated, Any, cast
 from fastapi import APIRouter, Depends, Path, Query, Response, status
 
 from app.api.errors import ErrorEnvelope
-from app.auth.dependencies import get_current_subject
+from app.auth.dependencies import get_rate_limited_subject
 from app.auth.schemas import CurrentSubject
 from app.bookmarks.dependencies import get_bookmark_service, get_bookmark_stats_service
 from app.bookmarks.schemas import (
@@ -69,6 +69,12 @@ _ERROR_EXAMPLES = {
             }
         },
     },
+    "rate_limited": {
+        "summary": "Local bookmark rate limit",
+        "value": {
+            "error": {"code": "rate_limited", "message": "Too many requests.", "details": None}
+        },
+    },
 }
 
 
@@ -79,12 +85,31 @@ def _error_response(example: str) -> dict[str, Any]:
     }
 
 
+def _rate_limit_response() -> dict[str, Any]:
+    response = _error_response("rate_limited")
+    response["headers"] = {
+        "Retry-After": {
+            "description": "Positive whole seconds until one request token is available.",
+            "required": True,
+            "schema": {"type": "integer", "minimum": 1},
+        },
+        "Cache-Control": {
+            "description": "Prevents storage of a rate-limit response.",
+            "required": True,
+            "schema": {"type": "string", "example": "no-store"},
+        },
+    }
+    return response
+
+
 _CREATE_RESPONSES: dict[int | str, dict[str, Any]] = {
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     422: _error_response("validation"),
     500: _error_response("internal"),
 }
 _LIST_RESPONSES: dict[int | str, dict[str, Any]] = {
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     422: _error_response("validation"),
     500: _error_response("internal"),
@@ -105,10 +130,12 @@ _STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
             },
         },
     },
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     500: _error_response("internal"),
 }
 _DETAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     404: _error_response("not_found"),
     422: _error_response("validation"),
@@ -116,6 +143,7 @@ _DETAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
 }
 _DELETE_RESPONSES: dict[int | str, dict[str, Any]] = {
     204: {"description": "Bookmark deleted successfully; the response has no body."},
+    429: _rate_limit_response(),
     401: _error_response("authentication"),
     404: _error_response("not_found"),
     422: _error_response("validation"),
@@ -134,7 +162,7 @@ router = APIRouter(prefix="/api/bookmarks", tags=["bookmarks"])
 )
 def create_bookmark(
     payload: BookmarkCreate,
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkPublic:
     """Create a bookmark for the authenticated subject only."""
@@ -148,7 +176,7 @@ def create_bookmark(
     summary="List the authenticated subject's bookmarks",
 )
 def list_bookmarks(
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     query: Annotated[BookmarkQuery, Query()],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkList:
@@ -164,7 +192,7 @@ def list_bookmarks(
 )
 def get_bookmark_stats(
     response: Response,
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     service: Annotated[CurrentStatsService, Depends(get_bookmark_stats_service)],
 ) -> BookmarkStats:
     """Return exact current aggregates with transport-only source metadata."""
@@ -186,7 +214,7 @@ def get_bookmark_stats(
 )
 def get_bookmark(
     bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkPublic:
     """Return an owned bookmark or the shared concealed not-found response."""
@@ -202,7 +230,7 @@ def get_bookmark(
 def patch_bookmark(
     bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
     payload: BookmarkPatch,
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> BookmarkPublic:
     """Apply a material partial update to an owned bookmark."""
@@ -218,7 +246,7 @@ def patch_bookmark(
 )
 def delete_bookmark(
     bookmark_id: Annotated[int, Path(gt=0, examples=[1])],
-    subject: Annotated[CurrentSubject, Depends(get_current_subject)],
+    subject: Annotated[CurrentSubject, Depends(get_rate_limited_subject)],
     service: Annotated[BookmarkService, Depends(get_bookmark_service)],
 ) -> Response:
     """Delete an owned bookmark and return an explicitly bodyless response."""

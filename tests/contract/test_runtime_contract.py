@@ -36,6 +36,20 @@ _INVENTORY = {
     ("/api/bookmarks/{bookmark_id}", "PATCH"): {200, 401, 404, 422, 500},
     ("/api/bookmarks/{bookmark_id}", "DELETE"): {204, 401, 404, 422, 500},
 }
+_RATE_LIMITED_OPERATIONS = {
+    ("/api/auth/register", "POST"),
+    ("/api/auth/login", "POST"),
+    ("/api/bookmarks", "POST"),
+    ("/api/bookmarks", "GET"),
+    ("/api/bookmarks/stats", "GET"),
+    ("/api/bookmarks/{bookmark_id}", "GET"),
+    ("/api/bookmarks/{bookmark_id}", "PATCH"),
+    ("/api/bookmarks/{bookmark_id}", "DELETE"),
+}
+_EXPECTED_OPENAPI_INVENTORY = {
+    operation: statuses | ({429} if operation in _RATE_LIMITED_OPERATIONS else set())
+    for operation, statuses in _INVENTORY.items()
+}
 
 
 @pytest.fixture
@@ -101,8 +115,8 @@ def test_documented_inventory_is_exactly_ten_operations_and_37_status_pairs(
         for path, methods in document["paths"].items()
         for method, operation in methods.items()
     }
-    assert observed == _INVENTORY
-    assert sum(len(statuses) for statuses in observed.values()) == 37
+    assert observed == _EXPECTED_OPENAPI_INVENTORY
+    assert sum(len(statuses) for statuses in _INVENTORY.values()) == 37
 
 
 @pytest.mark.mandatory

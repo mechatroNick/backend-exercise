@@ -181,8 +181,8 @@ def test_list_and_stats_auth_query_and_openapi_contracts(client: TestClient) -> 
     assert {"created_from", "created_to"}.isdisjoint(
         {item["name"] for item in list_operation["parameters"]}
     )
-    assert set(list_operation["responses"]) == {"200", "401", "422", "500"}
-    assert set(stats_operation["responses"]) == {"200", "401", "500"}
+    assert set(list_operation["responses"]) == {"200", "401", "422", "429", "500"}
+    assert set(stats_operation["responses"]) == {"200", "401", "429", "500"}
     stats_headers = stats_operation["responses"]["200"]["headers"]
     assert set(stats_headers) == {"X-Stats-Source", "X-Stats-Generated-At"}
     assert stats_headers["X-Stats-Source"]["required"] is True

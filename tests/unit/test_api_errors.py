@@ -11,12 +11,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.api.errors import _safe_location, request_validation_issues
+from app.api.errors import _safe_location, error_response, request_validation_issues
 from app.core.config import Settings
 from app.core.errors import (
     AuthenticationError,
     ConflictError,
     NotFoundError,
+    RateLimitError,
     ValidationApplicationError,
     ValidationIssue,
 )
@@ -98,6 +99,21 @@ def test_expected_errors_use_stable_envelopes(
     assert response.json() == _response({"code": code, "message": message, "details": None})
     for name, value in headers.items():
         assert response.headers[name] == value
+
+
+def test_rate_limit_error_has_exact_safe_headers_without_a_bearer_challenge() -> None:
+    response = error_response(RateLimitError(0))
+
+    assert response.status_code == 429
+    assert json.loads(response.body) == _response(
+        {"code": "rate_limited", "message": "Too many requests.", "details": None}
+    )
+    assert dict(response.headers) == {
+        "retry-after": "1",
+        "cache-control": "no-store",
+        "content-length": str(len(response.body)),
+        "content-type": "application/json",
+    }
 
 
 def test_application_validation_error_only_exposes_safe_structured_details(app: FastAPI) -> None:

@@ -23,6 +23,13 @@ _SETTINGS_ENV_NAMES = (
     "STATS_DIRTY_MAX_AGE_SECONDS",
     "STATS_DIRTY_MAX_COUNT",
     "APP_WORKER_COUNT",
+    "RATE_LIMIT_ENABLED",
+    "RATE_LIMIT_AUTH_REQUESTS",
+    "RATE_LIMIT_AUTH_WINDOW_SECONDS",
+    "RATE_LIMIT_BOOKMARK_REQUESTS",
+    "RATE_LIMIT_BOOKMARK_WINDOW_SECONDS",
+    "RATE_LIMIT_MAX_KEYS",
+    "RATE_LIMIT_IDLE_TTL_SECONDS",
     "SQLITE_BUSY_TIMEOUT_MILLISECONDS",
     "LOG_LEVEL",
 )
@@ -43,6 +50,13 @@ def test_defaults_are_safe_for_non_production() -> None:
     assert settings.top_tags_limit == 5
     assert settings.stats_refresh_enabled is True
     assert settings.app_worker_count == 1
+    assert settings.rate_limit_enabled is True
+    assert settings.rate_limit_auth_requests == 10
+    assert settings.rate_limit_auth_window_seconds == 60
+    assert settings.rate_limit_bookmark_requests == 120
+    assert settings.rate_limit_bookmark_window_seconds == 60
+    assert settings.rate_limit_max_keys == 10_000
+    assert settings.rate_limit_idle_ttl_seconds == 300
     assert settings.sqlite_busy_timeout_milliseconds == 5_000
     assert settings.log_level == "INFO"
 
@@ -53,6 +67,7 @@ def test_environment_aliases_load_without_double_app_prefix(
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     monkeypatch.setenv("TOP_TAGS_LIMIT", "9")
+    monkeypatch.setenv("RATE_LIMIT_AUTH_REQUESTS", "9")
     monkeypatch.setenv("LOG_LEVEL", "debug")
 
     settings = Settings()
@@ -60,6 +75,7 @@ def test_environment_aliases_load_without_double_app_prefix(
     assert settings.app_env == "test"
     assert settings.database_url == "sqlite:///:memory:"
     assert settings.top_tags_limit == 9
+    assert settings.rate_limit_auth_requests == 9
     assert settings.log_level == "DEBUG"
 
 
@@ -107,6 +123,18 @@ def test_database_url_must_be_local_sqlite(database_url: str, message: str) -> N
         ({"stats_dirty_max_count": 0}, "greater than or equal"),
         ({"stats_dirty_max_count": 1_000_001}, "less than or equal"),
         ({"app_worker_count": 0}, "greater than or equal"),
+        ({"rate_limit_auth_requests": 0}, "greater than or equal"),
+        ({"rate_limit_auth_requests": 10_001}, "less than or equal"),
+        ({"rate_limit_auth_window_seconds": 0}, "greater than or equal"),
+        ({"rate_limit_auth_window_seconds": 3_601}, "less than or equal"),
+        ({"rate_limit_bookmark_requests": 0}, "greater than or equal"),
+        ({"rate_limit_bookmark_requests": 10_001}, "less than or equal"),
+        ({"rate_limit_bookmark_window_seconds": 0}, "greater than or equal"),
+        ({"rate_limit_bookmark_window_seconds": 3_601}, "less than or equal"),
+        ({"rate_limit_max_keys": 0}, "greater than or equal"),
+        ({"rate_limit_max_keys": 100_001}, "less than or equal"),
+        ({"rate_limit_idle_ttl_seconds": 0}, "greater than or equal"),
+        ({"rate_limit_idle_ttl_seconds": 86_401}, "less than or equal"),
         ({"sqlite_busy_timeout_milliseconds": 0}, "greater than or equal"),
         ({"sqlite_busy_timeout_milliseconds": 60_001}, "less than or equal"),
         (
@@ -129,6 +157,11 @@ def test_individual_setting_ranges_are_enforced(kwargs: dict[str, object], messa
         ({"stats_full_reconciliation_seconds": 9}, "FULL_RECONCILIATION"),
         ({"stats_dirty_max_age_seconds": 9}, "DIRTY_MAX_AGE"),
         ({"app_worker_count": 2}, "APP_WORKER_COUNT"),
+        ({"rate_limit_idle_ttl_seconds": 59}, "RATE_LIMIT_IDLE_TTL_SECONDS"),
+        (
+            {"stats_refresh_enabled": False, "rate_limit_enabled": True, "app_worker_count": 2},
+            "APP_WORKER_COUNT",
+        ),
     ],
 )
 def test_cross_field_constraints_are_enforced(kwargs: dict[str, object], message: str) -> None:
@@ -137,7 +170,11 @@ def test_cross_field_constraints_are_enforced(kwargs: dict[str, object], message
 
 
 def test_multiple_workers_are_allowed_when_refresher_is_disabled() -> None:
-    settings = Settings(stats_refresh_enabled=False, app_worker_count=2)
+    settings = Settings(
+        stats_refresh_enabled=False,
+        rate_limit_enabled=False,
+        app_worker_count=2,
+    )
 
     assert settings.app_worker_count == 2
 
@@ -164,6 +201,15 @@ def test_production_accepts_a_strong_non_placeholder_secret() -> None:
     settings = Settings(app_env="production", jwt_secret="a-unique-production-secret-with-32-chars")
 
     assert settings.app_env == "production"
+
+
+def test_production_cannot_disable_the_local_rate_limit() -> None:
+    with pytest.raises(ValidationError, match="RATE_LIMIT_ENABLED"):
+        Settings(
+            app_env="production",
+            jwt_secret="a-unique-production-secret-with-32-chars",
+            rate_limit_enabled=False,
+        )
 
 
 def test_secret_representation_and_dump_are_redacted() -> None:
