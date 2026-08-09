@@ -728,6 +728,19 @@ verify_hygiene() {
     safe_message 'receipt: command=git diff --check + tracked-artifact/secret/lock/clean-status hygiene; exit=0'
 }
 
+wait_for_docker_removal() {
+    local container_name="$1"
+    local receipt_label="$2"
+    local attempt
+    for attempt in $(seq 1 100); do
+        if ! docker inspect "${container_name}" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 0.1
+    done
+    fail "Docker ${receipt_label} remained visible after bounded removal wait"
+}
+
 verify_docker() {
     if [[ "${skip_docker}" == 1 ]]; then
         safe_message 'DEVELOPMENT INCOMPLETE: Docker execution explicitly skipped by TRACK08_SKIP_DOCKER=1'
@@ -756,6 +769,9 @@ PY
         --env-file "${docker_env_file}" \
         "${docker_image}" migrate-only >"${workspace}/receipts/docker-migrate.log" 2>&1 || fail 'Docker migrate-only failed'
     docker rm "${docker_migrate_container}" >/dev/null || fail 'Docker migrate-only container removal failed'
+    wait_for_docker_removal "${docker_migrate_container}" 'migrate-only container'
+    ! docker inspect "${docker_migrate_container}" >/dev/null 2>&1 \
+        || fail 'Docker migrate-only container remained after removal visibility wait'
     docker_migrate_container=""
     docker_container="backend-sample-track08-${short_head}-$$"
     port="$(allocate_port)"
@@ -806,6 +822,7 @@ print("Docker JSON Lines schema and shutdown lifecycle audit passed")
 PY
     )
     docker rm "${docker_container}" >/dev/null || fail 'Docker container removal failed after SIGTERM'
+    wait_for_docker_removal "${docker_container}" 'runtime container'
     ! docker inspect "${docker_container}" >/dev/null 2>&1 || fail 'Docker container remained after SIGTERM'
     docker_container=""
     docker_env_file=""
