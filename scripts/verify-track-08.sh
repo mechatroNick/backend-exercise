@@ -52,23 +52,60 @@ signal_tree() {
     kill "-${signal}" "${parent}" 2>/dev/null || true
 }
 
+captured_processes=()
+
+capture_process_tree() {
+    local parent="$1"
+    local child
+    for child in $(descendants "${parent}"); do
+        captured_processes+=("${child}")
+        capture_process_tree "${child}"
+    done
+}
+
+captured_survivor_count() {
+    local process_id
+    local count=0
+    for process_id in "${captured_processes[@]}"; do
+        if kill -0 "${process_id}" 2>/dev/null; then
+            count=$((count + 1))
+        fi
+    done
+    printf '%s' "${count}"
+}
+
 stop_server() {
     local status=0
     local attempt
+    local survivor_count
+    local process_id
     [[ -n "${server_pid}" ]] || return 0
+    captured_processes=("${server_pid}")
+    capture_process_tree "${server_pid}"
     if kill -0 "${server_pid}" 2>/dev/null; then
-        signal_tree "${server_pid}" TERM
+        # Signal the Uvicorn supervisor/root first; it owns graceful child propagation.
+        kill -TERM "${server_pid}" 2>/dev/null || true
         for attempt in $(seq 1 100); do
-            kill -0 "${server_pid}" 2>/dev/null || break
+            survivor_count="$(captured_survivor_count)"
+            [[ "${survivor_count}" -eq 0 ]] && break
             sleep 0.1
         done
-        if kill -0 "${server_pid}" 2>/dev/null; then
-            signal_tree "${server_pid}" KILL
-            sleep 0.1
-            status=1
+        survivor_count="$(captured_survivor_count)"
+        if [[ "${survivor_count}" -ne 0 ]]; then
+            for process_id in "${captured_processes[@]}"; do
+                if kill -0 "${process_id}" 2>/dev/null; then
+                    signal_tree "${process_id}" KILL
+                fi
+            done
+            for attempt in $(seq 1 30); do
+                survivor_count="$(captured_survivor_count)"
+                [[ "${survivor_count}" -eq 0 ]] && break
+                sleep 0.1
+            done
         fi
     fi
-    if kill -0 "${server_pid}" 2>/dev/null; then
+    survivor_count="$(captured_survivor_count)"
+    if [[ "${survivor_count}" -ne 0 ]]; then
         status=1
     fi
     wait "${server_pid}" 2>/dev/null || true
@@ -77,7 +114,8 @@ stop_server() {
         return 1
     fi
     server_pid=""
-    safe_message 'receipt: selector=Uvicorn TERM and recursive child teardown; exit=0; no child process remained'
+    safe_message "receipt: selector=Uvicorn supervisor TERM, bounded captured-process wait, recursive KILL fallback; captured=${#captured_processes[@]}; exit=0; no captured process remained"
+    captured_processes=()
 }
 
 cleanup_docker() {
@@ -596,8 +634,31 @@ PY
     safe_message 'receipt: selector=real Uvicorn safe in-memory HTTP driver; exit=0; no tokens or protected response bodies persisted'
 }
 
-audit_runtime_logs() {
+safe_runtime_lifecycle_counts() {
     (cd "${clone_root}" && "${uv_command}" run python - "${workspace}/receipts/runtime.jsonl" <<'PY'
+import json
+import sys
+
+counts: dict[str, int] = {}
+invalid_json_lines = 0
+for line in open(sys.argv[1], encoding="utf-8"):
+    if not line.strip():
+        continue
+    try:
+        event = json.loads(line).get("event")
+    except json.JSONDecodeError:
+        invalid_json_lines += 1
+        continue
+    if isinstance(event, str):
+        counts[event] = counts.get(event, 0) + 1
+events = ",".join(f"{event}={counts[event]}" for event in sorted(counts)) or "NONE"
+print(f"events={events}; invalid_json_lines={invalid_json_lines}")
+PY
+    )
+}
+
+audit_runtime_logs() {
+    if ! (cd "${clone_root}" && "${uv_command}" run python - "${workspace}/receipts/runtime.jsonl" <<'PY'
 import datetime as dt
 import json
 import sys
@@ -635,7 +696,10 @@ if any(event in events for event in refresher_events):
         raise SystemExit("runtime refresher lifecycle evidence is incomplete")
 print("runtime JSON Lines schema, redaction, and shutdown lifecycle audit passed")
 PY
-    )
+    ) >"${workspace}/receipts/runtime-audit.log" 2>&1; then
+        safe_message "runtime lifecycle audit failure: $(safe_runtime_lifecycle_counts)"
+        fail 'runtime JSON Lines audit failed'
+    fi
     safe_message 'receipt: selector=runtime JSON Lines schema/redaction/shutdown lifecycle; exit=0; exact exception ownership selectors ran in Track 01, 05, and 06 receipts'
 }
 

@@ -35,6 +35,11 @@ def test_track08_harness_is_strict_clean_clone_orchestration() -> None:
         "TRACK08_SELF_TEST_CHILD",
         "cleanup self-test",
         "signal_tree",
+        "capture_process_tree",
+        "captured_processes",
+        "captured_survivor_count",
+        'kill -TERM "${server_pid}"',
+        "Uvicorn supervisor TERM, bounded captured-process wait, recursive KILL fallback",
         "no private workspace remained",
         "docs/WALKTHROUGH.md",
         "docs/AI-ASSISTED-WORK.md",
@@ -102,6 +107,7 @@ def test_track08_harness_invokes_exact_required_evidence_and_quality_gates() -> 
         assert required in source
     assert "assert_report_freshness" not in source
     assert "rg -E '[0-9]+ passed'" not in source
+    assert 'signal_tree "${server_pid}" TERM' not in source
     assert 'exercise_runtime "${runtime_port}"\n    stop_server\n    audit_runtime_logs' in source
 
 
@@ -150,6 +156,10 @@ def test_track08_harness_discriminates_live_filter_and_patch_contracts() -> None
         "future created-from filter was ignored",
         "PATCH response did not preserve the documented title/timestamp contract",
         "PATCH response did not advance updated_at",
+        "safe_runtime_lifecycle_counts",
+        "runtime lifecycle audit failure:",
+        "invalid_json_lines",
+        "runtime JSON Lines audit failed",
     ):
         assert required in source
     assert "nonce = secrets.token_urlsafe" not in source
