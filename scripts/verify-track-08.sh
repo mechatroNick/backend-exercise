@@ -350,12 +350,47 @@ configure_clean_clone() {
     safe_message 'toolchain: committed Python 3.12 pin, resolved interpreter, lock check, and locked sync verified'
 }
 
+assert_path_only_docs_migration() {
+    local repository="$1"
+    local report_commit="$2"
+    local plan_commit="$3"
+    local plan="$4"
+    local comparison_root="$5"
+    local python_bin="$6"
+    local historic_plan="${comparison_root}/historic-plan.md"
+    local migrated_plan="${comparison_root}/migrated-plan.md"
+    local committed_plan="${comparison_root}/committed-plan.md"
+    local historic_tree
+    local committed_tree
+    mkdir -p -- "${comparison_root}"
+    git -C "${repository}" merge-base --is-ancestor "${report_commit}" "${plan_commit}" \
+        || fail "upstream plan and report provenance are not ordered: ${plan}"
+    git -C "${repository}" show "${report_commit}:${plan}" > "${historic_plan}"
+    git -C "${repository}" show "${plan_commit}:${plan}" > "${committed_plan}"
+    rg -F -q -- '../../docs/' "${historic_plan}" \
+        || fail "newer upstream plan lacks the authorized historical docs path: ${plan}"
+    "${python_bin}" - "${historic_plan}" "${migrated_plan}" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]).read_bytes()
+Path(sys.argv[2]).write_bytes(source.replace(b"../../docs/", b"../../.docs/"))
+PY
+    historic_tree="$(git -C "${repository}" ls-tree "${report_commit}" -- "${plan}" | awk '{print $1 " " $2}')"
+    committed_tree="$(git -C "${repository}" ls-tree "${plan_commit}" -- "${plan}" | awk '{print $1 " " $2}')"
+    [[ -n "${historic_tree}" && "${historic_tree}" == "${committed_tree}" ]] \
+        || fail "upstream plan mode or object type changed after its report: ${plan}"
+    cmp -s -- "${migrated_plan}" "${committed_plan}" \
+        || fail "upstream plan changed after its report beyond the authorized docs-path migration: ${plan}"
+}
+
 assert_upstream_provenance() {
     local track="$1"
     local report="$2"
     local plan="$3"
     local report_commit
     local plan_commit
+    local provenance_mode='plan-ancestor-of-report'
     local candidate
     local valid_cited_commit_count=0
     [[ -f "${clone_root}/${report}" ]] || fail "missing upstream closure report ${report}"
@@ -368,8 +403,16 @@ assert_upstream_provenance() {
         || fail "upstream report provenance is not an ancestor of current HEAD: ${report}"
     plan_commit="$(git -C "${clone_root}" log -1 --format=%H -- "${plan}")"
     [[ -n "${plan_commit}" ]] || fail "upstream plan has no committed provenance: ${plan}"
-    git -C "${clone_root}" merge-base --is-ancestor "${plan_commit}" "${report_commit}" \
-        || fail "upstream plan is newer than its report provenance: ${plan}"
+    if ! git -C "${clone_root}" merge-base --is-ancestor "${plan_commit}" "${report_commit}"; then
+        assert_path_only_docs_migration \
+            "${clone_root}" \
+            "${report_commit}" \
+            "${plan_commit}" \
+            "${plan}" \
+            "${workspace}/provenance-${track}" \
+            "${clone_root}/.venv/bin/python"
+        provenance_mode='path-only-docs-migration-after-report'
+    fi
     for candidate in $(rg -o '`[0-9a-fA-F]{7,40}`' "${clone_root}/${report}" | tr -d '`' || true); do
         if git -C "${clone_root}" cat-file -e "${candidate}^{commit}" 2>/dev/null; then
             git -C "${clone_root}" merge-base --is-ancestor "${candidate}" "${report_commit}" \
@@ -379,7 +422,7 @@ assert_upstream_provenance() {
     done
     [[ "${valid_cited_commit_count}" -ge 1 ]] \
         || fail "upstream report has no valid cited commit provenance: ${report}"
-    safe_message "Track ${track} provenance: report=${report}; plan=${plan}; report_commit=${report_commit}; plan_commit=${plan_commit}; valid_cited_commits=${valid_cited_commit_count}; Passed/Complete/ancestor chain and current exact harness compatibility exit=0"
+    safe_message "Track ${track} provenance: report=${report}; plan=${plan}; report_commit=${report_commit}; plan_commit=${plan_commit}; valid_cited_commits=${valid_cited_commit_count}; mode=${provenance_mode}; Passed/Complete/provenance chain and current exact harness compatibility exit=0"
 }
 
 verify_upstream_evidence() {

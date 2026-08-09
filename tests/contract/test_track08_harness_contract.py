@@ -1,5 +1,7 @@
 """Static contracts for the final clean-clone Track 08 evidence harness."""
 
+import subprocess
+import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
@@ -21,7 +23,9 @@ def test_docs_migration_contract_preserves_fastapi_docs_route() -> None:
         ".docs/ASSESSMENT.md",
     ):
         assert required in docs_verifier
-    assert "docs/" not in harness.replace(".docs/", "")
+    assert harness.count("../../docs/") == 2
+    permitted_historical_paths_removed = harness.replace("../../docs/", "")
+    assert "docs/" not in permitted_historical_paths_removed.replace(".docs/", "")
     assert 'for path in ("/health/live", "/health/ready", "/docs"):' in harness
 
 
@@ -121,16 +125,133 @@ def test_track08_harness_invokes_exact_required_evidence_and_quality_gates() -> 
         "merge-base --is-ancestor",
         "cat-file -e",
         "valid_cited_commit_count",
-        "Passed/Complete/ancestor chain and current exact harness compatibility exit=0",
+        "Passed/Complete/provenance chain and current exact harness compatibility exit=0",
         "git diff --check",
         "ls-files",
         "grep -I -q -E",
     ):
         assert required in source
     assert "assert_report_freshness" not in source
+
+
+def test_track08_provenance_allows_only_the_authorized_docs_path_migration() -> None:
+    source = _harness()
+
+    assert "plan-ancestor-of-report" in source
+    assert "path-only-docs-migration-after-report" in source
+    assert 'source.replace(b"../../docs/", b"../../.docs/")' in source
+    assert 'cmp -s -- "${migrated_plan}" "${committed_plan}"' in source
+    assert '"${historic_tree}" == "${committed_tree}"' in source
+    assert "changed after its report beyond the authorized docs-path migration" in source
+    assert "mode or object type changed after its report" in source
     assert "rg -E '[0-9]+ passed'" not in source
     assert 'signal_tree "${server_pid}" TERM' not in source
     assert 'exercise_runtime "${runtime_port}"\n    stop_server\n    audit_runtime_logs' in source
+
+
+def test_track08_path_only_provenance_guard_is_byte_and_mode_exact(tmp_path: Path) -> None:
+    source = _harness()
+    function_start = source.index("assert_path_only_docs_migration() {")
+    function_end = source.index("\n}\n\nassert_upstream_provenance()", function_start) + 2
+    function_source = source[function_start:function_end]
+    shell = (
+        "set -Eeuo pipefail\n"
+        "fail() { printf 'FAIL: %s\\n' \"$*\" >&2; return 1; }\n"
+        f"{function_source}\n"
+        'assert_path_only_docs_migration "$1" "$2" "$3" PLAN.md "$4" "$5"\n'
+    )
+
+    def git(repository: Path, *arguments: str) -> str:
+        result = subprocess.run(
+            ["git", "-C", str(repository), *arguments],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+
+    def commit(repository: Path, message: str) -> str:
+        git(repository, "add", "PLAN.md")
+        git(repository, "commit", "-m", message)
+        return git(repository, "rev-parse", "HEAD")
+
+    def invoke(
+        repository: Path, report: str, plan: str, label: str
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [
+                "bash",
+                "-c",
+                shell,
+                "track08-provenance-test",
+                str(repository),
+                report,
+                plan,
+                str(tmp_path / label),
+                sys.executable,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    git(repository, "init", "-q")
+    git(repository, "config", "user.name", "Track 08 Test")
+    git(repository, "config", "user.email", "track08@example.invalid")
+    plan_path = repository / "PLAN.md"
+    plan_path.write_bytes(b"Guide: ../../docs/README.md\n")
+    report_commit = commit(repository, "historical plan")
+
+    plan_path.write_bytes(b"Guide: ../../.docs/README.md\n")
+    exact_commit = commit(repository, "exact path migration")
+    assert invoke(repository, report_commit, exact_commit, "exact").returncode == 0
+
+    plan_path.write_bytes(b"Guide: ../../.docs/README.md\nextra\n")
+    content_commit = commit(repository, "extra content")
+    content_result = invoke(repository, report_commit, content_commit, "content")
+    assert content_result.returncode != 0
+    assert "beyond the authorized docs-path migration" in content_result.stderr
+
+    plan_path.write_bytes(b"Guide: ../../.docs/README.md")
+    newline_commit = commit(repository, "remove terminal newline")
+    newline_result = invoke(repository, report_commit, newline_commit, "newline")
+    assert newline_result.returncode != 0
+    assert "beyond the authorized docs-path migration" in newline_result.stderr
+
+    plan_path.write_bytes(b"Guide: ../../.docs/README.md\n")
+    plan_path.chmod(0o755)
+    mode_commit = commit(repository, "change file mode")
+    mode_result = invoke(repository, report_commit, mode_commit, "mode")
+    assert mode_result.returncode != 0
+    assert "mode or object type changed after its report" in mode_result.stderr
+
+    missing_repository = tmp_path / "missing"
+    missing_repository.mkdir()
+    git(missing_repository, "init", "-q")
+    git(missing_repository, "config", "user.name", "Track 08 Test")
+    git(missing_repository, "config", "user.email", "track08@example.invalid")
+    missing_plan = missing_repository / "PLAN.md"
+    missing_plan.write_bytes(b"Guide: ../../.docs/README.md\n")
+    missing_report = commit(missing_repository, "already migrated")
+    missing_plan.write_bytes(b"Guide: ../../.docs/README.md\nchanged\n")
+    missing_current = commit(missing_repository, "later change")
+    missing_result = invoke(
+        missing_repository, missing_report, missing_current, "missing-historical"
+    )
+    assert missing_result.returncode != 0
+    assert "lacks the authorized historical docs path" in missing_result.stderr
+
+    git(repository, "checkout", "-q", "-b", "report-branch", report_commit)
+    plan_path.write_bytes(b"Guide: ../../docs/README.md\nreport branch\n")
+    diverged_report = commit(repository, "report branch")
+    git(repository, "checkout", "-q", "-b", "plan-branch", report_commit)
+    plan_path.write_bytes(b"Guide: ../../.docs/README.md\n")
+    diverged_plan = commit(repository, "plan branch")
+    diverged_result = invoke(repository, diverged_report, diverged_plan, "diverged")
+    assert diverged_result.returncode != 0
+    assert "provenance are not ordered" in diverged_result.stderr
 
 
 def test_track08_harness_requires_real_docker_except_for_labelled_incomplete_development_seam() -> (
