@@ -290,13 +290,13 @@ with httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10) as client:
             markers = connection.execute("SELECT count(*) FROM bookmark_stats_window_dirty").fetchone()[0]
         if len(revisions) == 2 and revisions[-1][0] == 2 and revisions[-1][1] is not None and pending == 0 and markers == 0: break
         time.sleep(.05)
-require(len(revisions) == 2 and pending == 0 and markers == 0, "correction revision or dual completion failed")
-stats = None
-for _ in range(200):
-    stats = client.get("/api/bookmarks/stats", headers=headers)
-    if stats.status_code == 200 and stats.json().get("total_bookmarks") == 1: break
-    time.sleep(.05)
-require(stats is not None and stats.status_code == 200 and stats.json().get("total_bookmarks") == 1 and stats.headers.get("x-stats-source") in {"live", "snapshot"}, "current stats total changed by correction")
+    require(len(revisions) == 2 and pending == 0 and markers == 0, "correction revision or dual completion failed")
+    stats = None
+    for _ in range(200):
+        stats = client.get("/api/bookmarks/stats", headers=headers)
+        if stats.status_code == 200 and stats.json().get("total_bookmarks") == 1: break
+        time.sleep(.05)
+    require(stats is not None and stats.status_code == 200 and stats.json().get("total_bookmarks") == 1 and stats.headers.get("x-stats-source") in {"live", "snapshot"}, "current stats total changed by correction")
 with sqlite3.connect(database) as connection:
     checkpoint = connection.execute("SELECT status FROM bookmark_stats_projection_state").fetchone()
     count = connection.execute("SELECT count(*) FROM bookmark_stats_window_point").fetchone()[0]

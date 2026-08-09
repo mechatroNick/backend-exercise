@@ -139,3 +139,14 @@ def test_track07_harness_embedded_python_is_syntactically_valid() -> None:
         parsed_blocks += 1
         index = end + 1
     assert parsed_blocks == 11
+
+
+def test_correction_postcondition_uses_the_open_http_client() -> None:
+    source = _source()
+    correction = source.split(" correction <<'PY'", maxsplit=1)[1].split("\nPY", maxsplit=1)[0]
+    with_line = correction.index("with httpx.Client")
+    stats_line = correction.index('stats = client.get("/api/bookmarks/stats"', with_line)
+    final_database_line = correction.rindex("with sqlite3.connect")
+    assert stats_line < final_database_line
+    assert "\n    stats = None" in correction
+    assert '\n        stats = client.get("/api/bookmarks/stats"' in correction
