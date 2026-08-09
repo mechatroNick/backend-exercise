@@ -47,6 +47,7 @@ require_file .tracks/ADR/ADR-005-windowed-statistics-data-points.md
 require_file .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md
 require_file .tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md
 require_file .tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md
+require_file .tracks/ADR/ADR-009-track-07-weekly-projection-revival.md
 require_file .tracks/07-weekly-projections/SPEC.md
 require_file .tracks/07-weekly-projections/PLAN.md
 require_file .tracks/07-weekly-projections/HISTORY.md
@@ -78,7 +79,7 @@ unique_requirement_id_count="$(sed -n '/^## Requirement matrix$/,/^## Accepted d
 [[ "${unique_requirement_id_count}" -eq 43 ]] || fail 'requirement IDs are not unique'
 
 accepted_adr_count="$(rg -l -- '- Status: Accepted' .tracks/ADR/*.md | wc -l | tr -d ' ')"
-[[ "${accepted_adr_count}" -eq 8 ]] || fail "expected 8 accepted ADRs; found ${accepted_adr_count}"
+[[ "${accepted_adr_count}" -eq 9 ]] || fail "expected 9 accepted ADRs; found ${accepted_adr_count}"
 
 rg -q 'ADR-006-engineering-verification-and-closure-evidence\.md' .docs/README.md \
     || fail 'docs index does not link ADR-006'
@@ -92,6 +93,10 @@ rg -q 'ADR-008-pydantic-internal-models-and-lifecycle-events\.md' .docs/README.m
     || fail 'docs index does not link ADR-008'
 rg -q 'ADR-008-pydantic-internal-models-and-lifecycle-events\.md' .tracks/README.md \
     || fail 'track index does not link ADR-008'
+rg -q 'ADR-009-track-07-weekly-projection-revival\.md' .docs/README.md \
+    || fail 'docs index does not link ADR-009'
+rg -q 'ADR-009-track-07-weekly-projection-revival\.md' .tracks/README.md \
+    || fail 'track index does not link ADR-009'
 
 python3 - <<'PY'
 from pathlib import Path
@@ -154,22 +159,31 @@ PY
 track_dir_count="$(find .tracks -mindepth 1 -maxdepth 1 -type d -name '[0-9][0-9]-*' -print | wc -l | tr -d ' ')"
 [[ "${track_dir_count}" -eq 10 ]] || fail "expected 10 track directories; found ${track_dir_count}"
 
-rg -q 'Status: \*\*Skipped \(owner decision\)\*\*' \
-    .tracks/07-weekly-projections/SPEC.md \
-    || fail 'Track 07 specification is not explicitly skipped'
-rg -q 'Status: \*\*Skipped \(owner decision\)\*\*' \
-    .tracks/07-weekly-projections/PLAN.md \
-    || fail 'Track 07 plan is not explicitly skipped'
-[[ ! -e .tracks/07-weekly-projections/TEST-REPORT.md ]] \
-    || fail 'Track 07 must not have an implementation TEST-REPORT.md'
-[[ ! -e scripts/verify-track-07.sh ]] \
-    || fail 'Track 07 must not have an executable verification harness'
-rg -q 'Track 07 implementation is owner-skipped' \
-    .tracks/00-contract-baseline/SPEC.md \
-    || fail 'Track 00 baseline does not record the Track 07 skip'
-if rg -q 'verify-track-07\.sh|T07-09' .tracks/08-final-handoff/SPEC.md .tracks/08-final-handoff/PLAN.md; then
-    fail 'Track 08 still depends on Track 07 executable closure evidence'
-fi
+track07_spec_status="$(sed -n 's/^- Status: \*\*\(.*\)\*\*$/\1/p' .tracks/07-weekly-projections/SPEC.md)"
+track07_plan_status="$(sed -n 's/^- Status: \*\*\(.*\)\*\*$/\1/p' .tracks/07-weekly-projections/PLAN.md)"
+[[ "${track07_spec_status}" == "${track07_plan_status}" ]] \
+    || fail 'Track 07 specification and plan statuses disagree'
+case "${track07_spec_status}" in
+    "In progress")
+        [[ ! -e .tracks/07-weekly-projections/TEST-REPORT.md ]] \
+            || fail 'Track 07 In progress must not claim closure with TEST-REPORT.md'
+        [[ ! -e scripts/verify-track-07.sh || -x scripts/verify-track-07.sh ]] \
+            || fail 'an in-progress Track 07 harness must be executable'
+        ;;
+    "Complete")
+        require_file .tracks/07-weekly-projections/TEST-REPORT.md
+        require_file scripts/verify-track-07.sh
+        ;;
+    *)
+        fail "unexpected Track 07 status: ${track07_spec_status}"
+        ;;
+esac
+rg -q 'ADR-009' .tracks/07-weekly-projections/SPEC.md \
+    || fail 'Track 07 specification does not govern the revival through ADR-009'
+rg -q 'STATS_PROJECTION_ENABLED' .tracks/07-weekly-projections/SPEC.md \
+    || fail 'Track 07 specification does not record projection disable semantics'
+rg -q 'mismatch fails projection readiness' .tracks/ADR/ADR-009-track-07-weekly-projection-revival.md \
+    || fail 'ADR-009 does not record calculation-version mismatch readiness semantics'
 for required_bonus in 'seed data' 'Docker' 'rate limiting' 'cursor pagination'; do
     rg -qi "${required_bonus}" .tracks/08-final-handoff/SPEC.md \
         || fail "Track 08 specification is missing required bonus: ${required_bonus}"
@@ -227,5 +241,5 @@ if bad:
 PY
 
 git diff --check
-verification_report_summary '43 requirement IDs, 8 accepted ADRs, and 10 tracks verified'
-printf 'PASS: documentation-only verification (43 requirement IDs, 8 accepted ADRs, 10 tracks).\n'
+verification_report_summary '43 requirement IDs, 9 accepted ADRs, and 10 tracks verified'
+printf 'PASS: documentation-only verification (43 requirement IDs, 9 accepted ADRs, 10 tracks).\n'

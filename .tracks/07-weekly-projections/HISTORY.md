@@ -1,5 +1,20 @@
 # Track 07 history
 
+## 2026-08-09 — Revival authorized; implementation dependency review started
+
+- Repository owner revived Track 07 from the active **Skipped (owner decision)**
+  disposition to **In progress**. This supersedes only that active disposition;
+  it does not erase the 2026-08-06 skip record or claim implementation evidence.
+- Accepted ADR-009 selects ADR-005's event-time weekly design for implementation while
+  preserving ADR-004's one-worker/current-statistics invariants. Track 06 closure
+  evidence was reviewed against its delivered migration, dirty-marker repository,
+  mutation publisher, refresher, current raw-SQL/snapshot path, health, logs, and
+  deterministic seams. T07-01 is complete; T07-02 is the first product-code boundary.
+- No Track 07 application code, migration, tests, `TEST-REPORT.md`, or
+  `scripts/verify-track-07.sh` was created or run by this governance checkpoint.
+- Track 08 and Track 09 active records still describe the pre-revival state. Their
+  downstream integration update is explicitly pending and outside this change.
+
 ## 2026-08-09 — Dedicated archived-skip branch verified
 
 - Created `codex/track-07-archived-skip` from the verified Track 06-integrated

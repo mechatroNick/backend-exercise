@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-08-05
 - Decision owners: Repository owner
-- Affected tracks: 01, 03, 04, 06, 08; Track 07 skip record
+- Affected tracks: 01, 03, 04, 06, 07; downstream integration required for 08 and 09
 - Affected SPEC versions: Baseline
 - Supersedes: Earlier discussion of request-only statistics computation
 - Superseded by: None
@@ -18,8 +18,8 @@ generate statistics data points. The service must start with the API without Doc
 produce attributable logs, and contribute meaningful readiness state.
 
 The background execution, queueing, lifecycle, and current-snapshot decisions are
-independent from historical statistics data points. Track 07 is skipped, so ADR-005
-is retained only as an archived design and no historical consumer is installed.
+independent from historical statistics data points. ADR-009 revives Track 07 to
+implement ADR-005 without changing these current-statistics invariants.
 
 ## Decision
 
@@ -162,8 +162,9 @@ is retained only as an archived design and no historical consumer is installed.
 
 ### Follow-up
 
-- Keep Track 06 current-only and generation-safe. Track 07 historical points are
-  skipped; do not add their tables, backfill, consumer, or correction revisions.
+- Keep Track 06 current-only and generation-safe. Track 07 may add its private
+  historical tables, baseline, consumer, and corrections only under ADR-005 and
+  ADR-009; its failures must not affect current-statistics correctness or liveness.
 - Create deterministic lifecycle, queue, concurrency, fallback, health, logging, and
   shutdown tests without real ten-second sleeps.
 - Document a future durable-outbox and external-worker evolution without

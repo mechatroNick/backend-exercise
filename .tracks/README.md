@@ -42,10 +42,11 @@ flowchart LR
 | [ADR-002](ADR/ADR-002-api-contract-and-timestamps.md) | Accepted | REST contract, filters, PATCH semantics, tag normalization, and timestamp behavior |
 | [ADR-003](ADR/ADR-003-identity-and-token-security.md) | Accepted | Identity normalization, password hashing, and access-only JWTs |
 | [ADR-004](ADR/ADR-004-event-driven-statistics-service.md) | Accepted | Queue-driven periodic statistics service, snapshots, health, bootstrap, and logs |
-| [ADR-005](ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design; implementation skipped | Archived developing-window and append-only correction design if Track 07 is ever revived |
+| [ADR-005](ADR/ADR-005-windowed-statistics-data-points.md) | Accepted | Selected weekly developing-window and append-only correction design |
 | [ADR-006](ADR/ADR-006-engineering-verification-and-closure-evidence.md) | Accepted | Binding engineering verification, evidence, and closure process |
 | [ADR-007](ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) | Accepted | Local one-worker rate limiting and authenticated keyset cursors |
 | [ADR-008](ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md) | Accepted | Strict Pydantic internal models and typed application lifecycle events |
+| [ADR-009](ADR/ADR-009-track-07-weekly-projection-revival.md) | Accepted | Revives Track 07 implementation while preserving Track 06 invariants |
 
 ## Planned delivery tracks
 
@@ -58,9 +59,9 @@ flowchart LR
 | 04 | Search, date filters, pagination, and raw-SQL statistics | 03 | Complete |
 | 05 | Mandatory OpenAPI, integration tests, and quality gate | 02-04 | Complete |
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
-| 07 | Weekly developing points and append-only correction revisions | None | **Skipped (owner decision)** |
-| 08 | Final hardening, documentation, assessment handoff, and all bonuses | 01, 02, 03, 04, 05, 06; consumes 07 skip record | Complete |
-| 09 | Final cleanup, documentation migration, and standalone test reports | 08 | Complete |
+| 07 | Weekly developing points and append-only correction revisions | 06 closure evidence | **In progress** |
+| 08 | Final hardening, documentation, assessment handoff, and all bonuses | Historical record; downstream re-open/update pending | Complete (pre-revival record) |
+| 09 | Final cleanup, documentation migration, and standalone test reports | Historical record; downstream re-open/update pending | Complete (pre-revival record) |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -69,11 +70,11 @@ implementation-ready only when its stated upstream implementation and closure ga
 are satisfied. Decisions that change observable behavior require an ADR update before
 implementation.
 
-Current scope decision: Track 07 is skipped and produces no implementation, harness,
-or closure report. Track 08 completed all four selected bonuses—deterministic seed
-data, Docker setup, rate limiting, and cursor pagination—and its clean-source final
-harness/report. External push, archive, sharing, deployment, and submission remain
-owner-only actions outside repository completion.
+Current scope decision: Track 07 is in progress under ADR-009. No Track 07
+implementation, harness, or closure report exists at this checkpoint. Track 08 and
+Track 09 retain pre-revival completion records and must be reopened/updated in a later
+downstream integration checkpoint. External push, archive, sharing, deployment, and
+submission remain owner-only actions outside repository completion.
 
 Track completion uses the shared
 [engineering verification guideline](../.docs/ENGINEERING-VERIFICATION-GUIDELINE.md):
@@ -102,8 +103,8 @@ deterministic tests and real-process harness evidence.
 - [Track 06 specification](06-event-driven-stats/SPEC.md)
 - [Track 06 execution plan](06-event-driven-stats/PLAN.md)
 - [Track 06 history](06-event-driven-stats/HISTORY.md)
-- [Track 07 skipped-scope specification](07-weekly-projections/SPEC.md)
-- [Track 07 skipped-work plan](07-weekly-projections/PLAN.md)
+- [Track 07 weekly-projection specification](07-weekly-projections/SPEC.md)
+- [Track 07 weekly-projection plan](07-weekly-projections/PLAN.md)
 - [Track 07 decision history](07-weekly-projections/HISTORY.md)
 - [Track 08 specification](08-final-handoff/SPEC.md)
 - [Track 08 execution plan](08-final-handoff/PLAN.md)
