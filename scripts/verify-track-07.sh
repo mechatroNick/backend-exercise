@@ -200,7 +200,7 @@ port, state_path = sys.argv[1:]
 nonce = secrets.token_hex(10)
 password = f"Track07-{secrets.token_urlsafe(32)}"
 with httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10) as client:
-    registration = client.post("/api/auth/register", json={"username": f"t07-{nonce}", "email": f"t07-{nonce}@example.test", "password": password})
+    registration = client.post("/api/auth/register", json={"username": f"t07-{nonce}", "email": f"t07-{nonce}@example.com", "password": password})
     if registration.status_code != 201: raise SystemExit("bootstrap registration failed")
     token = registration.json()["token"]
     created = client.post("/api/bookmarks", headers={"Authorization": f"Bearer {token}"}, json={"url": f"https://example.invalid/{nonce}", "title": f"private-{nonce}", "tags": [f"private-{nonce}"]})
@@ -335,7 +335,7 @@ import sqlite3, sys
 import httpx
 port, database = sys.argv[1:]
 with httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10) as client:
-    registered=client.post("/api/auth/register", json={"username":"disabled-t07", "email":"disabled-t07@example.test", "password":"Track07-disabled-password"})
+    registered=client.post("/api/auth/register", json={"username":"disabled-t07", "email":"disabled-t07@example.com", "password":"Track07-disabled-password"})
     if registered.status_code != 201: raise SystemExit("disabled registration failed")
     token=registered.json()["token"]; headers={"Authorization": f"Bearer {token}"}
     mutation=client.post("/api/bookmarks", headers=headers, json={"url":"https://example.invalid/disabled", "title":"private-disabled", "tags":["private-disabled"]})
@@ -363,7 +363,7 @@ import sqlite3, sys, time
 import httpx
 port, database = sys.argv[1:]
 with httpx.Client(base_url=f"http://127.0.0.1:{port}", timeout=10) as client:
-    registered=client.post("/api/auth/register", json={"username":"mismatch-t07", "email":"mismatch-t07@example.test", "password":"Track07-mismatch-password"})
+    registered=client.post("/api/auth/register", json={"username":"mismatch-t07", "email":"mismatch-t07@example.com", "password":"Track07-mismatch-password"})
     if registered.status_code != 201: raise SystemExit("mismatch registration failed")
     headers={"Authorization": f"Bearer {registered.json()['token']}"}
     mutation=client.post("/api/bookmarks", headers=headers, json={"url":"https://example.invalid/mismatch", "title":"private-mismatch", "tags":["private-mismatch"]})
@@ -388,8 +388,9 @@ import json, sys
 state_path, sensitive_path, *paths = sys.argv[1:]
 state=json.load(open(state_path, encoding="utf-8"))
 nonce=state["nonce"]
-values={state["token"], state["password"], nonce, f"private-{nonce}", f"https://example.invalid/{nonce}", *paths,
+values={state["token"], state["password"], nonce, f"t07-{nonce}", f"t07-{nonce}@example.com", f"private-{nonce}", f"https://example.invalid/{nonce}", *paths,
         "Track07-disabled-password", "Track07-mismatch-password", "private-current", "private-disabled", "private-mismatch",
+        "disabled-t07", "disabled-t07@example.com", "mismatch-t07", "mismatch-t07@example.com",
         "https://example.invalid/current", "https://example.invalid/disabled", "https://example.invalid/mismatch"}
 with open(sensitive_path, "w", encoding="utf-8") as output:
     output.write("\n".join(sorted(values)) + "\n")
