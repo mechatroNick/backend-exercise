@@ -3,7 +3,7 @@
 - Specification: [SPEC.md](SPEC.md), version 2.0
 - Status: **In progress**
 - Governing ADRs: ADR-004, ADR-005, ADR-006, ADR-009
-- Active item: T07-02 — schema and durable completion protocol
+- Active item: T07-03 — canonical weekly calculation and projection repository
 
 ## Dependency gate
 
@@ -16,7 +16,7 @@ rewriting Track 06 or treating this plan as evidence.
 | ID | Work item | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- |
 | T07-01 | Review delivered Track 06 seams and record implementation compatibility. | Track 06 closure evidence | Complete | Reviewed the delivered migration, dirty repository, mutation publisher, refresher, current raw-SQL/snapshot path, health, logs, deterministic seams, and Track 06 `TEST-REPORT.md`; ADR-009 records the compatible cutover. |
-| T07-02 | Add Alembic working/point rows, singleton baseline checkpoint, and dual-completion dirty columns. | T07-01 | Pending | Upgrade/downgrade/re-upgrade, constraints, indexes, FK/cascade, and zero/positive generation proof. |
+| T07-02 | Add Alembic working/point rows, singleton baseline checkpoint, and dual-completion dirty columns. | T07-01 | Complete | Migration `0003_weekly_stats_projections`; exact DDL/FK/index/cascade and populated downgrade/re-upgrade tests; guarded acknowledgement orders/reset/rollback tests; 754-test full suite and 100% branch coverage. |
 | T07-03 | Implement Monday UTC calculator, scoped canonical reader, versioned compact JSON bytes, SHA-256 hash, and effective-revision selection. | T07-01, T07-02 | Pending | Boundaries, ordering, mismatch-readiness/no-auto-rewrite, and no-route tests. |
 | T07-04 | Implement bounded restartable surviving-data user-page backfill and checkpoint status. | T07-02, T07-03 | Pending | Resume/crash, no-empty-week, no pre-install audit claim, `source_generation=0` proof. |
 | T07-05 | Implement developing replacement, overdue detection, finalization, and next-window creation. | T07-03, T07-04 | Pending | Atomic/idempotent boundary; evidenced-only multi-week clock-jump proof. |

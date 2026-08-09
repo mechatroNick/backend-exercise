@@ -13,7 +13,11 @@ from uuid import UUID
 
 from sqlmodel import Session
 
-from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository, DirtyMarker
+from app.bookmarks.stats.dirty import (
+    BookmarkStatsDirtyRepository,
+    DirtyAcknowledgementStatus,
+    DirtyMarker,
+)
 from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.raw_sql import BookmarkStatsReader
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
@@ -394,7 +398,10 @@ class StatsRefresher:
 
         repository = BookmarkStatsDirtyRepository(session)
         for marker in markers:
-            if not repository.complete(marker.user_id, marker.window_start, marker.generation):
+            acknowledgement = repository.acknowledge_current(
+                marker.user_id, marker.window_start, marker.generation
+            )
+            if acknowledgement.status is DirtyAcknowledgementStatus.STALE:
                 self._rollback_safely(session)
                 return False
 

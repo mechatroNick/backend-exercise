@@ -143,9 +143,13 @@ def test_full_reconciliation_publishes_zero_baseline_and_positive_marker_generat
     assert owner.stats.total_bookmarks == 1
     assert empty is not None and empty.source_generation == 0
     assert empty.stats.total_bookmarks == 0
-    assert not publisher.state().reconciliation_required
+    assert publisher.state().reconciliation_required
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            2,
+            0,
+        )
 
 
 def test_lost_and_duplicate_hints_coalesce_behind_durable_marker(
@@ -183,7 +187,11 @@ def test_lost_and_duplicate_hints_coalesce_behind_durable_marker(
     compiled_totals = str(TOTALS_SQL.compile(dialect=migrated_engine.dialect)).strip()
     assert statements.count(compiled_totals) == 1
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            1,
+            0,
+        )
 
 
 def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
@@ -197,15 +205,15 @@ def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
         session.commit()
 
     refresher, publisher, store = _runtime(migrated_engine)
-    original_complete = BookmarkStatsDirtyRepository.complete
+    original_acknowledge_current = BookmarkStatsDirtyRepository.acknowledge_current
     incremented = False
 
-    def increment_then_complete(
+    def increment_then_acknowledge_current(
         repository: BookmarkStatsDirtyRepository,
         user_id: int,
         window_start: datetime,
         generation: int,
-    ) -> bool:
+    ) -> Any:
         nonlocal incremented
         if not incremented:
             incremented = True
@@ -218,9 +226,13 @@ def test_concurrent_generation_increment_defeats_cleanup_and_snapshot_cas(
                 )
                 writer.commit()
             assert publisher.publish(_event()).value == "enqueued"
-        return original_complete(repository, user_id, window_start, generation)
+        return original_acknowledge_current(repository, user_id, window_start, generation)
 
-    monkeypatch.setattr(BookmarkStatsDirtyRepository, "complete", increment_then_complete)
+    monkeypatch.setattr(
+        BookmarkStatsDirtyRepository,
+        "acknowledge_current",
+        increment_then_acknowledge_current,
+    )
     assert not refresher.run_cycle()
     assert store.get(1) is None
     with Session(migrated_engine) as verification:
@@ -253,7 +265,11 @@ def test_compute_failure_keeps_marker_and_retry_recovers(
     assert refresher.run_cycle()
     assert store.get(1) is not None
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 0
+        marker = BookmarkStatsDirtyRepository(verification).observe()[0]
+        assert (marker.current_completed_generation, marker.projection_completed_generation) == (
+            1,
+            0,
+        )
 
 
 def test_manual_cycles_never_overlap(
@@ -349,19 +365,23 @@ def test_snapshot_cas_rejection_rolls_back_marker_completion(
         session.commit()
 
     refresher, _publisher, store = _runtime(migrated_engine)
-    original_complete = BookmarkStatsDirtyRepository.complete
+    original_acknowledge_current = BookmarkStatsDirtyRepository.acknowledge_current
 
-    def complete_then_invalidate(
+    def acknowledge_current_then_invalidate(
         repository: BookmarkStatsDirtyRepository,
         user_id: int,
         window_start: datetime,
         generation: int,
-    ) -> bool:
-        completed = original_complete(repository, user_id, window_start, generation)
+    ) -> Any:
+        completed = original_acknowledge_current(repository, user_id, window_start, generation)
         store.invalidate(user_id)
         return completed
 
-    monkeypatch.setattr(BookmarkStatsDirtyRepository, "complete", complete_then_invalidate)
+    monkeypatch.setattr(
+        BookmarkStatsDirtyRepository,
+        "acknowledge_current",
+        acknowledge_current_then_invalidate,
+    )
     assert not refresher.run_cycle()
     assert store.get(1) is None
     with Session(migrated_engine) as verification:
@@ -441,10 +461,10 @@ def test_reconciliation_waits_for_every_dirty_batch_before_acknowledging(
     assert refresher.run_cycle()
     assert publisher.state().reconciliation_required
     with Session(migrated_engine) as verification:
-        assert BookmarkStatsDirtyRepository(verification).backlog().count == 1
+        assert BookmarkStatsDirtyRepository(verification).backlog().count == 3
 
     assert refresher.run_cycle()
-    assert not publisher.state().reconciliation_required
+    assert publisher.state().reconciliation_required
 
 
 def test_new_reconciliation_epoch_cannot_be_cleared_by_an_older_full_scan(

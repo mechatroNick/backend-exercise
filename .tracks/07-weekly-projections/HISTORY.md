@@ -1,5 +1,21 @@
 # Track 07 history
 
+## 2026-08-09 — T07-02 durable schema and completion protocol implemented
+
+- Added Alembic revision `0003_weekly_stats_projections` with working rows,
+  immutable point revisions, a singleton restartable projection-state record, and
+  zero-initialized current/projection completion generations on existing dirty rows.
+- Replaced current-only dirty deletion with generation-guarded consumer
+  acknowledgements. Either consumer may delete only after both acknowledgements and
+  the stored generation equal its observed generation; increments reset both values.
+- Proved empty/populated upgrade, downgrade/re-upgrade, named constraints/indexes,
+  self/user foreign keys, user cascade, both completion orders, stale generations,
+  rollback, A-B-A revision history, and inert model imports in migrated SQLite.
+- The full deterministic suite passed with 754 tests plus 3 subtests. Application
+  coverage remained 100% across 3,031 statements and 622 branches; Ruff, mypy, and
+  Pyright passed. No calculator, baseline runner, projection consumer, harness, or
+  closure report is claimed by this checkpoint.
+
 ## 2026-08-09 — Revival authorized; implementation dependency review started
 
 - Repository owner revived Track 07 from the active **Skipped (owner decision)**
