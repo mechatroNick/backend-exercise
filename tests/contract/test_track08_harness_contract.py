@@ -21,7 +21,7 @@ def test_track08_harness_is_strict_clean_clone_orchestration() -> None:
         "clean clone HEAD differs from reviewed source HEAD",
         'tr -d \'[:space:]\' < "${clone_root}/.python-version")" == 3.12.12',
         "python find 3.12.12",
-        'sys.version_info[:3]',
+        "sys.version_info[:3]",
         "lock --check",
         "sync --locked",
         "pip-audit --local --progress-spinner off --desc off",
