@@ -187,7 +187,7 @@ def test_point_same_window_supersession_no_branch_and_a_b_a_history(
                 id=2,
                 revision=2,
                 supersedes_id=1,
-                correction_reason="late_change",
+                correction_reason="late_recalculation",
                 content_hash=_HASH_B,
             ),
         )
@@ -197,7 +197,7 @@ def test_point_same_window_supersession_no_branch_and_a_b_a_history(
                 id=3,
                 revision=3,
                 supersedes_id=2,
-                correction_reason="late_change",
+                correction_reason="late_recalculation",
                 content_hash=_HASH_A,
             ),
         )
@@ -210,7 +210,7 @@ def test_point_same_window_supersession_no_branch_and_a_b_a_history(
                     id=4,
                     revision=4,
                     supersedes_id=2,
-                    correction_reason="late_change",
+                    correction_reason="late_recalculation",
                     content_hash=_HASH_B,
                 ),
             )
@@ -224,7 +224,7 @@ def test_point_same_window_supersession_no_branch_and_a_b_a_history(
                     supersedes_id=3,
                     window_start="2026-08-10T00:00:00.000000Z",
                     window_end="2026-08-17T00:00:00.000000Z",
-                    correction_reason="late_change",
+                    correction_reason="late_recalculation",
                     content_hash=_HASH_B,
                 ),
             )
@@ -244,6 +244,7 @@ def test_projection_timestamp_window_and_hash_constraints_reject_malformed_data(
 ) -> None:
     with Session(migrated_engine) as session:
         _seed_user(session)
+        session.commit()
         for values in (
             _point_parameters(window_start="2026-08-04T00:00:00.000000Z"),
             _point_parameters(content_hash="A" * 64),
@@ -253,6 +254,21 @@ def test_projection_timestamp_window_and_hash_constraints_reject_malformed_data(
             with pytest.raises(IntegrityError):
                 session.execute(_INSERT_POINT, values)
             session.rollback()
+
+        session.execute(_INSERT_POINT, _point_parameters())
+        session.commit()
+        with pytest.raises(IntegrityError):
+            session.execute(
+                _INSERT_POINT,
+                _point_parameters(
+                    id=2,
+                    revision=2,
+                    supersedes_id=1,
+                    correction_reason="unbounded_external_value",
+                    content_hash=_HASH_B,
+                ),
+            )
+        session.rollback()
 
 
 def test_user_deletion_cascades_every_user_scoped_projection_row(

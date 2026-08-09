@@ -1,5 +1,22 @@
 # Track 07 history
 
+## 2026-08-09 — T07-03 canonical weekly domain and repository implemented
+
+- Added the sole UTC Monday-to-Monday calculator and a separate private weekly
+  raw-SQL reader with bound user/start/end/limit parameters. The all-current Track 04
+  statements and public statistics route remain unchanged.
+- Added compact schema-wrapped UTF-8 payload bytes, the explicit
+  `weekly-v1;payload-schema=1;top-tags-limit=N` calculation version, domain-separated
+  SHA-256 hashes, and explicit same/changed/version-mismatch comparison.
+- Added caller-transaction-owned working/effective-point repository operations with
+  immediate-predecessor validation, append-only A-B-A history, bounded overdue reads,
+  and low-cardinality correction reasons enforced at both Python and SQLite bounds.
+- UTC/leap/month/year boundaries, exact half-open inclusion, user isolation, ties and
+  ordering, Unicode/SQL-like content safety, deterministic bytes, version mismatch,
+  rollback, malformed persistence, immutable revisions, and no public route were
+  tested. The full suite passed with 774 tests plus 3 subtests and 100% coverage over
+  3,294 statements and 684 branches. Baseline and worker integration remain pending.
+
 ## 2026-08-09 — T07-02 durable schema and completion protocol implemented
 
 - Added Alembic revision `0003_weekly_stats_projections` with working rows,

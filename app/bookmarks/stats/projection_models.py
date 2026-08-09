@@ -129,8 +129,8 @@ class BookmarkStatsWindowPoint(SQLModel, table=True):
         ),
         CheckConstraint(
             "(revision = 1 AND correction_reason IS NULL) OR "
-            "(revision > 1 AND length(trim(correction_reason)) > 0 "
-            "AND length(correction_reason) <= 128)",
+            "(revision > 1 AND correction_reason IN "
+            "('late_recalculation', 'calculation_upgrade'))",
             name="ck_stats_point_correction_reason",
         ),
         Index(
