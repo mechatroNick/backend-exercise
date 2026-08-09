@@ -372,7 +372,7 @@ have actual passing receipts.
 - the unchanged OpenAPI inventory remains 10 operations and 45 status pairs, and the
   requirement map remains 43 IDs;
 - all eight accepted ADRs and Tracks 00–09 are accurately indexed;
-- current in-progress evidence reports 740 tests plus 3 subtests and 2,953 statements /
+- current in-progress evidence reports 741 tests plus 3 subtests and 2,953 statements /
   618 branches at 100%, without claiming final closure;
 - `verify-docs`, Tracks 01–06, Track 08, and the new Track 09 gate emit standalone
   terminal reports; Track 07 remains owner-skipped and has no verifier;

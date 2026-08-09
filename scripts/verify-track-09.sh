@@ -109,7 +109,10 @@ verify_source_contracts() {
     (cd "${clone_root}" && run_private no-dataclasses bash -c "! rg -n 'from dataclasses import|import dataclasses|@dataclass' app tests")
     (cd "${clone_root}" && run_private lifecycle-source bash -c "rg -q 'ApplicationLifecycleEvent' app && rg -q 'application.starting' app")
     (cd "${clone_root}" && run_private lifespan-source bash -c "rg -q '@asynccontextmanager' app && rg -q 'lifespan=' app")
-    (cd "${clone_root}" && run_private pyright-locked bash -c "rg -q '^pyright' pyproject.toml && rg -q 'pyright' uv.lock")
+    (cd "${clone_root}" && run_private pyright-locked bash -c \
+        "rg -q '\"pyright\\[nodejs\\]==1\\.1\\.411\"' pyproject.toml && \
+         rg -q '^\\[tool\\.pyright\\]$' pyproject.toml && \
+         rg -q 'name = \"pyright\"' uv.lock")
 }
 
 verify_quality_and_migrations() {

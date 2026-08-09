@@ -112,7 +112,7 @@ explicit development seams and an unavailable Docker daemon are nonzero **incomp
 results, never a pass or skip. Run them only when their documented prerequisites are
 met. The final Track 09 gate is still in progress and must not be represented as passing.
 
-The current in-progress Track 09 working evidence is **740 tests plus 3 subtests** and
+The current in-progress Track 09 working evidence is **741 tests plus 3 subtests** and
 **2,953 statements / 618 branches at 100% coverage**. It is not final closure evidence;
 the exact commands, receipts, and remaining integrated gates belong in
 [Track 09](.tracks/09-final-cleanup-docs/PLAN.md).

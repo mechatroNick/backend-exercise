@@ -163,6 +163,14 @@ def test_track09_final_harness_is_clean_source_and_imports_exact_track08_gate() 
         assert required in source
 
 
+def test_track09_pyright_inventory_matches_the_locked_toml_shape() -> None:
+    source = (_ROOT / "scripts/verify-track-09.sh").read_text(encoding="utf-8")
+
+    assert r"pyright\\[nodejs\\]==1\\.1\\.411" in source
+    assert "^\\\\[tool\\\\.pyright\\\\]$" in source
+    assert 'name = \\"pyright\\"' in source
+
+
 def test_track09_static_seam_is_explicitly_nonzero_and_cannot_print_final_pass() -> None:
     source = (_ROOT / "scripts/verify-track-09.sh").read_text(encoding="utf-8")
     seam_start = source.index('if [[ "${development_static}" == 1 ]]; then')
