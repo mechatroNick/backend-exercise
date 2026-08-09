@@ -80,6 +80,7 @@ def test_track08_harness_invokes_exact_required_evidence_and_quality_gates() -> 
         "python -m app.seed",
         "seed-second",
         "app.main:create_app --factory",
+        'exec "${uv_command}" run uvicorn app.main:create_app --factory',
         "--workers 1",
         "/health/live",
         "/health/ready",
