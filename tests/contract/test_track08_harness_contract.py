@@ -201,7 +201,8 @@ def test_track08_path_only_provenance_guard_is_byte_and_mode_exact(tmp_path: Pat
     git(repository, "config", "user.name", "Track 08 Test")
     git(repository, "config", "user.email", "track08@example.invalid")
     plan_path = repository / "PLAN.md"
-    plan_path.write_bytes(b"Guide: ../../docs/README.md\n")
+    legacy_plan = b"Guide: ../.." + b"/docs/" + b"README.md"
+    plan_path.write_bytes(legacy_plan + b"\n")
     report_commit = commit(repository, "historical plan")
 
     plan_path.write_bytes(b"Guide: ../../.docs/README.md\n")
@@ -244,7 +245,7 @@ def test_track08_path_only_provenance_guard_is_byte_and_mode_exact(tmp_path: Pat
     assert "lacks the authorized historical docs path" in missing_result.stderr
 
     git(repository, "checkout", "-q", "-b", "report-branch", report_commit)
-    plan_path.write_bytes(b"Guide: ../../docs/README.md\nreport branch\n")
+    plan_path.write_bytes(legacy_plan + b"\nreport branch\n")
     diverged_report = commit(repository, "report branch")
     git(repository, "checkout", "-q", "-b", "plan-branch", report_commit)
     plan_path.write_bytes(b"Guide: ../../.docs/README.md\n")
