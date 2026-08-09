@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-This document describes the intended solution for the Bookmarks API assessment. It turns the requirements in [ASSESSMENT.md](ASSESSMENT.md) and the accepted decisions in [the ADR index](../.tracks/README.md#architecture-decisions) into an implementable design.
+This document describes the delivered local solution for the Bookmarks API assessment. It maps [ASSESSMENT.md](ASSESSMENT.md) and the accepted decisions in [the ADR index](../.tracks/README.md#architecture-decisions) to the current implementation and its in-progress final verification.
 
 The design has two layers:
 
@@ -67,6 +67,16 @@ The deployment uses one Uvicorn worker. The queue, cache, and worker health stat
 
 The complete stack and its boundaries are accepted in [ADR-001](../.tracks/ADR/ADR-001-application-stack-and-data-access.md).
 
+### Decision map
+
+- [ADR-001](../.tracks/ADR/ADR-001-application-stack-and-data-access.md) defines the FastAPI, SQLModel, SQLite, Alembic, and raw-SQL boundary.
+- [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) defines API, filtering, tag, and timestamp semantics.
+- [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) defines identity, password hashing, and JWT handling.
+- [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) defines current-statistics invalidation, snapshots, health, and one-worker runtime constraints.
+- [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) is an archived weekly-projection design; Track 07 is skipped and it is not delivered.
+- [ADR-006](../.tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md) defines the binding evidence and closure process.
+- [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) defines local rate limiting and authenticated cursor pagination.
+
 ## 5. Code organization
 
 The application is a modular monolith. Modules group code by capability, while shared infrastructure stays small and explicit.
@@ -76,35 +86,43 @@ app/
 ├── main.py
 ├── api/
 │   ├── errors.py
-│   └── health.py
+│   ├── health.py
+│   └── rate_limit.py
 ├── core/
 │   ├── clock.py
 │   ├── config.py
-│   ├── logging.py
-│   └── security.py
+│   ├── errors.py
+│   └── logging.py
 ├── db/
 │   ├── engine.py
 │   └── models.py
 ├── auth/
+│   ├── dependencies.py
+│   ├── identity.py
 │   ├── models.py
 │   ├── repository.py
 │   ├── router.py
 │   ├── schemas.py
+│   ├── security.py
 │   └── service.py
 └── bookmarks/
+    ├── dependencies.py
     ├── events.py
     ├── models.py
+    ├── pagination.py
+    ├── policy.py
     ├── repository.py
     ├── router.py
     ├── schemas.py
     ├── service.py
     └── stats/
-        ├── projection.py
+        ├── dirty.py
+        ├── publisher.py
         ├── raw_sql.py
         ├── refresher.py
         ├── schemas.py
-        ├── snapshots.py
-        └── windows.py
+        ├── service.py
+        └── snapshots.py
 alembic/
 tests/
 ├── contract/
@@ -112,7 +130,7 @@ tests/
 └── unit/
 ```
 
-The exact file split may evolve when implementation reveals a clearer ownership boundary. The dependency direction may not:
+The delivered file split is shown above. The dependency direction is:
 
 ```mermaid
 flowchart TD
@@ -401,9 +419,15 @@ Application settings are environment-driven, validated once, and injectable in t
 | `STATS_DIRTY_MAX_AGE_SECONDS` | `60`, at least the interval | Detect stalled durable work. |
 | `STATS_DIRTY_MAX_COUNT` | `1000` | Bound a healthy dirty backlog. |
 | `APP_WORKER_COUNT` | `1` in this runtime | Reject divergent process-local queue/cache state. |
+| `RATE_LIMIT_ENABLED` | `true`; required in production | Enable the local process limiter. |
+| `RATE_LIMIT_AUTH_REQUESTS` / `RATE_LIMIT_AUTH_WINDOW_SECONDS` | `10` / `60` | Shared registration/login peer-IP bucket. |
+| `RATE_LIMIT_BOOKMARK_REQUESTS` / `RATE_LIMIT_BOOKMARK_WINDOW_SECONDS` | `120` / `60` | Shared authenticated-user bookmark bucket. |
+| `RATE_LIMIT_MAX_KEYS` / `RATE_LIMIT_IDLE_TTL_SECONDS` | `10000` / `300` | Bound retained local bucket state. |
+| `CURSOR_TTL_SECONDS` | `900` | Signed owner/filter-bound cursor lifetime. |
+| `SQLITE_BUSY_TIMEOUT_MILLISECONDS` | `5000` | SQLite connection busy timeout. |
 | `LOG_LEVEL` | `INFO` | Runtime logging threshold. |
 
-Settings whose meaning depends on the refresh interval are validated together. For example, `STATS_STALE_AFTER_SECONDS` must not be shorter than a healthy refresh cycle.
+Settings whose meaning depends on the refresh interval are validated together. For example, `STATS_STALE_AFTER_SECONDS` must not be shorter than a healthy refresh cycle. Rate-limit idle retention must be at least both windows; rate limiting and refresh both require one worker. ADR-007 governs cursor and rate-limit behavior.
 
 ## 14. Health and observability
 
@@ -504,7 +528,7 @@ Executable-track Bash harnesses supplement these tests as defined by the [engine
 
 ## 17. Bootstrap and operator experience
 
-The repository will expose one documented local bootstrap command. It will:
+The repository exposes `make bootstrap`, which:
 
 1. validate required settings;
 2. apply Alembic migrations explicitly;
@@ -514,8 +538,8 @@ The repository will expose one documented local bootstrap command. It will:
 6. stop the refresher cooperatively on shutdown.
 
 Direct `uvicorn` execution remains possible for development, but it does not silently
-create schema. Track 08 must additionally deliver and verify a reproducible Docker
-workflow after the mandatory core gate is green.
+create schema. Track 08 has delivered a reproducible Docker workflow; its final
+clean-clone verification remains in progress.
 
 ## 18. Security considerations
 
@@ -530,12 +554,12 @@ workflow after the mandatory core gate is green.
 - Avoid exposing SQLite paths or stack traces through error details.
 - Keep dependency versions reviewable and run dependency/security checks where locally available.
 
-Track 08 also delivers rate limiting and cursor pagination after the mandatory core
-gate. Rate limiting must be bounded and ownership-safe with an exact documented 429
-contract. Cursor pagination must preserve deterministic ordering, owner isolation,
-and malformed/tampered cursor handling while retaining existing page pagination where
-the final public contract requires compatibility. Deterministic seed data must be
-idempotent and must never contain or emit real credentials.
+Track 08 has delivered rate limiting, cursor pagination, and deterministic seed data.
+Rate limiting is bounded and ownership-safe with an exact documented 429 contract.
+Cursor pagination preserves deterministic ordering, owner isolation, and
+malformed/tampered cursor handling while retaining page-pagination compatibility.
+Seed data is idempotent and contains no real credentials. Final combined evidence
+for these delivered boundaries remains in progress.
 
 [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md)
 fixes those bonus contracts: socket-peer auth buckets, authenticated-user bookmark

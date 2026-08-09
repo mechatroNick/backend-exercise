@@ -13,6 +13,9 @@ assessment. Durable execution state and architecture decisions live under
 | [Solution design](SOLUTION-DESIGN.md) | Senior engineer and reviewer | API, data, runtime, event, statistics, security, health, and deployment design |
 | [Delivery plan](DELIVERY-PLAN.md) | Implementer and reviewer | Ordered tracks, dependencies, validation, and commit boundaries |
 | [Engineering verification guideline](ENGINEERING-VERIFICATION-GUIDELINE.md) | Implementer and reviewer | Shared logging, testing, harness, evidence, and closure policy |
+| [Walkthrough](WALKTHROUGH.md) | Reviewer | Safe reproducible local service demonstration |
+| [AI-assisted work disclosure](AI-ASSISTED-WORK.md) | Reviewer and owner | Evidence-bounded provenance boundary |
+| [Release handoff](RELEASE-HANDOFF.md) | Repository owner | Implemented state, remaining final evidence, and external-action boundary |
 
 ## Decision and execution records
 
@@ -44,10 +47,11 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 
 Track 07 is an explicit owner-authorized skip, not passing implementation evidence.
-Track 08 implements the full selected bonus set: seed data, Docker, rate limiting,
-and cursor pagination. Other downstream artifacts may be planned sequentially after upstream plan review;
-their presence does not make implementation ready until each stated dependency closes
-with the required evidence.
+Track 08 is in progress. It has implemented the selected seed, Docker, rate-limit,
+and cursor checkpoints, with focused/full development evidence; the combined final
+clean-clone harness and final report remain pending. Other downstream artifacts may
+be planned sequentially after upstream plan review; their presence does not make
+implementation ready until each stated dependency closes with required evidence.
 
 ## Authority
 
@@ -63,6 +67,6 @@ When documents conflict, apply this order:
 Semantic changes require an ADR and corresponding SPEC, PLAN, HISTORY, and index
 updates. Editorial clarification may update these docs without changing contracts.
 
-The engineering-process narrative requested for the final submission will be written
-later from actual implementation evidence. It is intentionally not invented during
-planning.
+The engineering-process disclosure is now recorded in
+[AI-assisted work](AI-ASSISTED-WORK.md), bounded to repository and owner-provided
+evidence. It is not a claim that final Track 08 verification has completed.

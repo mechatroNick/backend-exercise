@@ -1,5 +1,21 @@
 # Track 08 history
 
+## 2026-08-09 — Reader and handoff documentation updated
+
+- Added reader-facing root setup/API/container/testing guidance plus walkthrough,
+  AI-assisted-work disclosure, and release handoff. Claims distinguish implementation
+  and focused/full development receipts from the still-pending combined clean-clone
+  Track 08 harness and final report.
+- Updated the live evidence matrix and track/index statuses: the bonus-preflight
+  record is implemented but T08-07 remains In progress until its declared dependencies close;
+  bonus checkpoints at `126fadb`, `7d2ea97`/`006d9b1`, `0cdf2a6`, and `cee847f` are
+  present; T08-02 and T08-08 remain In progress pending the combined final harness.
+- Corrected live reader/control-plane documentation for seven ADRs, current Track 06
+  completion, Track 07's owner skip, and the delivered rate/cursor configuration.
+- No final `TEST-REPORT.md`, clean-clone receipt, external action, private
+  correspondence disclosure, push, archive, share, deployment, or submission was
+  performed or claimed.
+
 ## 2026-08-09 — ADR-007 bonus contracts accepted
 
 - Accepted the local rate-limiting and cursor-pagination contract before their product
@@ -39,7 +55,7 @@
 - Preserved the no-public-history boundary, FUT-01 documentation-only scope, and the
   repository owner's exclusive authority over external submission actions.
 
-## Current state
+## Historical state superseded by the 2026-08-09 implementation checkpoints
 
 - Specification: Planned, version 1.2
 - Plan: T08-01 blocked on remaining Track 06 closure; Tracks 01–05 are Complete and
