@@ -153,6 +153,15 @@ class SurvivingWindowCandidate(FrozenInternalModel):
     window: WeeklyWindow
 
 
+class ProjectionReadinessSnapshot(FrozenInternalModel):
+    """Identifier-free durable projection facts for the readiness owner."""
+
+    state: ProjectionStateRecord | None
+    calculation_version_compatible: bool
+    pending_projection_count: int
+    overdue_working_count: int
+
+
 def _validate_working(record: WorkingProjectionRecord) -> None:
     _positive(record.user_id, "user_id")
     WeeklyWindow.from_bounds(record.window.start, record.window.end)
@@ -347,6 +356,32 @@ class WeeklyProjectionRepository:
             .one_or_none()
         )
         return None if row is None else _state(dict(row))
+
+    def readiness_snapshot(
+        self, calculation_version: str, now: datetime
+    ) -> ProjectionReadinessSnapshot:
+        """Read authoritative private backlog/state facts without changing durable state."""
+        _version(calculation_version)
+        encoded_now = _encoded(now, "now")
+        state = self.get_state()
+        pending = self._session.execute(
+            text(
+                "SELECT count(*) FROM bookmark_stats_window_dirty "
+                "WHERE generation != projection_completed_generation"
+            )
+        ).scalar_one()
+        overdue = self._session.execute(
+            text("SELECT count(*) FROM bookmark_stats_window_working WHERE window_end <= :now"),
+            {"now": encoded_now},
+        ).scalar_one()
+        return ProjectionReadinessSnapshot(
+            state=state,
+            calculation_version_compatible=(
+                state is not None and state.calculation_version == calculation_version
+            ),
+            pending_projection_count=_nonnegative(pending, "pending_projection_count"),
+            overdue_working_count=_nonnegative(overdue, "overdue_working_count"),
+        )
 
     def ensure_state(self, calculation_version: str, now: datetime) -> ProjectionStateRecord:
         """Create the pending singleton or verify it is compatible with this calculation."""
@@ -793,6 +828,7 @@ __all__ = [
     "ProjectionCalculationVersionMismatchError",
     "ProjectionCandidateError",
     "ProjectionPointRecord",
+    "ProjectionReadinessSnapshot",
     "ProjectionStateError",
     "ProjectionStateRecord",
     "ProjectionStateTransitionError",

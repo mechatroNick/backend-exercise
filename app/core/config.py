@@ -37,6 +37,9 @@ class Settings(BaseSettings):
         default=5, validation_alias="TOP_TAGS_LIMIT"
     )
     stats_refresh_enabled: bool = Field(default=True, validation_alias="STATS_REFRESH_ENABLED")
+    stats_projection_enabled: bool = Field(
+        default=True, validation_alias="STATS_PROJECTION_ENABLED"
+    )
     stats_refresh_interval_seconds: Annotated[int, Field(ge=1, le=3_600)] = Field(
         default=10, validation_alias="STATS_REFRESH_INTERVAL_SECONDS"
     )

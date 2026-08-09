@@ -1,5 +1,30 @@
 # Track 07 history
 
+## 2026-08-09 — T07-07 existing-worker and readiness integration implemented
+
+- Added `STATS_PROJECTION_ENABLED=true` and integrated bounded baseline, dirty, and
+  overdue projection phases into the exact existing named non-daemon refresher. The
+  projection phase starts only after the current SQLite session closes and uses short
+  independent transactions; no second worker, thread, process, or public route exists.
+- Kept current refresh success, snapshots, reconciliation, liveness, response bodies,
+  headers, raw SQL, and OpenAPI independent from projection failure or disablement.
+  Disabled projection retains its completion obligation and degrades readiness while
+  current statistics continue successfully.
+- Added an identifier-free durable readiness snapshot and deterministic projection
+  precedence for state absence/malformed data, baseline pending/running/failed,
+  calculation-version mismatch, projection failure, pending generations, overdue
+  working rows, and recovery. Public readiness remains the redacted ready/not-ready
+  contract.
+- Added low-cardinality transition logs for disabled, baseline progress/completion,
+  failure/recovery, and backlog detection/clearance. Tests prove exact-one worker,
+  default-enabled migrated baseline and generation completion, disabled retention,
+  current/projection fault isolation, cleanup, readiness precedence, and public parity.
+- Primary full-suite review found and removed an eager health import that changed the
+  frozen SQLModel metadata registration order; readiness dependencies now load only
+  inside the reader boundary. Ruff, mypy, and Pyright passed; the full suite passed
+  with 855 tests plus 3 subtests and 100% coverage over 3,922 statements and 908
+  branches. The real-process harness and closure report remain T07-08/T07-09.
+
 ## 2026-08-09 — T07-05/T07-06 lifecycle and corrections implemented
 
 - Added one caller-transaction-owned projection processor for dirty generations and

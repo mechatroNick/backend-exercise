@@ -112,6 +112,7 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
                 batch_size=min(settings.stats_event_queue_capacity, 100),
                 logger=logger,
                 service_instance_id=service_instance_id,
+                projection_enabled=settings.stats_projection_enabled,
             )
             app.state.bookmark_stats_store = store
             app.state.bookmark_stats_publisher = publisher

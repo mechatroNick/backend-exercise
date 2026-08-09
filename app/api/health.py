@@ -25,10 +25,14 @@ from app.db.engine import SessionFactory
 
 if TYPE_CHECKING:
     from app.bookmarks.stats.dirty import DirtyBacklog
+    from app.bookmarks.stats.projection_repository import ProjectionReadinessSnapshot
     from app.bookmarks.stats.publisher import PublisherState, StatsInvalidationPublisher
     from app.bookmarks.stats.refresher import RefresherState, StatsRefresher
 
 _NO_STORE = "no-store"
+_PROJECTION_STATUS_VALUES = frozenset(
+    {"disabled", "absent", "pending", "running", "active", "failed"}
+)
 
 
 class LiveHealthResponse(BaseModel):
@@ -72,6 +76,15 @@ class ReadinessReason(StrEnum):
     DIRTY_BACKLOG_COUNT = "dirty_backlog_count"
     DIRTY_BACKLOG_AGE = "dirty_backlog_age"
     CLOCK_INVALID = "clock_invalid"
+    PROJECTION_DISABLED = "projection_disabled"
+    PROJECTION_STATE_UNAVAILABLE = "projection_state_unavailable"
+    PROJECTION_BASELINE_PENDING = "projection_baseline_pending"
+    PROJECTION_BASELINE_RUNNING = "projection_baseline_running"
+    PROJECTION_BASELINE_FAILED = "projection_baseline_failed"
+    PROJECTION_VERSION_MISMATCH = "projection_version_mismatch"
+    PROJECTION_CYCLE_FAILED = "projection_cycle_failed"
+    PROJECTION_PENDING_BACKLOG = "projection_pending_backlog"
+    PROJECTION_OVERDUE = "projection_overdue"
 
 
 class ReadinessSnapshot(FrozenInternalModel):
@@ -87,6 +100,9 @@ class ReadinessSnapshot(FrozenInternalModel):
     consecutive_failures: int | None = None
     cycle_age_seconds: int | None = None
     success_age_seconds: int | None = None
+    projection_pending_count: int | None = None
+    projection_overdue_count: int | None = None
+    projection_consecutive_failures: int | None = None
 
 
 class _Refresher(Protocol):
@@ -99,6 +115,7 @@ class _Publisher(Protocol):
 
 DatabaseProbe = Callable[[Session], bool]
 BacklogReader = Callable[[Session], "DirtyBacklog"]
+ProjectionReadinessReader = Callable[[Session, int, datetime], "ProjectionReadinessSnapshot"]
 
 
 def _database_probe(session: Session) -> bool:
@@ -109,6 +126,17 @@ def _backlog_reader(session: Session) -> DirtyBacklog:
     from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository
 
     return BookmarkStatsDirtyRepository(session).backlog()
+
+
+def _projection_readiness_reader(
+    session: Session, top_tags_limit: int, now: datetime
+) -> ProjectionReadinessSnapshot:
+    from app.bookmarks.stats.projection_repository import WeeklyProjectionRepository
+    from app.bookmarks.stats.weekly import calculation_version
+
+    return WeeklyProjectionRepository(session).readiness_snapshot(
+        calculation_version(top_tags_limit), now
+    )
 
 
 class ReadinessEvaluator:
@@ -126,6 +154,7 @@ class ReadinessEvaluator:
         service_instance_id: UUID,
         database_probe: DatabaseProbe = _database_probe,
         backlog_reader: BacklogReader = _backlog_reader,
+        projection_readiness_reader: ProjectionReadinessReader = _projection_readiness_reader,
     ) -> None:
         if not isinstance(service_instance_id, UUID) or service_instance_id.int == 0:
             raise ValueError("service_instance_id must be a non-nil UUID")
@@ -138,6 +167,7 @@ class ReadinessEvaluator:
         self._service_instance_id = str(service_instance_id)
         self._database_probe = database_probe
         self._backlog_reader = backlog_reader
+        self._projection_readiness_reader = projection_readiness_reader
         self._transition_lock = Lock()
         self._last_transition: tuple[bool, ReadinessReason] | None = None
 
@@ -162,6 +192,12 @@ class ReadinessEvaluator:
             worker = self._refresher.state()
             publisher = self._publisher.state()
             snapshot = self._enabled_snapshot(now, worker, publisher, backlog)
+            if snapshot.ready:
+                projection = self._read_projection_state(now)
+                if projection is None:
+                    snapshot = self._failed(ReadinessReason.PROJECTION_STATE_UNAVAILABLE)
+                else:
+                    snapshot = self._projection_snapshot(snapshot, worker, projection)
         except Exception:
             snapshot = self._failed(ReadinessReason.STATE_UNAVAILABLE)
         return self._finish(snapshot)
@@ -218,6 +254,67 @@ class ReadinessEvaluator:
             cycle_age_seconds=cycle_age,
             success_age_seconds=success_age,
         )
+
+    def _read_projection_state(self, now: datetime) -> ProjectionReadinessSnapshot | None:
+        session: Session | None = None
+        try:
+            session = self._session_factory()
+            return self._projection_readiness_reader(session, self._settings.top_tags_limit, now)
+        except Exception:
+            return None
+        finally:
+            if session is not None:
+                with suppress(Exception):
+                    session.rollback()
+                with suppress(Exception):
+                    session.close()
+
+    def _projection_snapshot(
+        self,
+        current: ReadinessSnapshot,
+        worker: RefresherState,
+        projection: ProjectionReadinessSnapshot,
+    ) -> ReadinessSnapshot:
+        reason = self._projection_reason(worker, projection)
+        return current.model_copy(
+            update={
+                "ready": reason is ReadinessReason.READY,
+                "reason": reason,
+                "projection_pending_count": projection.pending_projection_count,
+                "projection_overdue_count": projection.overdue_working_count,
+                "projection_consecutive_failures": worker.projection_consecutive_failures,
+            }
+        )
+
+    @staticmethod
+    def _projection_reason(
+        worker: RefresherState, projection: ProjectionReadinessSnapshot
+    ) -> ReadinessReason:
+        if not worker.projection_enabled:
+            return ReadinessReason.PROJECTION_DISABLED
+        if projection.state is None:
+            return ReadinessReason.PROJECTION_STATE_UNAVAILABLE
+        status = projection.state.status.value
+        if status == "pending":
+            return ReadinessReason.PROJECTION_BASELINE_PENDING
+        if status == "running":
+            return ReadinessReason.PROJECTION_BASELINE_RUNNING
+        if status == "failed":
+            return ReadinessReason.PROJECTION_BASELINE_FAILED
+        if status != "active":
+            return ReadinessReason.PROJECTION_STATE_UNAVAILABLE
+        if (
+            not worker.projection_version_compatible
+            or not projection.calculation_version_compatible
+        ):
+            return ReadinessReason.PROJECTION_VERSION_MISMATCH
+        if worker.projection_consecutive_failures > 0:
+            return ReadinessReason.PROJECTION_CYCLE_FAILED
+        if projection.pending_projection_count > 0:
+            return ReadinessReason.PROJECTION_PENDING_BACKLOG
+        if projection.overdue_working_count > 0:
+            return ReadinessReason.PROJECTION_OVERDUE
+        return ReadinessReason.READY
 
     def _enabled_reason(
         self,
@@ -279,6 +376,9 @@ class ReadinessEvaluator:
             worker.consecutive_failures,
             worker.last_affected_user_count,
             worker.last_marker_count,
+            worker.projection_pending_count,
+            worker.projection_overdue_count,
+            worker.projection_consecutive_failures,
             publisher.queue_depth,
             publisher.enqueued_count,
             publisher.overflow_count,
@@ -298,6 +398,10 @@ class ReadinessEvaluator:
             and isinstance(worker.initial_completed, bool)
             and isinstance(worker.initial_success, bool)
             and isinstance(worker.shutdown_timed_out, bool)
+            and isinstance(worker.projection_enabled, bool)
+            and isinstance(worker.projection_version_compatible, bool)
+            and isinstance(worker.projection_baseline_status, str)
+            and worker.projection_baseline_status in _PROJECTION_STATUS_VALUES
             and isinstance(publisher.reconciliation_required, bool)
         )
 
@@ -340,6 +444,9 @@ class ReadinessEvaluator:
             "consecutive_failures",
             "cycle_age_seconds",
             "success_age_seconds",
+            "projection_pending_count",
+            "projection_overdue_count",
+            "projection_consecutive_failures",
         ):
             value = getattr(snapshot, name)
             if value is not None:

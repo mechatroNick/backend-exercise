@@ -21,7 +21,11 @@ from app.bookmarks.events import (
 from app.bookmarks.stats.dirty import BookmarkStatsDirtyRepository, DirtyReason
 from app.bookmarks.stats.publisher import StatsInvalidationPublisher
 from app.bookmarks.stats.raw_sql import TOTALS_SQL, BookmarkStatsReader
-from app.bookmarks.stats.refresher import StatsRefresher
+from app.bookmarks.stats.refresher import (
+    ProjectionLifecycleStatus,
+    StatsRefresher,
+    _ProjectionCycleResult,
+)
 from app.bookmarks.stats.snapshots import StatsSnapshotStore
 from app.core.config import Settings
 from app.db.engine import create_session_factory
@@ -53,6 +57,7 @@ def _runtime(
     engine: Engine,
     *,
     batch_size: int = 100,
+    projection_enabled: bool = False,
 ) -> tuple[StatsRefresher, StatsInvalidationPublisher, StatsSnapshotStore]:
     store = StatsSnapshotStore()
     publisher = StatsInvalidationPublisher(
@@ -72,8 +77,50 @@ def _runtime(
         batch_size=batch_size,
         logger=_logger(),
         service_instance_id=_INSTANCE_ID,
+        projection_enabled=projection_enabled,
     )
     return refresher, publisher, store
+
+
+def test_projection_failure_degrades_only_projection_not_current_refresh(
+    migrated_engine: Engine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    refresher, _publisher, _store = _runtime(migrated_engine)
+    monkeypatch.setattr(
+        refresher,
+        "_run_projection_phase",
+        lambda: _ProjectionCycleResult(
+            status=ProjectionLifecycleStatus.FAILED,
+            successful=False,
+            error_code="projection_cycle_failed",
+        ),
+    )
+
+    assert refresher.run_cycle(full=True)
+    state = refresher.state()
+    assert state.successful_cycles == 1
+    assert state.consecutive_failures == 0
+    assert state.projection_consecutive_failures == 1
+
+
+def test_default_enabled_projection_baselines_then_completes_dirty_generation(
+    migrated_engine: Engine,
+) -> None:
+    refresher, _publisher, _store = _runtime(migrated_engine, projection_enabled=True)
+
+    assert refresher.run_cycle(full=True)
+    assert refresher.state().projection_baseline_status is ProjectionLifecycleStatus.ACTIVE
+
+    _seed_users(migrated_engine, count=1)
+    _seed_bookmark(migrated_engine)
+    with Session(migrated_engine) as session:
+        BookmarkStatsDirtyRepository(session).mark_dirty(1, _NOW, DirtyReason.CREATE, _NOW)
+        session.commit()
+
+    assert refresher.run_cycle()
+    assert refresher.state().projection_successful
+    with Session(migrated_engine) as session:
+        assert BookmarkStatsDirtyRepository(session).backlog().count == 0
 
 
 def _seed_users(engine: Engine, count: int = 2) -> None:
