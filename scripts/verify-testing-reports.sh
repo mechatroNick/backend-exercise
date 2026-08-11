@@ -17,7 +17,7 @@ report_dir_override="${VERIFY_TESTING_REPORTS_DIR:-}"
 source "${report_helper}"
 verification_report_start 'scripts/verify-testing-reports.sh' 'Committed testing-report bundle verification'
 verification_report_gate 'exact receipt inventory, manifest structure, and SHA-256 integrity'
-verification_report_gate 'captured-source provenance and executable/owner-skip dispositions'
+verification_report_gate 'captured-source provenance and executable receipt dispositions'
 verification_report_gate 'public-safety scan for logs, credentials, tokens, and absolute local paths'
 trap 'verification_report_finish "$?" 0' EXIT
 
@@ -29,7 +29,7 @@ expected_files=(
     '04-search-stats.txt'
     '05-mandatory-quality-gate.txt'
     '06-event-driven-stats.txt'
-    '07-weekly-projections-skipped.txt'
+    '07-weekly-projections.txt'
     '08-final-handoff.txt'
     '09-final-cleanup-docs.txt'
 )
@@ -41,7 +41,7 @@ expected_commands=(
     'bash scripts/verify-track-04.sh'
     'bash scripts/verify-track-05.sh'
     'bash scripts/verify-track-06.sh'
-    'none'
+    'bash scripts/verify-track-07.sh'
     'bash scripts/verify-track-08.sh'
     'bash scripts/verify-track-09.sh'
 )
@@ -150,14 +150,9 @@ validate_provenance_and_dispositions() {
         require_exact_count '^SOURCE_HEAD:' 1 "${receipt}"
         require_exact_count "^COMMAND: ${expected_command}$" 1 "${receipt}"
         require_exact_count '^COMMAND:' 1 "${receipt}"
-        if [[ "${expected_command}" == 'none' ]]; then
-            require_exact_count '^DISPOSITION: SKIPPED \(owner decision\)$' 1 "${receipt}"
-            require_exact_count '^RESULT: PASS$' 0 "${receipt}"
-            require_exact_count '^EXIT: not applicable$' 1 "${receipt}"
-        else
-            require_exact_count '^RESULT: PASS$' 1 "${receipt}"
-            require_exact_count '^EXIT: 0$' 1 "${receipt}"
-        fi
+        require_exact_count '^DISPOSITION:' 0 "${receipt}"
+        require_exact_count '^RESULT: PASS$' 1 "${receipt}"
+        require_exact_count '^EXIT: 0$' 1 "${receipt}"
     done
 }
 

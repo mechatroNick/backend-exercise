@@ -1,25 +1,32 @@
 === Captured verification command ===
 WORKTREE: <repository-root>
-SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
-START: 2026-08-09T10:48:59Z
+SOURCE_HEAD: a9cccc29caff0d21e78835052d2174cc186b1069
+START: 2026-08-11T12:11:13Z
 COMMAND: bash scripts/verify-track-01.sh
 === Command output ===
 === Verification report ===
 SCRIPT: scripts/verify-track-01.sh
 TITLE: Track 01 foundation real-process verification
-START: 2026-08-09T10:48:59Z
+START: 2026-08-11T12:11:13Z
 GATE: isolated migration and factory bootstrap
 GATE: OpenAPI, JSON Lines lifecycle, and owning fault boundary
 GATE: verified disposable-process cleanup
+Using CPython 3.12.12
+Creating virtual environment at: .venv
    Building bookmarks-api @ file://<repository-root>
+Downloading pip (1.7MiB)
+Downloading pyright (5.9MiB)
+Downloading nodejs-wheel-binaries (53.1MiB)
+ Downloaded pip
       Built bookmarks-api @ file://<repository-root>
-Uninstalled 1 package in 2ms
-Installed 1 package in 2ms
+ Downloaded pyright
+ Downloaded nodejs-wheel-binaries
+Installed 94 packages in 378ms
 Track 01 process evidence: factory bootstrap, one worker, OpenAPI, JSON lifecycle, request exception boundary
 SUMMARY: foundation bootstrap, lifecycle, fault-boundary, and redaction evidence completed
 Track 01 harness cleanup: removed verified disposable resources
 CLEANUP: PASS — verified disposable process and workspace removal
 RESULT: PASS
 === Capture result ===
-END: 2026-08-09T10:49:04Z
+END: 2026-08-11T12:11:27Z
 EXIT: 0

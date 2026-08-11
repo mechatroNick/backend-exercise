@@ -23,7 +23,7 @@ _REPORT_RECEIPTS = (
     "04-search-stats.txt",
     "05-mandatory-quality-gate.txt",
     "06-event-driven-stats.txt",
-    "07-weekly-projections-skipped.txt",
+    "07-weekly-projections.txt",
     "08-final-handoff.txt",
     "09-final-cleanup-docs.txt",
 )
@@ -36,6 +36,7 @@ _VERIFY_SCRIPTS = (
     "verify-track-04.sh",
     "verify-track-05.sh",
     "verify-track-06.sh",
+    "verify-track-07.sh",
     "verify-track-08.sh",
     "verify-track-09.sh",
 )
@@ -209,12 +210,19 @@ def test_track09_final_harness_is_clean_source_and_imports_exact_track08_gate() 
         "ruff check .",
         "make typecheck",
         "error::DeprecationWarning",
+        "error::PendingDeprecationWarning",
         "error::starlette.exceptions.StarletteDeprecationWarning",
         "coverage run --branch -m pytest -q",
         "coverage report --fail-under=100",
         "alembic downgrade base",
         "verify-docs",
         "verify-testing-reports bash scripts/verify-testing-reports.sh",
+        "inherited-track-contract",
+        "for track in 01 02 03 04 05 06 07",
+        "current-track07-boundary",
+        "0003_weekly_stats_projections.py",
+        "adr-inventory",
+        "= 9",
         "verify-track-08 bash scripts/verify-track-08.sh",
         "final-clone-cleanliness",
         "clean clone changed during final verification",
@@ -224,6 +232,10 @@ def test_track09_final_harness_is_clean_source_and_imports_exact_track08_gate() 
         "FINAL PASS: clean-source Track 09 evidence complete",
     ):
         assert required in source
+
+    inherited_source = (_ROOT / "scripts" / "verify-track-08.sh").read_text(encoding="utf-8")
+    for track in range(1, 8):
+        assert f"bash scripts/verify-track-{track:02d}.sh" in inherited_source
 
 
 def test_testing_report_verifier_declares_a_strict_tamper_evident_contract() -> None:
@@ -245,7 +257,7 @@ def test_testing_report_verifier_declares_a_strict_tamper_evident_contract() -> 
         "differs from committed HEAD",
         "^RESULT: PASS$",
         "^EXIT: 0$",
-        "SKIPPED \\(owner decision\\)",
+        "require_exact_count '^DISPOSITION:' 0",
         "runtime .log files are forbidden",
         "absolute local /Users or /private path leaked",
         "private-key or known token pattern leaked",
@@ -297,6 +309,45 @@ def test_testing_report_verifier_rejects_an_absolute_path_even_when_rehashed(
     output = result.stdout + result.stderr
     assert result.returncode != 0
     assert "absolute local /Users or /private path leaked" in output
+    assert "RESULT: PASS" not in output
+
+
+def test_testing_report_verifier_rejects_the_stale_track07_skip_filename(
+    tmp_path: Path,
+) -> None:
+    bundle = _copy_report_bundle(tmp_path)
+    stale_name = "07-weekly-projections-skipped.txt"
+    (bundle / "07-weekly-projections.txt").rename(bundle / stale_name)
+    manifest = bundle / "MANIFEST.md"
+    manifest.write_text(
+        manifest.read_text(encoding="utf-8").replace("07-weekly-projections.txt", stale_name),
+        encoding="utf-8",
+    )
+
+    result = _verify_report_bundle(bundle)
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "expected 07-weekly-projections.txt" in output
+    assert "RESULT: PASS" not in output
+
+
+def test_testing_report_verifier_rejects_a_track07_owner_skip_disposition(
+    tmp_path: Path,
+) -> None:
+    bundle = _copy_report_bundle(tmp_path)
+    receipt_path = bundle / "07-weekly-projections.txt"
+    receipt_path.write_text(
+        receipt_path.read_text(encoding="utf-8") + "DISPOSITION: SKIPPED (owner decision)\n",
+        encoding="utf-8",
+    )
+    _write_test_manifest(bundle)
+
+    result = _verify_report_bundle(bundle)
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "07-weekly-projections.txt must contain 0 match(es) for ^DISPOSITION:" in output
     assert "RESULT: PASS" not in output
 
 

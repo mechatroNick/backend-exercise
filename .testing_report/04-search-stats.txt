@@ -1,13 +1,13 @@
 === Captured verification command ===
 WORKTREE: <repository-root>
-SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
-START: 2026-08-09T10:49:37Z
+SOURCE_HEAD: a9cccc29caff0d21e78835052d2174cc186b1069
+START: 2026-08-11T12:11:33Z
 COMMAND: bash scripts/verify-track-04.sh
 === Command output ===
 === Verification report ===
 SCRIPT: scripts/verify-track-04.sh
 TITLE: Track 04 search and statistics real-process verification
-START: 2026-08-09T10:49:37Z
+START: 2026-08-11T12:11:33Z
 GATE: isolated search, statistics, and ownership evidence
 GATE: OpenAPI, JSON Lines, redaction, and SQL-boundary checks
 GATE: verified disposable-process cleanup
@@ -17,5 +17,5 @@ Track 04 harness cleanup: removed verified disposable resources
 CLEANUP: PASS — verified disposable process and workspace removal
 RESULT: PASS
 === Capture result ===
-END: 2026-08-09T10:49:46Z
+END: 2026-08-11T12:11:39Z
 EXIT: 0

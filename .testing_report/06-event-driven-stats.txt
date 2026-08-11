@@ -1,13 +1,13 @@
 === Captured verification command ===
 WORKTREE: <repository-root>
-SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
-START: 2026-08-09T10:51:44Z
+SOURCE_HEAD: a9cccc29caff0d21e78835052d2174cc186b1069
+START: 2026-08-11T12:13:26Z
 COMMAND: bash scripts/verify-track-06.sh
 === Command output ===
 === Verification report ===
 SCRIPT: scripts/verify-track-06.sh
 TITLE: Track 06 event-driven statistics verification
-START: 2026-08-09T10:51:44Z
+START: 2026-08-11T12:13:26Z
 GATE: exact inherited Track 05 quality gate
 GATE: deterministic worker, overflow, and restart edge selectors
 GATE: live lifecycle, readiness, JSON Lines, and cleanup evidence
@@ -19,15 +19,15 @@ Track 06 edge selector: tests/unit/test_stats_refresher.py::test_start_once_exac
 Track 06 edge selector: tests/unit/test_stats_refresher.py::test_thread_start_and_join_timeout_failures_are_explicit
 Track 06 edge selector: tests/unit/test_stats_refresher.py::test_worker_retry_json_logs_keep_application_source_and_safe_context
 Track 06 edge selector: tests/unit/test_stats_publisher.py::test_overflow_invalidates_sets_reconciliation_and_logs_once_per_episode
-Track 06 full-suite result: 743 passed, 3 subtests passed
-Track 06 coverage result: TOTAL                               2953      0    618      0   100%
+Track 06 full-suite result: 865 passed, 3 subtests passed
+Track 06 coverage result: TOTAL                                           3932      0    910      0   100%
 Track 06 quality gate: locked sync, Ruff, mypy, full tests, 100% coverage, make check, docs passed
 Track 06 migration lifecycle: upgrade, downgrade, re-upgrade, drift check passed
-Track 06 application launch: phase=parity port=56180
+Track 06 application launch: phase=parity port=60178
 Track 06 live-to-snapshot parity and worker identity: passed
-Track 06 application launch: phase=overflow port=56195
+Track 06 application launch: phase=overflow port=60197
 Track 06 committed overflow and durable backlog survival: passed
-Track 06 application launch: phase=recovery port=56204
+Track 06 application launch: phase=recovery port=60209
 Track 06 restart reconciliation and readiness recovery: passed
 Track 06 JSON Lines lifecycle, worker, overflow, readiness, and redaction audit: passed
 Track 06 real-process closure harness: passed
@@ -36,5 +36,5 @@ Track 06 cleanup: removed verified protected artifacts
 CLEANUP: PASS — verified protected artifacts and process removal
 RESULT: PASS
 === Capture result ===
-END: 2026-08-09T10:55:08Z
+END: 2026-08-11T12:17:27Z
 EXIT: 0

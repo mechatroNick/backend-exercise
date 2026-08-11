@@ -15,7 +15,7 @@ verification_report_start 'scripts/verify-track-09.sh' 'Track 09 final clean-sou
 verification_report_gate 'clean committed source, locked sync, and dependency advisory'
 verification_report_gate 'dataclass, lifecycle, lifespan, and type-source contracts'
 verification_report_gate 'Ruff, mypy, Pyright, warnings, full branch coverage, and migrations'
-verification_report_gate 'documentation, committed report bundle, runtime/inherited evidence, security, hygiene, Docker, and cleanup'
+verification_report_gate 'documentation, committed report bundle, exact Track 01--07 inheritance through Track 08, current Track 07 boundary, nine ADRs, security, hygiene, Docker, and cleanup'
 
 uv_command="${UV:-uv}"
 development_static="${TRACK09_DEVELOPMENT_STATIC:-0}"
@@ -113,6 +113,21 @@ verify_source_contracts() {
         "rg -q '\"pyright\\[nodejs\\]==1\\.1\\.411\"' pyproject.toml && \
          rg -q '^\\[tool\\.pyright\\]$' pyproject.toml && \
          rg -q 'name = \"pyright\"' uv.lock")
+    (cd "${clone_root}" && run_private inherited-track-contract bash -ceu '
+        for track in 01 02 03 04 05 06 07; do
+            rg -Fq "bash scripts/verify-track-${track}.sh" scripts/verify-track-08.sh
+        done
+        rg -Fq "exact inherited Track 01--07" scripts/verify-track-08.sh
+    ')
+    (cd "${clone_root}" && run_private current-track07-boundary bash -ceu '
+        rg -q "Status: \*\*Complete\*\*" .tracks/07-weekly-projections/SPEC.md
+        test -x scripts/verify-track-07.sh
+        test -f alembic/versions/0003_weekly_stats_projections.py
+        ! rg -qi "/api/[^\"[:space:]]*(history|weekly)" app
+    ')
+    (cd "${clone_root}" && run_private adr-inventory bash -c '
+        test "$(find .tracks/ADR -maxdepth 1 -type f -name "ADR-*.md" | wc -l | tr -d "[:space:]")" = 9
+    ')
 }
 
 verify_quality_and_migrations() {
@@ -125,6 +140,7 @@ verify_quality_and_migrations() {
     (cd "${clone_root}" && run_private typecheck make typecheck)
     (cd "${clone_root}" && run_private warning-tests "${uv_command}" run pytest -q \
         -W 'error::DeprecationWarning' \
+        -W 'error::PendingDeprecationWarning' \
         -W 'error::starlette.exceptions.StarletteDeprecationWarning')
     (cd "${clone_root}" && run_private coverage-run "${uv_command}" run coverage run --branch -m pytest -q)
     (cd "${clone_root}" && run_private coverage-report "${uv_command}" run coverage report --fail-under=100)
@@ -150,7 +166,7 @@ verify_documentation_and_hygiene() {
 }
 
 verify_inherited_final_gate() {
-    # Track 08 contains the literal exact Track 01--06 invocations and Docker path;
+    # Track 08 contains the literal exact Track 01--07 invocations and Docker path;
     # this final gate must execute it rather than replacing it with equivalent tests.
     (cd "${clone_root}" && run_private verify-track-08 bash scripts/verify-track-08.sh)
 }
