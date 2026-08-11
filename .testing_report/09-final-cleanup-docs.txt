@@ -1,17 +1,17 @@
 === Captured verification command ===
 WORKTREE: <repository-root>
-SOURCE_HEAD: ba3699068a18b2d6e5b453fb0d9698c8b044e95a
-START: 2026-08-09T11:02:02Z
+SOURCE_HEAD: a9cccc29caff0d21e78835052d2174cc186b1069
+START: 2026-08-11T12:37:44Z
 COMMAND: bash scripts/verify-track-09.sh
 === Command output ===
 === Verification report ===
 SCRIPT: scripts/verify-track-09.sh
 TITLE: Track 09 final clean-source verification
-START: 2026-08-09T11:02:02Z
+START: 2026-08-11T12:37:44Z
 GATE: clean committed source, locked sync, and dependency advisory
 GATE: dataclass, lifecycle, lifespan, and type-source contracts
 GATE: Ruff, mypy, Pyright, warnings, full branch coverage, and migrations
-GATE: documentation, runtime/inherited evidence, security, hygiene, Docker, and cleanup
+GATE: documentation, committed report bundle, runtime/inherited evidence, security, hygiene, Docker, and cleanup
 RECEIPT: lock-check; exit=0
 RECEIPT: locked-sync; exit=0
 RECEIPT: dependency-audit; exit=0
@@ -30,14 +30,15 @@ RECEIPT: alembic-downgrade; exit=0
 RECEIPT: alembic-reupgrade; exit=0
 RECEIPT: alembic-check; exit=0
 RECEIPT: verify-docs; exit=0
+RECEIPT: verify-testing-reports; exit=0
 RECEIPT: hygiene; exit=0
 RECEIPT: cleanup-self-test; exit=0
 RECEIPT: verify-track-08; exit=0
 RECEIPT: final-clone-cleanliness; exit=0
-SUMMARY: clean-source type, warning, coverage, migration, documentation, hygiene, inherited Track 08, Docker, and cleanup evidence completed
+SUMMARY: clean-source type, warning, coverage, migration, documentation, report-bundle, hygiene, inherited Track 08, Docker, and cleanup evidence completed
 FINAL PASS: clean-source Track 09 evidence complete; no external action was performed
 CLEANUP: PASS — verified clean clone, private receipts, and disposable workspace removal
 RESULT: PASS
 === Capture result ===
-END: 2026-08-09T11:09:42Z
+END: 2026-08-11T12:54:20Z
 EXIT: 0

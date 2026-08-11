@@ -1,0 +1,36 @@
+=== Captured verification command ===
+WORKTREE: <repository-root>
+SOURCE_HEAD: a9cccc29caff0d21e78835052d2174cc186b1069
+START: 2026-08-11T12:17:27Z
+COMMAND: bash scripts/verify-track-07.sh
+=== Command output ===
+=== Verification report ===
+SCRIPT: scripts/verify-track-07.sh
+TITLE: Track 07 weekly projection verification
+START: 2026-08-11T12:17:27Z
+GATE: exact inherited Track 06 receipt
+GATE: deterministic projection, migration, quality, and coverage gates
+GATE: real process baseline, correction, restart, disabled, mismatch, JSON Lines, and cleanup evidence
+Track 07 cleanup self-test: nonzero status and cleanup verified
+Track 07 inherited Track 06 gate: passed
+Track 07 focused weekly/schema/baseline/lifecycle/correction/dirty/refresher/health selectors: passed
+Track 07 quality gate: locked sync, Ruff, mypy, Pyright, full branch coverage, make check, docs, diff: passed
+Track 07 full-suite result: 865 passed, 3 subtests passed
+Track 07 coverage result: TOTAL                                           3932      0    910      0   100%
+Track 07 migration lifecycle: upgrade, downgrade, re-upgrade, drift check passed
+Track 07 disabled bootstrap public mutation passed
+Track 07 safe disposable historic timestamp preparation passed
+Track 07 default baseline, OpenAPI parity, current statistics, and durable source-generation proof passed
+Track 07 public historic deletion correction, dual completion, and restart idempotence passed
+Track 07 post-correction restart idempotence passed
+Track 07 disabled projection retention and public-current/liveness independence passed
+Track 07 incompatible durable state preparation passed
+Track 07 calculation-version mismatch preserves current statistics and durable rows passed
+Track 07 strict JSON Lines, one-worker, lifecycle, redaction, and signal-cleanup audit passed
+Track 07 real-process baseline, correction, restart, disabled, mismatch, JSON Lines, and cleanup evidence: passed
+SUMMARY: inherited Track 06, deterministic projection, migration, real-process lifecycle, and redaction evidence completed
+CLEANUP: PASS — verified protected workspace and process-tree removal
+RESULT: PASS
+=== Capture result ===
+END: 2026-08-11T12:23:24Z
+EXIT: 0
