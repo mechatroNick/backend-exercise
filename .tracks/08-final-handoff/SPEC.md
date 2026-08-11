@@ -4,11 +4,20 @@
 - Specification version: 1.3
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
-- Depends on: Completed Tracks 01–06 and the recorded Track 07 skip decision
+- Depends on: Completed Tracks 01–07, including the Track 07 weekly-projection closure report
 - Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`,
-  `.docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-007
+  `.docs/DELIVERY-PLAN.md`, and ADR-001 through ADR-009
 
 ## Intent anchor
+
+### 2026-08-10 reopening and 2026-08-11 downstream integration closure
+
+The prior Track 08 completion receipt remains historical evidence for the then-current
+Track 07 owner-skip/absence disposition. Track 07 is now Complete with weekly private
+projection evidence, and the fresh clean-source Track 08 run at `d6c08e0` integrated
+that delivered dependency with `RESULT: PASS`. This supersedes only the active closure
+posture; it preserves the historical exact facts, counts, and clean-source HEAD in the
+earlier report section.
 
 Prepare a reproducible, reviewable local assessment handoff from the *delivered*
 repository. Track 08 verifies and documents evidence; it does not invent outcomes,
@@ -17,13 +26,15 @@ submission link without later repository-owner authority.
 
 ## Must preserve
 
-- All delivered public API, security, data, current-statistics, and event contracts
-  accepted by Tracks 00–06. Track 07 weekly projections are explicitly not selected.
+- All delivered public API, security, data, current-statistics, event, and Track 07
+  private-projection contracts. Track 07 adds no public weekly/history API and must
+  remain compatible with the same named non-daemon refresher, without an external
+  worker or topology change.
 - The mandatory quality gate as the prerequisite for bonus work; bonuses are required
   by the current owner decision but cannot weaken, obscure, or substitute for the
   required suite.
-- Local Python/SQLite, one-worker, in-process-service assessment scope and the
-  required current-statistics boundary without private weekly projection data.
+- Local Python/SQLite, one-worker, in-process-service assessment scope, private Track
+  07 projection persistence, and the required all-current statistics boundary.
 - No public statistics-history API by default.
 - Honest evidence: documentation, AI-assisted-work disclosure, walkthrough, and
   release note state only what the repository and owner-provided evidence support.
@@ -41,7 +52,8 @@ bonus decision requires the owning implementation track/ADR review first.
 Included:
 
 - final verification of every selected assessment requirement and accepted extension
-  against actual Track 00–06 closure evidence plus the Track 07 skip record;
+  against actual Track 00–07 closure evidence, including the exact Track 07 report,
+  provenance, and executable harness;
 - a clean-clone Python 3.12 and locked-`uv` rehearsal for configuration, migration,
   bootstrap/run, tests, OpenAPI/docs, and health evidence;
 - a root README that reflects delivered setup, migration, run, API, testing,
@@ -59,16 +71,17 @@ Excluded:
 - external submission/link creation, pushing, release publication, or deployment;
 - external workers/brokers, multi-process coordination, PostgreSQL, and production
   infrastructure (FUT-01 is documentation-only);
-- weekly developing/developed tables, correction revisions, historical consumers, or
-  a public weekly-statistics API; and
+- a public weekly-statistics/history API, external worker, or weekly-projection
+  topology change; Track 07's delivered private persistence remains in scope for
+  compatibility verification; and
 - rewriting, squashing, or otherwise mutating history unless the owner later asks.
 
 ## Requirements
 
 | ID | Requirement |
 | --- | --- |
-| T08-REQ-01 | Do not begin hardening until Tracks 01–06 are Complete with actual closure `TEST-REPORT.md` artifacts and Track 07 is recorded Skipped; Track 00 remains the completed baseline. |
-| T08-REQ-02 | Verify all selected assessment rows and record WIN-01/WIN-02 as owner-skipped without fabricated evidence: GOV-01; ENV-01, ARC-01, DATA-01…DATA-04; AUTH-01…AUTH-04, ERR-01, SEC-01; BKM-01…BKM-03, ISO-01, TAG-01, TIME-01; QRY-01, QRY-02, SQL-01…SQL-03; EVT-01…EVT-03, WIN-03, OPS-01; API-01, API-02, TEST-01, TEST-02, QUAL-01; DEL-01…DEL-03, DOC-01, BONUS-01, BONUS-02, and FUT-01. |
+| T08-REQ-01 | Do not re-close until Tracks 01–07 are Complete with actual closure reports; inspect the exact Track 07 report, provenance ledger, and executable harness. Track 00 remains the completed baseline. |
+| T08-REQ-02 | Verify all selected assessment rows, including WIN-01/WIN-02 as delivered by Track 07 evidence: GOV-01; ENV-01, ARC-01, DATA-01…DATA-04; AUTH-01…AUTH-04, ERR-01, SEC-01; BKM-01…BKM-03, ISO-01, TAG-01, TIME-01; QRY-01, QRY-02, SQL-01…SQL-03; EVT-01…EVT-03, WIN-01…WIN-03, OPS-01; API-01, API-02, TEST-01, TEST-02, QUAL-01; DEL-01…DEL-03, DOC-01, BONUS-01, BONUS-02, and FUT-01. |
 | T08-REQ-03 | Rehearse the delivered project from a clean clone with Python 3.12 and the committed `uv` lock: configure, migrate, bootstrap/run, exercise tests, OpenAPI/docs, and health without undocumented manual setup. |
 | T08-REQ-04 | Deliver documentation based on facts: root README quickstart/API/testing, project and local deployment architecture, design choices, trade-offs, limitations, and production evolution. |
 | T08-REQ-05 | Deliver DEL-03 disclosure based only on actual assistance/process evidence and the owner-provided private authorization/provenance boundary; do not store private correspondence or make unsupported claims. |
@@ -82,8 +95,9 @@ Excluded:
 Track 08 closes only when the following are actual, recorded results rather than
 planned claims:
 
-- Tracks 01–06 are Complete and each closure report is inspected; Track 07 is verified
-  Skipped with no weekly artifacts; all assessment requirement IDs have a current
+- Tracks 01–07 are Complete and each closure report is inspected; the exact Track 07
+  report/provenance/harness and private persistence/Docker compatibility are verified;
+  no public weekly/history API or external/second refresher exists; all assessment IDs have a current
   evidence row or an explicit owner-authorized skip/limit;
 - a clean clone on Python 3.12 succeeds with the committed lock and documented
   configuration/migration/bootstrap/run/test workflow;
@@ -105,7 +119,8 @@ requires recorded passing deterministic, integration, contract, migration, quali
 security, and real-process evidence, including the final
 `bash scripts/verify-track-08.sh` receipt and verified cleanup. A planned, unrun,
 blocked, or stale prerequisite command/report is never passing evidence. Track 07's
-owner-authorized skip is a scope disposition, not a passing report. The
+earlier owner-authorized skip remains historical; the current dependency is its Passed
+report and executable verifier. The
 final harness is an automation/orchestration gate, not a replacement for the
 track-owned deterministic proof or a basis for a public history API. Its final JSON
 audit validates `source`, service/component, event, level, UTC timestamp, logger,
@@ -149,5 +164,5 @@ history rewriting/squashing, or use/disclosure of private correspondence.
 | FUT-01 | README limitations/production-evolution section; no external infrastructure implementation. |
 | BONUS-01 | Required by owner decision after mandatory green: deterministic seed command, idempotency/safety evidence, and documented invocation. |
 | BONUS-02 | Required by owner decision after mandatory green: Docker setup, rate limiting, and cursor pagination, each with isolated contract/edge evidence. |
-| WIN-01, WIN-02 | Explicit Track 07 owner-skipped disposition; no implementation evidence claimed. |
-| All remaining assessment IDs | Track 01–06 closure-report inventory plus the Track 07 skip record reconciled in the passing final [TEST-REPORT.md](TEST-REPORT.md), with clean-clone and runtime checks. |
+| WIN-01, WIN-02 | Delivered by the completed Track 07 report/harness and reverified by the passing Track 08 clean-source integration receipt at `d6c08e0`. |
+| All remaining assessment IDs | Reconciled by the Track 01–07 closure-report inventory, including Track 07 provenance/harness, and the passing final [TEST-REPORT.md](TEST-REPORT.md) with fresh clean-clone and runtime checks. |

@@ -26,9 +26,9 @@ versions, requirement selectors, artifacts inspected, cleanup result, known gaps
 and any preserved debug-artifact location. A planned, blocked, skipped, or unrun
 command is never a passing result. A work item or track is **Complete** only when
 its stated evidence exists and passes; **Ready**, **Pending**, and **Blocked** are
-not done. A track may not close with missing executable evidence. Track 07 is an
-explicit owner-skipped scope record, not an executable track: it must not receive a
-harness or report and is exempt from this executable-harness rule.
+not done. A track may not close with missing executable evidence. The revived Track 07
+therefore has its own deterministic and real-process harness plus a truthful report;
+its earlier owner-skip remains historical context only.
 
 ## Structured logging
 

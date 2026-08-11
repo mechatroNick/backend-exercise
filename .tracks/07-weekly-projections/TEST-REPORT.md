@@ -1,10 +1,31 @@
 # Track 07 test report: weekly event-time projections and correction revisions
 
-- Status: **Complete**
-- Evidence commit: `08a86b3`
-- Verification date: 2026-08-10
+- Status: Passed
+- Latest evidence source: `14d30ce`
+- Original closure evidence commit: `08a86b3`
+- Latest verification date: 2026-08-11
 - Governing ADRs: ADR-004, ADR-005, ADR-006, ADR-009
-- Scope: Track 07 only; no post-merge or downstream Track 08/09 validation is claimed.
+- Scope: Track 07 post-merge revalidation on the Track 08 integration branch; no
+  completed downstream Track 08/09 result is claimed here.
+
+## Latest engineering-standards revalidation
+
+After the original closure and merge, review found and corrected two bounded Track 07
+quality gaps in separate commits: `e7cff24` moved dirty/overdue entry validation and
+clock normalization under the exact-one rollback boundary, and `14d30ce` retained an
+unexpected projection failure's traceback only in transient private state so the final
+worker boundary emits one sanitized structured exception record per failure streak.
+The changes preserve public/current-statistics behavior, low-cardinality readiness,
+version-mismatch handling, recovery events, and strict Pydantic state models.
+
+The primary then ran one continuous `bash scripts/verify-track-07.sh` at source
+`14d30ce` and received `RESULT: PASS`. The exact inherited Track 06 gate, focused
+projection selectors, locked sync, Ruff, mypy, Pyright, `make check`, documentation,
+whitespace, migrations, and complete statement/branch coverage passed. The full suite
+reported **865 tests plus 3 subtests**, with **3,932 statements**, **910 branches**, and
+**100%** coverage. The real-process baseline, correction, post-correction restart,
+disabled projection, incompatible-version, JSON Lines/redaction, one named non-daemon
+worker, SIGTERM, and cleanup phases all passed.
 
 ## Actual closure receipt
 
@@ -61,6 +82,8 @@ The verified Track 07 change sequence is:
 7. `4879a3a`
 8. `49992d7`
 9. `08a86b3`
+10. `e7cff24`
+11. `14d30ce`
 
 ## Downstream handoff and boundary
 

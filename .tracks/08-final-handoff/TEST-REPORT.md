@@ -1,20 +1,53 @@
 # Track 08 final test report
 
 - Status: Passed
-- Date: 2026-08-09
-- Clean source HEAD: `ff32511e9cc0e2df8d7681e2c16b3dddb579faae`
-- Scope: Final clean-source Track 08 verification, documentation handoff, selected
-  bonus delivery, hygiene, and cleanup. Owner-only external release actions are out
-  of scope and were not performed.
+- Latest verification date: 2026-08-11
+- Latest clean source HEAD: `d6c08e082a5ac1b7d79b47995f06c1467a037a0b`
+- Scope: Current final clean-source Track 08 verification, completed Track 07 private
+  projection integration, documentation handoff, bonus delivery, hygiene, Docker, and
+  cleanup. Owner-only external release actions remain out of scope and were not performed.
 
-## Final result
+## Current final result
+
+`bash scripts/verify-track-08.sh` passed continuously from a clean clone of the exact
+recorded source and ended with `RESULT: PASS`. It ran the documentation verifier and
+the exact Track 01 through Track 07 harnesses in order, then verified their report,
+plan, and commit provenance. The focused Track 08 selector passed **100 tests**. The
+complete suite passed **865 tests plus 3 subtests in 45.89 seconds**, and coverage
+reported **3,932 statements**, **910 branches**, and **100%**.
+
+Ruff format/lint, strict application mypy, migration upgrade/downgrade/re-upgrade/drift,
+seed migration/idempotency, real one-worker Uvicorn, safe runtime API/OpenAPI/health,
+JSON Lines/redaction/shutdown, repository hygiene, and the Track 07 private-persistence/
+no-public-history/single-refresher boundary passed. Docker then built the image before
+the post-build contract selector and proved migrate-only, UID 10001 non-root execution,
+one Uvicorn worker, liveness/readiness, exact refresher lifecycle, JSON Lines, graceful
+SIGTERM, and recursive container/image/volume/workspace cleanup. The dependency audit
+found no known vulnerability; only the local `bookmarks-api` distribution lacks external
+license metadata and remains an explicit owner-review item.
+
+The run incorporated the engineering-standards corrections at `e7cff24` and `14d30ce`:
+projection validation failures roll back exactly once, and unexpected projection-cycle
+failures retain traceback frames only long enough for one sanitized final-boundary JSON
+exception record. A separate warning-fatal full suite passed with `DeprecationWarning`,
+`PendingDeprecationWarning`, and Starlette deprecations treated as errors; source scans
+found no standard-library dataclass or legacy FastAPI/Pydantic/SQLAlchemy API.
+
+## Historical pre-revival receipt
+
+- Historical clean source HEAD: `ff32511e9cc0e2df8d7681e2c16b3dddb579faae`
+- Historical verification date: 2026-08-09
+
+### Historical final result
 
 `bash scripts/verify-track-08.sh` passed on a clean source checkout at the recorded
 HEAD. It completed the pre-closure reader package and inherited Track 01–06 harnesses,
 focused bonus checks, full regression, static analysis, migration lifecycle, real
-Uvicorn, Docker, security/hygiene, and cleanup checks. Track 07 remains an explicit
-owner skip, not passing implementation evidence. No unresolved critical, high,
-medium, or low defect remains.
+Uvicorn, Docker, security/hygiene, and cleanup checks. Its Track 07 owner-skip
+statement is historical for that run; it does not include the later delivered Track 07
+implementation or fresh Track 08 integration proof. This report is not a current
+Passed claim. No unresolved critical, high, medium, or low defect was recorded by that
+historical run.
 
 ## Environment and locked dependencies
 
@@ -66,7 +99,7 @@ The final harness found and corrected gate defects without asserting a product d
 | `940c838` | Bounded Docker removal visibility. |
 | `ff32511` | Container-versus-image typed inspect and final clean-source pass. |
 
-## Requirement disposition
+### Historical requirement disposition
 
 The final matrix reconciles all 43 requirement IDs: Track 00–06 owned rows have their
 passed reports and re-executed harness evidence; WIN-01/WIN-02 are owner-skipped via

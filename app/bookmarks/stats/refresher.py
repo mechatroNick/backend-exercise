@@ -187,6 +187,7 @@ class StatsRefresher:
         self._projection_last_success_at: datetime | None = None
         self._projection_consecutive_failures = 0
         self._projection_last_error_code: str | None = None
+        self._projection_failure_for_log: Exception | None = None
         self._projection_backlog_observed = False
         self._projection_disabled_logged = False
 
@@ -515,7 +516,9 @@ class StatsRefresher:
                 version_compatible=False,
                 error_code="calculation_version_mismatch",
             )
-        except Exception:
+        except Exception as error:
+            with self._state_lock:
+                self._projection_failure_for_log = error
             return _ProjectionCycleResult(
                 status=ProjectionLifecycleStatus.FAILED,
                 successful=False,
@@ -554,6 +557,8 @@ class StatsRefresher:
         with self._state_lock:
             previous_status = self._projection_baseline_status
             prior_failures = self._projection_consecutive_failures
+            unexpected_failure = self._projection_failure_for_log
+            self._projection_failure_for_log = None
             recovered = prior_failures > 0 and result.successful
             self._projection_baseline_status = result.status
             self._projection_version_compatible = result.version_compatible
@@ -606,13 +611,16 @@ class StatsRefresher:
                 message="weekly projection baseline completed",
             )
         if not result.successful and prior_failures == 0:
-            self._log_event(
-                logging.WARNING,
-                "bookmark_stats.projection_failed",
-                outcome="degraded",
-                message="weekly projection failed",
-                context={"failure_count": failure_count},
-            )
+            if unexpected_failure is None:
+                self._log_event(
+                    logging.WARNING,
+                    "bookmark_stats.projection_failed",
+                    outcome="degraded",
+                    message="weekly projection failed",
+                    context={"failure_count": failure_count},
+                )
+            else:
+                self._log_projection_failure(unexpected_failure, failure_count)
         elif recovered:
             self._log_event(
                 logging.INFO,
@@ -830,6 +838,23 @@ class StatsRefresher:
                 exception=safe_error,
                 message="statistics refresh cycle failed",
                 context=self._safe_context(context),
+                component="bookmark_stats_refresher",
+                stacklevel=2,
+            )
+
+    def _log_projection_failure(self, error: Exception, failure_count: int) -> None:
+        """Emit one safe unexpected-projection exception record for a failure streak."""
+        safe_error = _RefresherBoundaryError("weekly projection failed").with_traceback(
+            error.__traceback__
+        )
+        with suppress(Exception):
+            log_exception(
+                self._logger,
+                "bookmark_stats.projection_failed",
+                exception=safe_error,
+                outcome="degraded",
+                message="weekly projection failed",
+                context=self._safe_context({"failure_count": failure_count}),
                 component="bookmark_stats_refresher",
                 stacklevel=2,
             )

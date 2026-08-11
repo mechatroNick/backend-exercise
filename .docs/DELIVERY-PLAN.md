@@ -14,9 +14,9 @@ flowchart LR
     T03 --> T04["04 Search and current stats"]
     T04 --> T05["05 Mandatory quality gate"]
     T05 --> T06["06 Event-driven current snapshots"]
-    T06 --> T08["08 Final hardening and all bonuses"]
+    T06 --> T07["07 Private weekly projections"]
+    T07 --> T08["08 Final hardening and all bonuses"]
     T08 --> T09["09 Final cleanup and reader handoff"]
-    T07["07 Weekly projections — skipped"] -. "scope record" .-> T08
 ```
 
 Detailed execution artifacts may be created sequentially after upstream plan review
@@ -51,9 +51,9 @@ No track is considered complete based only on code presence. Completion requires
 | 04 | Search/filter/pagination and correct raw-SQL current statistics | 03 | Complete |
 | 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Complete |
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
-| 07 | Weekly developing/developed points and append-only correction projections | None | **Skipped (owner decision)** |
-| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–06 plus 07 skip record | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Complete |
+| 07 | Weekly developing/developed points and append-only correction projections | 06 | Complete |
+| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | Complete |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Pre-revival completion; final refresh pending |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -66,7 +66,7 @@ Create a durable and internally consistent interpretation of the exercise before
 - preserve the supplied assessment in `.docs/`;
 - extract a requirement-to-evidence matrix;
 - record all confirmed choices and rejected alternatives in accepted ADRs;
-- distinguish delivered current statistics from the owner-skipped weekly projection design;
+- distinguish the public current-statistics contract from delivered private weekly projections;
 - define system boundaries, runtime topology, data invariants, testing strategy, and delivery tracks;
 - identify any remaining material ambiguity and ask before implementation.
 
@@ -74,8 +74,8 @@ Create a durable and internally consistent interpretation of the exercise before
 
 - every assessment requirement has a stable identifier and track owner in [ASSESSMENT.md](ASSESSMENT.md);
 - [SOLUTION-DESIGN.md](SOLUTION-DESIGN.md) links every accepted ADR;
-- ADR-005 retains the weekly event-time/correction design as an archived option while
-  the track records its implementation as skipped;
+- ADR-005 and ADR-009 define the delivered weekly event-time/correction design while
+  preserving the public current-statistics contract;
 - the plan puts the complete mandatory gate before optional/extended runtime behavior;
 - a reader can explain what is required, what is an extension, and how correctness will be demonstrated without consulting chat history.
 
@@ -282,30 +282,31 @@ Add the loose-coupled runtime requested by the user while retaining live raw-SQL
 
 `feat: add observable event-driven statistics refresh`
 
-## 11. Track 07 — Skipped weekly projection and correction revisions
+## 11. Track 07 — Private weekly projection and correction revisions
 
 ### Outcome
 
-Record the owner decision not to implement weekly developing/developed points or
-append-only corrections.
+Deliver private weekly developing/developed points and append-only corrections through
+the existing one-worker statistics lifecycle without adding a public history API.
 
 ### Included
 
-- explicit Skipped status in SPEC, PLAN, HISTORY, indexes, and reader docs;
-- no weekly migration, table, consumer, backfill, route, or worker extension;
-- terminal Track 06 current-only generation completion;
-- Track 08 dependency on the skip record rather than Track 07 closure evidence.
+- migrated working, immutable point-revision, and restartable baseline state;
+- dual current/projection dirty-generation completion with stale-write protection;
+- UTC Monday windows, canonical versioned payloads, restartable baseline, rollover,
+  corrections, and readiness integration in the existing refresher;
+- no public weekly/history route and no second worker or external broker.
 
 ### Acceptance evidence
 
-- documentation verification confirms the explicit skip everywhere current scope is described;
-- no Track 07 product artifact or `scripts/verify-track-07.sh` exists;
-- Track 08 does not require a Track 07 `TEST-REPORT.md`;
-- current `/api/bookmarks/stats` remains the only statistics surface.
+- deterministic and real-process `scripts/verify-track-07.sh` evidence passes with 100%
+  branch coverage, migration lifecycle, restart/correction/disabled/mismatch proofs;
+- `TEST-REPORT.md` records the actual incremental commits and continuous receipt;
+- current `/api/bookmarks/stats` remains the only public statistics surface.
 
 ### Proposed commit
 
-No implementation commit. The scope decision is documentation-only.
+`feat: add private weekly projections and correction revisions`
 
 ## 12. Track 08 — Final hardening, documentation, and handoff
 
@@ -353,9 +354,9 @@ Turn the working solution into a concise, reproducible senior-level submission w
 ### Outcome
 
 Finish the repository as a fresh-reader-friendly assessment without changing the
-accepted HTTP, persistence, security, statistics, one-worker, or Track 07 absence
-contracts. Its clean-source/Docker branch gate and exact merged-`main` rerun passed;
-the track is **Complete**.
+accepted HTTP, persistence, security, statistics, or one-worker contracts. Its
+pre-revival clean-source/Docker evidence remains historical; the pending final refresh
+must inherit the passing Track 08 integration of completed Track 07.
 
 ### Included
 
@@ -371,13 +372,15 @@ the track is **Complete**.
 
 - the unchanged OpenAPI inventory remains 10 operations and 45 status pairs, and the
   requirement map remains 43 IDs;
-- all eight accepted ADRs and Tracks 00–09 are accurately indexed;
-- final evidence reports 743 tests plus 3 subtests and 2,953 statements / 618 branches
-  at 100% on the branch and merged-main gates;
-- `verify-docs`, Tracks 01–06, Track 08, and the new Track 09 gate emit standalone
-  terminal reports; Track 07 remains owner-skipped and has no verifier;
+- all nine accepted ADRs and Tracks 00–09 are accurately indexed;
+- historical pre-revival evidence reports 743 tests plus 3 subtests and 2,953
+  statements / 618 branches at 100%; Track 08 now reports 865 tests plus 3 subtests
+  and 3,932 statements / 910 branches at 100%; refreshed Track 09 branch and merged-
+  main receipts remain pending;
+- `verify-docs`, Tracks 01–07, Track 08, and the Track 09 gate emit standalone terminal
+  reports, with Track 08 inheriting the exact Track 07 verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are
-  nonzero incomplete, never a pass or skip; the merged-main rerun passed.
+  nonzero incomplete, never a pass or skip; the fresh merged-main rerun remains pending.
 
 ### Proposed commit
 
@@ -408,7 +411,7 @@ the track is **Complete**.
 | Background thread creates a second source of truth | Canonical recomputation and live raw-SQL fallback. | 06 |
 | In-process event loss leaves stale current work | Durable dirty generation in mutation transaction. | 06 |
 | Worker deletes a newly dirtied marker | Generation compare-and-delete. | 06 |
-| Skipped weekly scope is accidentally reintroduced | Documentation verifier and Track 08 absence audit reject weekly artifacts. | 07, 08 |
+| Private weekly history becomes a public API or second worker | Contract/Docker checks allow private rows while rejecting public history and external worker topology. | 07, 08 |
 | Bonus work regresses the mandatory API | Isolated bonus commits plus full final harness after all bonuses. | 08 |
 | Extension consumes time while mandatory API is incomplete | Hard Track 05 gate before Track 06. | 05 |
 | Documentation overstates the implementation | Write final README process/evidence from verified repository state. | 08 |
@@ -418,9 +421,8 @@ the track is **Complete**.
 The project is done only when:
 
 - every mandatory assessment requirement has passing evidence;
-- all eight accepted ADRs are implemented, adopted as governance constraints, archived
-  by an explicit owner skip, or explicitly superseded;
-- current statistics remain correct and weekly historical projections remain explicitly skipped;
+- all nine accepted ADRs are implemented, adopted as governance constraints, or explicitly superseded;
+- current statistics remain correct while weekly projections remain private and append-only;
 - the application bootstraps locally with all internal services visible in logs;
 - migrations, lint, type checks, tests, OpenAPI conformance, and representative runtime smoke tests pass;
 - all selected Track 08 bonuses have their recorded evidence, Track 09's branch

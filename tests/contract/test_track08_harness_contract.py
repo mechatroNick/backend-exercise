@@ -77,7 +77,7 @@ def test_track08_harness_invokes_exact_required_evidence_and_quality_gates() -> 
     source = _harness()
 
     assert "run_private verify-docs bash scripts/verify-docs.sh" in source
-    for track in range(1, 7):
+    for track in range(1, 8):
         assert (
             f"run_private verify-track-{track:02d} bash scripts/verify-track-{track:02d}.sh"
             in source
@@ -120,7 +120,13 @@ def test_track08_harness_invokes_exact_required_evidence_and_quality_gates() -> 
         "invalid_cursor",
         "rate_limited",
         "Retry-After",
-        "Track 07 owner-skipped disposition and absence boundary; exit=0",
+        "Track 07 Complete/private projection/no-public-history/single-worker boundary; exit=0",
+        "verify_track07_private_boundary",
+        "0003_weekly_stats_projections.py",
+        "public weekly/history API surface is present",
+        "external projection worker or broker component is present",
+        "runtime named non-daemon refresher evidence is absent",
+        "Docker named non-daemon refresher evidence is absent",
         "assert_upstream_provenance",
         "merge-base --is-ancestor",
         "cat-file -e",

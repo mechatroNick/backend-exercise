@@ -45,6 +45,7 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 06: event-driven statistics execution plan](../.tracks/06-event-driven-stats/PLAN.md)
 - [Track 07: weekly-projections specification](../.tracks/07-weekly-projections/SPEC.md)
 - [Track 07: weekly-projections plan](../.tracks/07-weekly-projections/PLAN.md)
+- [Track 07: weekly-projections test report](../.tracks/07-weekly-projections/TEST-REPORT.md)
 - [Track 08: final handoff specification](../.tracks/08-final-handoff/SPEC.md)
 - [Track 08: final handoff execution plan](../.tracks/08-final-handoff/PLAN.md)
 - [Track 08: final test report](../.tracks/08-final-handoff/TEST-REPORT.md)
@@ -53,10 +54,11 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 09: final cleanup history](../.tracks/09-final-cleanup-docs/HISTORY.md)
 - [Track 09: final test report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md)
 
-Track 07 is **In progress** under ADR-009 and has no implementation, harness, or
-closure evidence yet. Track 08 and Track 09 are pre-revival completion records; their
-active documents must be reopened and updated in a later downstream integration
-checkpoint. External release actions remain owner-only and were not performed.
+Track 07 is **Complete** under ADR-009 with private weekly projections, an executable
+harness, and closure evidence. Track 08 is **Complete** with fresh clean-source/Docker
+integration, and Track 09's pre-revival completion remains historical until its final
+downstream refresh inherits that passing gate. External release actions remain owner-
+only and were not performed.
 
 ## Authority
 

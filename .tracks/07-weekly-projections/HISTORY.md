@@ -1,5 +1,25 @@
 # Track 07 history
 
+## 2026-08-11 — Post-merge engineering-standards revalidation passed
+
+- Corrected projection entry validation/clock failures to use the shared exact-one
+  rollback path in `e7cff24`, with deterministic type, canonical-window, future-window,
+  and naive-clock regressions.
+- Corrected the final projection worker boundary in `14d30ce` to preserve traceback
+  frames through transient private state and emit exactly one sanitized structured
+  exception record for the first unexpected failure in a streak. Expected calculation-
+  version mismatch remains a low-cardinality warning; repeated failures are suppressed
+  and recovery behavior is unchanged.
+- A source inventory found no application/test dataclass, deprecated FastAPI lifecycle,
+  Pydantic v1, SQLAlchemy legacy-query, or deprecated datetime/asyncio use. The warning-
+  fatal full suite passed with `DeprecationWarning`, `PendingDeprecationWarning`, and
+  Starlette deprecations treated as errors.
+- The primary reran `bash scripts/verify-track-07.sh` continuously at `14d30ce` and
+  received `RESULT: PASS`: exact inherited Track 06, focused selectors, quality/static
+  gates, 865 tests plus 3 subtests, 3,932 statements and 910 branches at 100%, migration
+  lifecycle, all real-process projection phases, JSON Lines/redaction, SIGTERM, and
+  verified cleanup passed.
+
 ## 2026-08-10 — T07-08/T07-09 continuous closure evidence completed
 
 - The primary ran `bash scripts/verify-track-07.sh` continuously on commit `08a86b3`

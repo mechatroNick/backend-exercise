@@ -94,8 +94,8 @@ validation, and reviewer-explainable ownership.
 | EVT-01 | User-decided | Publish non-sensitive post-commit invalidation events for material bookmark mutations. | 06 | Transaction-order and event-content tests. |
 | EVT-02 | User-decided | Drain a bounded in-process queue every configurable 10 seconds and coalesce affected users. | 06 | Deterministic queue/clock tests without real sleeps. |
 | EVT-03 | User-decided | Recompute canonical statistics with raw SQL and atomically publish snapshots with live fallback. | 06 | Snapshot/live parity, failure, stale, and disabled-worker tests. |
-| WIN-01 | Owner-skipped | Recalculate one developing UTC weekly event-time point per user. | 07 | Explicit skip record; no implementation evidence claimed. |
-| WIN-02 | Owner-skipped | Append immutable developed points and correction revisions for late changes. | 07 | Explicit skip record; no implementation evidence claimed. |
+| WIN-01 | Delivered extension | Recalculate one developing UTC weekly event-time point per user. | 07 | Working-row, baseline, rollover, correction, restart, and real-process evidence. |
+| WIN-02 | Delivered extension | Append immutable developed points and correction revisions for late changes. | 07 | Revision-chain, race, no-op, zero-correction, migration, and real-process evidence. |
 | WIN-03 | User-decided | Use durable dirty-window markers to recover queue loss and post-commit crash windows. | 06 | Restart/overflow recovery tests. |
 | OPS-01 | User-decided | Start services together, name the worker thread, expose meaningful liveness/readiness, and attribute logs by service. | 06 | Lifespan, health-state, shutdown, and log-capture tests. |
 
@@ -126,15 +126,16 @@ validation, and reviewer-explainable ownership.
 | Explicit REST, filters, tags, and timestamp rules | [ADR-002](../.tracks/ADR/ADR-002-api-contract-and-timestamps.md) | Deterministic API and test behavior. |
 | Canonical identity, Argon2, and access-only JWT | [ADR-003](../.tracks/ADR/ADR-003-identity-and-token-security.md) | Proportionate local authentication without refresh-token scope. |
 | Event queue and managed statistics thread | [ADR-004](../.tracks/ADR/ADR-004-event-driven-statistics-service.md) | Eventual snapshot acceleration while preserving a canonical live raw-SQL path. |
-| UTC weekly event-time windows and immutable corrections | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) | Accepted design retained for reference; Track 07 implementation is owner-skipped. |
+| UTC weekly event-time windows and immutable corrections | [ADR-005](../.tracks/ADR/ADR-005-windowed-statistics-data-points.md) | Delivered privately by Track 07 under the ADR-009 revival; no public history API. |
 | Local rate limiting and authenticated keyset cursors | [ADR-007](../.tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md) | Bounded one-worker limits and opt-in cursor traversal preserve mandatory API compatibility. |
 
 ## Completion invariant
 
 Track 04 must provide a complete, current, user-scoped raw-SQL statistics endpoint,
 and Track 05 must close the mandatory quality gate before Track 06 overlays queueing
-and snapshots. Track 07 history is skipped. Disabling or failing the background
-extension must not break the core endpoint or change its response body.
+and snapshots. Track 07 adds private weekly projections without changing the public
+current-statistics body or adding a history route. Disabling or failing the background
+extension must not break the core endpoint or liveness; it degrades readiness only.
 
 ## Non-goals
 
