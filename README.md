@@ -115,7 +115,7 @@ Track 07's latest continuous receipt passed 865 tests plus 3 subtests, 100% bran
 coverage over 3,932 statements and 910 branches, migrations, and six real-process
 projection phases. Track 08's clean-source/Docker integration receipt passed those same
 full counts after invoking exact Tracks 01–07. Track 09 retains its pre-revival evidence;
-its final downstream refresh is pending. A dirty/non-clean source
+its final downstream refresh is now in progress on a dedicated branch. A dirty/non-clean source
 is a **failure**; explicit development
 seams and an unavailable Docker daemon are nonzero **incomplete** results, never pass.
 
@@ -191,7 +191,7 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 06 | Complete — event-driven current snapshots, health, and observability. |
 | 07 | Complete — private weekly projections, corrections, readiness, and executable evidence. |
 | 08 | Complete — clean-source/Docker integration passed with completed Track 07. |
-| 09 | Pre-revival completion record — final downstream refresh pending. |
+| 09 | In progress — pre-revival evidence preserved while final receipts are refreshed. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,

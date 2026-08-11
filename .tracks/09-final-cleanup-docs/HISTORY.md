@@ -1,5 +1,21 @@
 # Track 09 history
 
+## 2026-08-11 — Reopened for completed Track 07 and current Track 08 integration
+
+- Created `codex/track-09-weekly-integration` from verified Track 08 merge `a9cccc2`.
+  The Track 08 clean-source receipt at `d6c08e0` passed exact Tracks 01–07, 100 focused
+  tests, 865 tests plus 3 subtests, 3,932 statements and 910 branches at 100%, runtime,
+  Docker, hygiene, and cleanup.
+- The 2026-08-09 Track 09 implementation/branch/merged-main evidence remains truthful
+  historical evidence for its pre-revival Track 07 owner-skip scope; it is not current
+  Track 07 integration evidence and is not rewritten as if it tested later code.
+- Reopened Track 09 under T09-10/T09-11 to replace the public owner-skip receipt with
+  an exact Track 07 PASS receipt, update automation/contracts/reader records, rerun the
+  clean-source final gate, independently review closure, merge to main, rerun on merged
+  main, regenerate the tamper-evident bundle, and push the verified result.
+- No current Track 09 pass, merge, report-bundle refresh, or external action is claimed
+  by this reopening checkpoint.
+
 ## 2026-08-09 — Planning and dependency gate opened
 
 - Started `codex/track-09-final-cleanup-docs` from completed Track 08 commit

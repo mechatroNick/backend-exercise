@@ -1,20 +1,25 @@
-# Track 09 final test report
+# Track 09 final test report — historical pre-revival receipt
 
-- Status: Passed
+- Status: Historical/superseded — current Track 07/08 integration refresh pending
 - Date: 2026-08-09
 - Clean implementation evidence HEAD: `c92dc353a84aa06cd6496e83543d3828910be746`
 - Clean branch closure evidence HEAD: `62780a77431e3f64db9df9f29af133fb736562c0`
 - Merged main evidence HEAD: `ce16aa187a8b281873e1b290b3c826d3ad552d1c`
-- Scope: Track 09 implementation, comprehensive clean-source verification, exact
+- Historical scope: Track 09 implementation, comprehensive clean-source verification, exact
   inherited Track 08 verification, Docker delivery, merge, post-merge verification,
   and cleanup. Owner-only external release actions are not claimed by this receipt.
 
-## Final result
+The counts, commits, and outcomes below remain exact for the 2026-08-09 scope. They do
+not claim the later Track 07 implementation, current Track 08 integration, refreshed
+public receipt bundle, current Track 09 branch, or a new merged-main result.
+
+## Historical final result
 
 `bash scripts/verify-track-08.sh` and `bash scripts/verify-track-09.sh` passed from the
 recorded clean committed source. No development seam, Docker skip, warning allowance,
-coverage waiver, or stale historical receipt was treated as a pass. Track 07 remains
-an explicit owner skip and no weekly-history implementation exists. The branch was
+coverage waiver, or stale historical receipt was treated as a pass. At that historical
+source, Track 07 remained an explicit owner skip and no weekly-history implementation
+existed. The branch was
 merged with merge commit `ce16aa1`, and the exact Track 09 gate passed again on that
 clean merged `main` commit.
 

@@ -61,7 +61,7 @@ flowchart LR
 | 06 | Event queue, durable dirty recovery, current snapshots, health, and observability | 05 | Complete |
 | 07 | Weekly developing points and append-only correction revisions | 06 closure evidence | Complete |
 | 08 | Final hardening, documentation, assessment handoff, and all bonuses | Completed Track 07 | Complete |
-| 09 | Final cleanup, documentation migration, and standalone test reports | Completed Track 08 | Pre-revival completion; final refresh pending |
+| 09 | Final cleanup, documentation migration, and standalone test reports | Completed Track 08 | In progress — final refresh |
 
 Detailed `SPEC.md`, `PLAN.md`, and `HISTORY.md` artifacts may be created
 sequentially after review of upstream plans, so a downstream track can be prepared
@@ -72,8 +72,8 @@ implementation.
 
 Current scope decision: Track 07 is Complete under ADR-009 with private projection
 persistence, the existing one-worker integration, a harness, and a closure report.
-Track 08's downstream clean-source/Docker verification passed; Track 09 retains a pre-
-revival completion record pending its final refresh against that gate. External push,
+Track 08's downstream clean-source/Docker verification passed; Track 09 retains its pre-
+revival completion record while its dedicated final refresh runs against that gate. External push,
 archive, sharing, deployment, and
 submission remain owner-only actions outside repository completion.
 
