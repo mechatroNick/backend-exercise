@@ -96,16 +96,15 @@ class ProjectionProcessor:
 
     def process_dirty(self, session: Session, marker: DirtyMarker) -> ProjectionProcessResult:
         """Durably apply one observed generation, or roll every write back when stale."""
-        if not isinstance(marker, DirtyMarker):
-            raise TypeError("marker must be a DirtyMarker")
-        now = normalize_utc(self._clock.now())
-        window = WeeklyWindow.from_datetime(marker.window_start)
-        if window.start != marker.window_start:
-            raise ProjectionCandidateError("dirty marker window is not canonical")
-        if window.start > now:
-            self._rollback(session)
-            raise ProjectionCandidateError("future dirty marker cannot be projected")
         try:
+            if not isinstance(marker, DirtyMarker):
+                raise TypeError("marker must be a DirtyMarker")
+            now = normalize_utc(self._clock.now())
+            window = WeeklyWindow.from_datetime(marker.window_start)
+            if window.start != marker.window_start:
+                raise ProjectionCandidateError("dirty marker window is not canonical")
+            if window.start > now:
+                raise ProjectionCandidateError("future dirty marker cannot be projected")
             reader, repository = self._bound(session)
             repository.require_active(reader.calculation_version)
             calculation = self._calculation(reader, marker.user_id, window)
@@ -161,10 +160,10 @@ class ProjectionProcessor:
         self, session: Session, observed: WorkingProjectionRecord
     ) -> ProjectionProcessResult:
         """Finalize one refetched overdue row from a fresh canonical read, not stale payload."""
-        if not isinstance(observed, WorkingProjectionRecord):
-            raise TypeError("observed must be a WorkingProjectionRecord")
-        now = normalize_utc(self._clock.now())
         try:
+            if not isinstance(observed, WorkingProjectionRecord):
+                raise TypeError("observed must be a WorkingProjectionRecord")
+            now = normalize_utc(self._clock.now())
             reader, repository = self._bound(session)
             repository.require_active(reader.calculation_version)
             working = repository.get_working(observed.user_id, observed.window)

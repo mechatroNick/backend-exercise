@@ -38,6 +38,20 @@ class _Clock:
         return self._now
 
 
+class _NaiveClock:
+    def now(self) -> datetime:
+        return datetime(2026, 8, 18, 12)
+
+
+class _RollbackCountingSession(Session):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rollback_count = 0
+
+    def rollback(self) -> None:
+        self.rollback_count += 1
+
+
 def _marker(start: datetime = _WINDOW.start) -> DirtyMarker:
     return DirtyMarker(
         user_id=1,
@@ -62,24 +76,49 @@ def test_processor_constructor_and_boundary_types_fail_closed() -> None:
         ProjectionProcessor(clock=_Clock(), top_tags_limit=5, dirty_repository_factory=object())  # type: ignore[arg-type]
 
     processor = ProjectionProcessor(clock=_Clock(), top_tags_limit=5)
-    with Session() as session:
-        with pytest.raises(TypeError, match="marker"):
-            processor.process_dirty(session, object())  # type: ignore[arg-type]
-        with pytest.raises(TypeError, match="observed"):
-            processor.process_overdue(session, object())  # type: ignore[arg-type]
+    for method, candidate, message in (
+        (processor.process_dirty, object(), "marker"),
+        (processor.process_overdue, object(), "observed"),
+    ):
+        with _RollbackCountingSession() as session:
+            with pytest.raises(TypeError, match=message):
+                method(session, candidate)  # type: ignore[arg-type]
+            assert session.rollback_count == 1
     with pytest.raises(TypeError, match="session"):
         processor._bound(object())  # type: ignore[arg-type]
 
 
 def test_noncanonical_and_future_dirty_markers_roll_back_before_persistence() -> None:
     processor = ProjectionProcessor(clock=_Clock(), top_tags_limit=5)
-    with Session() as session:
-        with pytest.raises(ProjectionCandidateError, match="canonical"):
-            processor.process_dirty(session, _marker(_WINDOW.start + timedelta(days=1)))
-        with pytest.raises(ProjectionCandidateError, match="future"):
-            processor.process_dirty(
-                session, _marker(weekly_window(_NOW + timedelta(days=14)).start)
-            )
+    for marker, message in (
+        (_marker(_WINDOW.start + timedelta(days=1)), "canonical"),
+        (_marker(weekly_window(_NOW + timedelta(days=14)).start), "future"),
+    ):
+        with _RollbackCountingSession() as session:
+            with pytest.raises(ProjectionCandidateError, match=message):
+                processor.process_dirty(session, marker)
+            assert session.rollback_count == 1
+
+
+def test_processor_rolls_back_when_clock_normalization_fails() -> None:
+    processor = ProjectionProcessor(clock=_NaiveClock(), top_tags_limit=5)
+    observed = WorkingProjectionRecord(
+        user_id=1,
+        window=_WINDOW,
+        payload=_CALCULATION.payload,
+        calculated_at=_NOW,
+        source_generation=0,
+        calculation_version=_VERSION,
+        content_hash=_CALCULATION.content_hash,
+    )
+    for method, candidate in (
+        (processor.process_dirty, _marker()),
+        (processor.process_overdue, observed),
+    ):
+        with _RollbackCountingSession() as session:
+            with pytest.raises(ValueError, match="timezone-aware"):
+                method(session, candidate)
+            assert session.rollback_count == 1
 
 
 def test_developed_and_current_helpers_fail_closed_on_version_or_user_guards() -> None:
