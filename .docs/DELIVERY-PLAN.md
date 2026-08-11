@@ -53,7 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | 06 | Complete |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | In progress — final refresh |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Ready to merge |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -375,12 +375,14 @@ must inherit the passing Track 08 integration of completed Track 07.
 - all nine accepted ADRs and Tracks 00–09 are accurately indexed;
 - historical pre-revival evidence reports 743 tests plus 3 subtests and 2,953
   statements / 618 branches at 100%; Track 08 now reports 865 tests plus 3 subtests
-  and 3,932 statements / 910 branches at 100%; refreshed Track 09 branch and merged-
-  main receipts remain pending;
+  and 3,932 statements / 910 branches at 100%; the refreshed Track 09 clean branch
+  reports 867 tests plus 3 subtests at the same 100% coverage, while its merged-main
+  receipt remains pending;
 - `verify-docs`, Tracks 01–07, Track 08, and the Track 09 gate emit standalone terminal
   reports, with Track 08 inheriting the exact Track 07 verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are
-  nonzero incomplete, never a pass or skip; the fresh merged-main rerun remains pending.
+  nonzero incomplete, never a pass or skip; the clean branch gate passes and the fresh
+  merged-main rerun remains pending.
 
 ### Proposed commit
 

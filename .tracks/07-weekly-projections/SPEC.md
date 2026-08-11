@@ -88,6 +88,6 @@ current-statistics contracts, or adding a public history surface.
 
 Track 08 has now consumed this dependency and passed its clean-source/Docker integration
 at `d6c08e0`. Track 09's historical receipt preserves the former skip/absence state,
-while its active control plane is reopened for the report-bundle refresh, branch
-validation, merge, and merged-main receipt. This Track 07 report does not claim that
-still-pending final Track 09 result.
+while its active control plane now records a passing report-bundle and clean branch
+validation. This Track 07 report does not claim the still-pending Track 09 review,
+merge, merged-main rerun, or push.

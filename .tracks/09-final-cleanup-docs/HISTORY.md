@@ -1,5 +1,20 @@
 # Track 09 history
 
+## 2026-08-11 — Current clean-source branch gate passed
+
+- Commit `69db96e` refreshed all ten tamper-evident public receipts, replaced the
+  obsolete Track 07 owner-skip record with exact `verify-track-07.sh` PASS evidence,
+  and strengthened the Track 09 verifier for exact Tracks 01–07, the current private
+  Track 07 boundary, nine ADRs, and pending deprecations.
+- The strict default committed-report verifier and 18 report-contract tests passed.
+- `bash scripts/verify-track-09.sh` passed from clean committed branch HEAD `69db96e`:
+  867 tests plus 3 subtests, 3,932 statements and 910 branches at 100%, warning-fatal
+  tests, Ruff, mypy, Pyright, Alembic, docs, security/hygiene, exact inherited Track
+  08 with Tracks 01–07, real runtime, Docker, final-clone cleanliness, and recursive
+  cleanup all passed.
+- Track 09 is Ready to merge. Independent review, a non-fast-forward merge to `main`,
+  the exact clean merged-main rerun, and push remain required; none is claimed here.
+
 ## 2026-08-11 — Reopened for completed Track 07 and current Track 08 integration
 
 - Created `codex/track-09-weekly-integration` from verified Track 08 merge `a9cccc2`.
@@ -52,7 +67,7 @@
   preflight gates. They remain in progress until independently committed and proven by
   the clean-source final harness.
 
-## Current state
+## Historical 2026-08-09 state
 
 - Specification: Complete, version 1.0
 - Plan: Complete; T09-01 through T09-09 complete
