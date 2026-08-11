@@ -1,5 +1,22 @@
 # Track 08 history
 
+## 2026-08-11 — T08-10 clean-source Track 07 integration closure passed
+
+- `bash scripts/verify-track-08.sh` passed continuously from clean source `d6c08e0`.
+  It invoked exact Tracks 01–07, validated report/plan/commit provenance, passed 100
+  focused bonus tests, then passed 865 tests plus 3 subtests and 100% coverage over
+  3,932 statements and 910 branches.
+- The gate passed locked Python 3.12/dependency checks, Ruff/mypy, migration lifecycle,
+  deterministic seed idempotency, real Uvicorn/API/OpenAPI/health/JSON Lines/hygiene,
+  Track 07 private persistence with no public history/second worker/external worker,
+  Docker build-before-test, migrate-only/non-root/one-worker/readiness/SIGTERM/removal,
+  and verified recursive cleanup.
+- The current source includes exact-one projection rollback and structured failure-
+  evidence corrections in `e7cff24` and `14d30ce`; warning-fatal and no-dataclass/
+  deprecated-API inventories passed separately.
+- T08-10 and Track 08 are Complete. No external submission, deployment, publication,
+  archive/link creation, or private correspondence action was performed.
+
 ## 2026-08-10 — Reopened for completed Track 07 downstream integration
 
 - Track 07 is now Complete with its own report, provenance ledger, executable harness,

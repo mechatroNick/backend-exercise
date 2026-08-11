@@ -1,29 +1,26 @@
 # Track 08 live evidence matrix
 
-- Status: In progress — historical Track 08 receipt is superseded as the active closure
-  posture by required Track 07 downstream integration
-- Verified: 2026-08-10 reopening review
-- Authority: Delivered tree, Track 00–07 reports, the completed Track 07 report/
-  provenance/harness, and a future fresh Track 08 clean-source run
+- Status: Passed
+- Verified: 2026-08-11 at clean source `d6c08e0`
+- Authority: Delivered tree, Track 00–07 reports/provenance/harnesses, and the passing
+  clean-source Track 08 Python/runtime/Docker receipt
 
-This matrix prevents a prior-track report from being mistaken for final Track 08
-evidence. `Delivered upstream` means the owning report and implementation exist. The
-prior clean-source gate re-ran the exact Track 01–06 harnesses under the then-valid
-Track 07 skip boundary; its exact facts remain historical, but cannot satisfy fresh
-Track 07 integration proof.
+This matrix distinguishes the current final evidence from the preserved pre-revival
+receipt. The latest clean-source gate re-ran the exact Track 01–07 harnesses, validated
+their provenance, and completed the integrated Python/runtime/Docker evidence.
 
 | Assessment IDs | Current disposition | Authoritative evidence / next gate |
 | --- | --- | --- |
-| GOV-01 | Delivered upstream; Track 08 integration pending | Track 00 report, nine accepted ADRs, and a current `bash scripts/verify-docs.sh` pass (43 IDs, 9 ADRs, 10 tracks); fresh Track 08 history/hygiene reconciliation remains T08-10 evidence. |
-| ENV-01, ARC-01, DATA-01–DATA-04 | Delivered upstream | Track 01 Passed report and exact Track 01 harness; fresh Track 08 clean-source toolchain/migration execution remains pending. |
-| AUTH-01–AUTH-04, ERR-01, SEC-01 | Delivered upstream | Track 02 Passed report and exact Track 02 harness; fresh Track 08 security integration remains pending. |
-| BKM-01–BKM-03, ISO-01, TAG-01, TIME-01 | Delivered upstream | Track 03 Passed report and exact Track 03 harness. |
-| QRY-01, QRY-02, SQL-01–SQL-03 | Delivered upstream | Track 04 Passed report and exact Track 04 harness. |
-| API-01, API-02, TEST-01, TEST-02, QUAL-01 | Delivered upstream | Track 05 Passed report, mandatory manifest, and exact Track 05 harness. |
-| EVT-01–EVT-03, WIN-03, OPS-01 | Delivered upstream | Track 06 Passed report and exact Track 06 harness; one-worker/current-only limits remain binding. |
-| WIN-01, WIN-02 | Delivered by Track 07; Track 08 integration pending | Track 07 Complete `TEST-REPORT.md`, provenance ledger, and real-process harness deliver the weekly evidence. A fresh Track 08 clean-source run must still verify private persistence/Docker compatibility, no public weekly/history API, and the same sole refresher/no external worker. |
-| DEL-01, DEL-02, DEL-03, DOC-01 | Delivered historically; refreshed Track 08 evidence pending | The pre-revival clean-source harness passed its reader docs/disclosure/walkthrough/hygiene. Current reader docs pass documentation verification, but fresh clean-source T08-10 evidence is still required; external actions remain owner-only and unperformed. |
-| BONUS-01, BONUS-02 | Delivered historically; refreshed Track 08 evidence pending | Seed/Docker/rate/cursor checkpoints and the pre-revival combined runtime/Docker evidence passed; T08-10 must rerun them with Track 07 private-projection integration. |
+| GOV-01 | Passed | Track 00 report, nine accepted ADRs, docs pass (43 IDs/9 ADRs/10 tracks), current history/hygiene reconciliation, and clean-source provenance gate. |
+| ENV-01, ARC-01, DATA-01–DATA-04 | Passed | Track 01 report/exact harness plus clean-source Python 3.12 lock, migration, runtime, and Docker evidence. |
+| AUTH-01–AUTH-04, ERR-01, SEC-01 | Passed | Track 02 report/exact harness plus current security, runtime, redaction, dependency, and hygiene evidence. |
+| BKM-01–BKM-03, ISO-01, TAG-01, TIME-01 | Passed | Track 03 Passed report and exact Track 03 harness. |
+| QRY-01, QRY-02, SQL-01–SQL-03 | Passed | Track 04 Passed report and exact Track 04 harness. |
+| API-01, API-02, TEST-01, TEST-02, QUAL-01 | Passed | Track 05 Passed report, mandatory manifest, and exact Track 05 harness. |
+| EVT-01–EVT-03, WIN-03, OPS-01 | Passed | Track 06 Passed report and exact Track 06 harness; one-worker/current-only limits remain binding. |
+| WIN-01, WIN-02 | Passed | Track 07 Complete report/provenance/exact harness plus clean-source private persistence, Docker compatibility, no-public-history, and sole-refresher verification. |
+| DEL-01, DEL-02, DEL-03, DOC-01 | Passed | Reader docs/disclosure/walkthrough/hygiene and clean-source documentation/runtime evidence passed; external actions remain owner-only and unperformed. |
+| BONUS-01, BONUS-02 | Passed | Seed, Docker, rate, and cursor focused selectors plus combined full/runtime/Docker evidence passed with Track 07 integration. |
 | FUT-01 | Passed documentary boundary | Reader docs explain local limits and production evolution without adding production infrastructure. |
 
 ## Historical closure receipt superseded for active use
@@ -40,8 +37,8 @@ Track 07 integration proof.
 - No external submission, push, deployment, link/archive creation, private
   correspondence disclosure, or history rewrite occurred.
 
-## Stop conditions
+## Stop conditions and current disposition
 
-The historical final gate found no then-current upstream conflict or unresolved severity
-defect. The active stop condition is now missing or stale Track 07 integration proof;
-future closure requires the new T08-10 evidence review.
+No stop condition fired in the current final gate. No upstream conflict, unresolved
+critical/high defect, public-history drift, topology drift, secret, orphan resource, or
+cleanup failure remains in the recorded Track 08 scope.

@@ -1,6 +1,6 @@
 # Track 08 specification: final hardening, documentation, and assessment handoff
 
-- Status: In progress
+- Status: Complete
 - Specification version: 1.3
 - Planned: 2026-08-05
 - Owner: Primary engineering thread
@@ -10,14 +10,14 @@
 
 ## Intent anchor
 
-### 2026-08-10 downstream integration supersession
+### 2026-08-10 reopening and 2026-08-11 downstream integration closure
 
-The prior Track 08 completion receipt is historical evidence for the then-current
+The prior Track 08 completion receipt remains historical evidence for the then-current
 Track 07 owner-skip/absence disposition. Track 07 is now Complete with weekly private
-projection evidence, so Track 08 is reopened **In progress** until a fresh clean-source
-Track 08 run integrates that delivered dependency. This supersedes only the active
-closure posture; it preserves the historical exact facts, counts, and clean-source
-HEAD recorded in the prior report.
+projection evidence, and the fresh clean-source Track 08 run at `d6c08e0` integrated
+that delivered dependency with `RESULT: PASS`. This supersedes only the active closure
+posture; it preserves the historical exact facts, counts, and clean-source HEAD in the
+earlier report section.
 
 Prepare a reproducible, reviewable local assessment handoff from the *delivered*
 repository. Track 08 verifies and documents evidence; it does not invent outcomes,
@@ -81,7 +81,7 @@ Excluded:
 | ID | Requirement |
 | --- | --- |
 | T08-REQ-01 | Do not re-close until Tracks 01–07 are Complete with actual closure reports; inspect the exact Track 07 report, provenance ledger, and executable harness. Track 00 remains the completed baseline. |
-| T08-REQ-02 | Verify all selected assessment rows, including WIN-01/WIN-02 as delivered by Track 07 evidence, while recording that fresh Track 08 integration proof remains pending: GOV-01; ENV-01, ARC-01, DATA-01…DATA-04; AUTH-01…AUTH-04, ERR-01, SEC-01; BKM-01…BKM-03, ISO-01, TAG-01, TIME-01; QRY-01, QRY-02, SQL-01…SQL-03; EVT-01…EVT-03, WIN-01…WIN-03, OPS-01; API-01, API-02, TEST-01, TEST-02, QUAL-01; DEL-01…DEL-03, DOC-01, BONUS-01, BONUS-02, and FUT-01. |
+| T08-REQ-02 | Verify all selected assessment rows, including WIN-01/WIN-02 as delivered by Track 07 evidence: GOV-01; ENV-01, ARC-01, DATA-01…DATA-04; AUTH-01…AUTH-04, ERR-01, SEC-01; BKM-01…BKM-03, ISO-01, TAG-01, TIME-01; QRY-01, QRY-02, SQL-01…SQL-03; EVT-01…EVT-03, WIN-01…WIN-03, OPS-01; API-01, API-02, TEST-01, TEST-02, QUAL-01; DEL-01…DEL-03, DOC-01, BONUS-01, BONUS-02, and FUT-01. |
 | T08-REQ-03 | Rehearse the delivered project from a clean clone with Python 3.12 and the committed `uv` lock: configure, migrate, bootstrap/run, exercise tests, OpenAPI/docs, and health without undocumented manual setup. |
 | T08-REQ-04 | Deliver documentation based on facts: root README quickstart/API/testing, project and local deployment architecture, design choices, trade-offs, limitations, and production evolution. |
 | T08-REQ-05 | Deliver DEL-03 disclosure based only on actual assistance/process evidence and the owner-provided private authorization/provenance boundary; do not store private correspondence or make unsupported claims. |
@@ -164,5 +164,5 @@ history rewriting/squashing, or use/disclosure of private correspondence.
 | FUT-01 | README limitations/production-evolution section; no external infrastructure implementation. |
 | BONUS-01 | Required by owner decision after mandatory green: deterministic seed command, idempotency/safety evidence, and documented invocation. |
 | BONUS-02 | Required by owner decision after mandatory green: Docker setup, rate limiting, and cursor pagination, each with isolated contract/edge evidence. |
-| WIN-01, WIN-02 | Delivered by the completed Track 07 report and harness; fresh Track 08 clean-source integration evidence is pending. |
-| All remaining assessment IDs | Track 01–07 closure-report inventory, including Track 07 provenance/harness, must be reconciled in a new passing final [TEST-REPORT.md](TEST-REPORT.md), with fresh clean-clone and runtime checks. |
+| WIN-01, WIN-02 | Delivered by the completed Track 07 report/harness and reverified by the passing Track 08 clean-source integration receipt at `d6c08e0`. |
+| All remaining assessment IDs | Reconciled by the Track 01–07 closure-report inventory, including Track 07 provenance/harness, and the passing final [TEST-REPORT.md](TEST-REPORT.md) with fresh clean-clone and runtime checks. |

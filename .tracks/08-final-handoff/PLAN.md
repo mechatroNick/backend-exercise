@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.3
 - Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`, `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-009
-- Status: In progress
-- Active item: T08-10 — Track 07 weekly-projection downstream integration and fresh clean-source closure
+- Status: Complete
+- Active item: None — T08-10 passed at clean source `d6c08e0`
 
 ## Dependency gate and intent check
 
@@ -16,8 +16,8 @@ contradictory evidence; return the defect to its owning track. No external submi
 push, deployment, link/archive creation, or history rewrite is authorized here.
 
 T08-01 through T08-09 below retain their exact historical completion facts from the
-then-valid Track 07 skip disposition. They are not a current closure claim; T08-10 is
-the sole active downstream integration item.
+then-valid Track 07 skip disposition. T08-10 is the current closure item and is now
+Complete against the fresh passing downstream integration receipt.
 
 | ID | Work item | Owner | Depends on | Status | Exit evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ the sole active downstream integration item.
 | T08-07 | Establish the mandatory-green bonus preflight, exact acceptance contracts, isolation order, and rollback/stop conditions for all bonus work. | Primary engineering thread | T08-03, T08-04, T08-05, T08-06 | Complete | ADR-007, preflight, and final clean-source evidence passed. |
 | T08-08 | Implement all bonus work in isolated green checkpoints: deterministic seed data, Docker setup, rate limiting, and cursor pagination; then rerun the mandatory/full final harness. | Smith / implementation | T08-07 | Complete | Checkpoints and final full harness passed; no weekly-history drift. |
 | T08-09 | Produce final `TEST-REPORT.md`, release/handoff note, closure review, and owner-action checklist. | Primary engineering thread | T08-02, T08-03, T08-04, T08-05, T08-06, T08-07, T08-08 | Complete | `TEST-REPORT.md`, handoff, closure evidence, and owner-only external-action boundary are recorded. |
-| T08-10 | Reconcile completed Track 07 weekly projections with Track 08’s final clean-source contract, then produce a new closure report. | Primary engineering thread | T07-09, historical T08-01 through T08-09 | In progress | Inspect exact Track 07 Complete report/provenance/harness; verify private projection persistence and Docker compatibility, no public weekly/history API, and the same sole refresher/no external worker; run a fresh clean-source `bash scripts/verify-track-08.sh`; record a new truthful closure report. |
+| T08-10 | Reconcile completed Track 07 weekly projections with Track 08’s final clean-source contract, then produce a new closure report. | Primary engineering thread | T07-09, historical T08-01 through T08-09 | Complete | Exact Track 07 report/provenance/harness, private persistence, Docker compatibility, no public weekly/history API, and the sole refresher/no-external-worker boundary passed in `bash scripts/verify-track-08.sh` at `d6c08e0`; the current report records the receipt. |
 
 T08-08 is mandatory under the current owner decision. If a bonus threatens correctness
 or security, stop and fix/reframe it; do not silently mark it not selected or close

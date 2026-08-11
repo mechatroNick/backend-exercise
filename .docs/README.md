@@ -55,9 +55,10 @@ assessment. Durable execution state and architecture decisions live under
 - [Track 09: final test report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md)
 
 Track 07 is **Complete** under ADR-009 with private weekly projections, an executable
-harness, and closure evidence. Track 08 is reopened for fresh clean-source/Docker
-integration, and Track 09's pre-revival completion remains historical until it inherits
-that updated gate. External release actions remain owner-only and were not performed.
+harness, and closure evidence. Track 08 is **Complete** with fresh clean-source/Docker
+integration, and Track 09's pre-revival completion remains historical until its final
+downstream refresh inherits that passing gate. External release actions remain owner-
+only and were not performed.
 
 ## Authority
 

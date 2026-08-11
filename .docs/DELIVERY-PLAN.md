@@ -52,8 +52,8 @@ No track is considered complete based only on code presence. Completion requires
 | 05 | Mandatory OpenAPI, integration, N+1, and quality gate | 04 | Complete |
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | 06 | Complete |
-| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | **In progress (reopened)** |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Pre-revival completion; fresh gate pending |
+| 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | Complete |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Pre-revival completion; final refresh pending |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -355,8 +355,8 @@ Turn the working solution into a concise, reproducible senior-level submission w
 
 Finish the repository as a fresh-reader-friendly assessment without changing the
 accepted HTTP, persistence, security, statistics, or one-worker contracts. Its
-pre-revival clean-source/Docker evidence remains historical; a fresh gate is pending
-the reopened Track 08 integration of completed Track 07.
+pre-revival clean-source/Docker evidence remains historical; the pending final refresh
+must inherit the passing Track 08 integration of completed Track 07.
 
 ### Included
 
@@ -374,8 +374,9 @@ the reopened Track 08 integration of completed Track 07.
   requirement map remains 43 IDs;
 - all nine accepted ADRs and Tracks 00–09 are accurately indexed;
 - historical pre-revival evidence reports 743 tests plus 3 subtests and 2,953
-  statements / 618 branches at 100%; refreshed branch and merged-main counts remain
-  pending the updated Track 08/09 gates;
+  statements / 618 branches at 100%; Track 08 now reports 865 tests plus 3 subtests
+  and 3,932 statements / 910 branches at 100%; refreshed Track 09 branch and merged-
+  main receipts remain pending;
 - `verify-docs`, Tracks 01–07, Track 08, and the Track 09 gate emit standalone terminal
   reports, with Track 08 inheriting the exact Track 07 verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are

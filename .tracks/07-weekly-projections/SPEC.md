@@ -86,7 +86,8 @@ current-statistics contracts, or adding a public history surface.
 
 ## Downstream integration boundary
 
-Track 08 and Track 09 active documents still describe the pre-revival skip/absence
-state and are therefore stale for this completed dependency. They must be reopened and
-updated in a later downstream integration checkpoint; they are intentionally not edited
-by this Track 07 closure and receive no post-merge or downstream-validation claim here.
+Track 08 has now consumed this dependency and passed its clean-source/Docker integration
+at `d6c08e0`. Track 09's pre-revival control plane still describes the former skip/
+absence state and requires its own final downstream reopening, report-bundle refresh,
+branch validation, merge, and merged-main receipt. This Track 07 report does not claim
+that pending Track 09 result.
