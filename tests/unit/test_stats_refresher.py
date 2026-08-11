@@ -435,6 +435,95 @@ def test_projection_failure_is_logged_once_and_current_lifecycle_remains_separat
     ]
 
 
+def test_unexpected_projection_failure_logs_one_safe_exception_and_recovers() -> None:
+    class FailingBaseline:
+        def run_step(self) -> None:
+            raise RuntimeError("private-projection-sentinel")
+
+    instance_id = UUID("11111111-1111-1111-1111-111111111111")
+    stream = io.StringIO()
+    logger = configure_logging(
+        Settings(app_env="test", stats_refresh_enabled=False),
+        stream=stream,
+        component="bookmark_stats_refresher",
+    )
+    value = _refresher(
+        logger=logger,
+        service_instance_id=instance_id,
+        projection_enabled=True,
+        baseline_runner_factory=lambda **_kwargs: FailingBaseline(),
+    )
+
+    result = value._run_projection_phase()
+    value._record_projection_cycle(result, datetime(2026, 8, 10, tzinfo=UTC))
+    value._record_projection_cycle(result, datetime(2026, 8, 10, tzinfo=UTC))
+    assert value.state().projection_consecutive_failures == 2
+    assert value.state().consecutive_failures == 0
+    value._record_projection_cycle(
+        _ProjectionCycleResult(
+            status=ProjectionLifecycleStatus.ACTIVE,
+            successful=True,
+        ),
+        datetime(2026, 8, 10, tzinfo=UTC),
+    )
+
+    records = [json.loads(line) for line in stream.getvalue().splitlines()]
+    failures = [
+        record for record in records if record["event"] == "bookmark_stats.projection_failed"
+    ]
+    assert len(failures) == 1
+    failure = failures[0]
+    assert failure["level"] == "ERROR"
+    assert failure["outcome"] == "degraded"
+    assert failure["context"] == {
+        "service_instance_id": str(instance_id),
+        "failure_count": 1,
+    }
+    assert failure["exception"]["type"] == "_RefresherBoundaryError"
+    assert failure["exception"]["message"] == "weekly projection failed"
+    assert failure["exception"]["frames"]
+    assert any(
+        frame["module"] == "app.bookmarks.stats.refresher"
+        for frame in failure["exception"]["frames"]
+    )
+    assert failure["source"]["package"] == "app.bookmarks.stats"
+    assert failure["source"]["module"] == "app.bookmarks.stats.refresher"
+    assert "private-projection-sentinel" not in stream.getvalue()
+    assert value.state().projection_consecutive_failures == 0
+    assert [record["event"] for record in records].count("bookmark_stats.projection_recovered") == 1
+
+
+def test_projection_version_mismatch_remains_a_low_cardinality_event() -> None:
+    class FailingBaseline:
+        def run_step(self) -> None:
+            raise ProjectionCalculationVersionMismatchError("private-version-sentinel")
+
+    stream = io.StringIO()
+    logger = configure_logging(
+        Settings(app_env="test", stats_refresh_enabled=False),
+        stream=stream,
+        component="bookmark_stats_refresher",
+    )
+    value = _refresher(
+        logger=logger,
+        projection_enabled=True,
+        baseline_runner_factory=lambda **_kwargs: FailingBaseline(),
+    )
+
+    result = value._run_projection_phase()
+    value._record_projection_cycle(result, datetime(2026, 8, 10, tzinfo=UTC))
+
+    failures = [
+        json.loads(line)
+        for line in stream.getvalue().splitlines()
+        if json.loads(line)["event"] == "bookmark_stats.projection_failed"
+    ]
+    assert len(failures) == 1
+    assert failures[0]["level"] == "WARNING"
+    assert failures[0]["context"]["failure_count"] == 1
+    assert "exception" not in failures[0]
+
+
 class _ProjectionSession:
     def __init__(self) -> None:
         self.commits = 0
