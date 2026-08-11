@@ -1,19 +1,20 @@
 # Track 09 specification: final cleanup, documentation migration, and test reports
 
-- Status: Complete
-- Specification version: 1.0
+- Status: In progress
+- Specification version: 1.1
 - Planned: 2026-08-09
 - Owner: Primary engineering thread
-- Depends on: Completed Track 08 at `9092f30`
+- Depends on: Completed Track 08 merge `a9cccc2` and current report at clean source `d6c08e0`
 - Governing records: `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`,
-  `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-008, and every Track 00–08
-  closure/skip record
+  `.docs/DELIVERY-PLAN.md`, ADR-001 through ADR-009, and every Track 00–08
+  closure record
 
 ## Intent anchor
 
 Finish the repository as a modern, type-safe, fresh-reader-friendly assessment
 without changing its accepted HTTP, persistence, security, statistics, one-worker,
-or Track 07 absence contracts. The work is complete only when the renamed durable
+or delivered private Track 07 projection contracts. The refreshed work is complete
+only when the renamed durable
 documentation, product refactors, terminal reports, Docker path, and clean-source
 verification agree.
 
@@ -29,8 +30,9 @@ verification agree.
 - JSON Lines-only safe logging with service/component/source attribution, redaction,
   bounded exception evidence, exactly-once owning-boundary failure logging, and no
   identity, token, body, SQL, path, bookmark content, or private material disclosure.
-- Track 07 as owner-skipped: no weekly projection tables, revisions, consumer,
-  public history API, or fabricated passing evidence.
+- Track 07 private weekly working/point/state persistence, correction revisions,
+  dual-generation completion, readiness, and the exact existing named non-daemon
+  refresher; no public history API, second worker, external worker, or fabricated evidence.
 - Historical receipts as truthful records. Editorial link/path repairs may keep old
   evidence reachable, but must not change recorded outcomes, dates, commits, counts,
   or statuses.
@@ -78,8 +80,8 @@ Excluded:
 
 - external push, archive, pull request, release publication, deployment, submission,
   or private-correspondence access/disclosure;
-- weekly projections/history, production infrastructure, PostgreSQL, Redis/broker,
-  multi-worker support, public API expansion, or database schema changes;
+- new weekly/public-history behavior, production infrastructure, PostgreSQL, Redis/
+  broker, multi-worker support, public API expansion, or additional schema changes;
 - replacing a supported API merely because it was named as an example; and
 - weakening a test, coverage threshold, manifest, cleanup check, redaction rule, or
   previous harness so a refactor appears green.
@@ -96,7 +98,7 @@ Excluded:
 | T09-REQ-06 | Resolve reasonable application Pylance/Pyright/type diagnostics with typed code or narrowly justified adapters, without casts/ignores that conceal a behavior defect. Record the checker/version/configuration and residual third-party boundaries. |
 | T09-REQ-07 | Every `verify-*.sh` script prints a consistently formatted standalone report that identifies the script, executed gates/selectors, result, relevant summary, and cleanup. Formatting must not swallow failures, leak private logs, or claim skipped/unrun work passed. |
 | T09-REQ-08 | Docker automation builds first, then runs the Docker contract/focused tests and real image migration/start/health/SIGTERM/cleanup evidence before printing a Docker or final pass. A missing daemon is a nonzero incomplete result, not a pass/skip. |
-| T09-REQ-09 | Root README begins with the SDD Mermaid workflow; accurately summarizes requirement satisfaction, functional test-report generation, Docker checks, limitations, Track 07 skip, and Tracks 00–09 status; detailed specifications are referenced rather than duplicated. |
+| T09-REQ-09 | Root README begins with the SDD Mermaid workflow; accurately summarizes requirement satisfaction, functional test-report generation, Docker checks, limitations, completed private Track 07, and Tracks 00–09 status; detailed specifications are referenced rather than duplicated. |
 | T09-REQ-10 | Deliver comprehensive Track 09 Bash automation plus high-coverage/full-edge unit, integration, contract, migration, runtime, logging, documentation, dependency, security, and cleanup tests. Final evidence runs from a clean committed source and preserves 100% statement and branch coverage. |
 | T09-REQ-11 | Make incremental green commits on the Track 09 branch, review every write wave, merge with a merge commit to `main` only after the complete branch gate passes, and rerun the final gate on merged `main`. |
 
@@ -104,7 +106,7 @@ Excluded:
 
 Track 09 closes only with recorded current evidence that:
 
-- the 723-test/3-subtest Track 08 baseline is preserved or intentionally expanded,
+- the 865-test/3-subtest Track 08 baseline is preserved or intentionally expanded,
   no warning remains, and full repository statement/branch coverage is 100%;
 - no Python standard-library dataclass import/decorator remains in application or
   tests, and focused tests prove strict/frozen/mutable/invariant/concurrency edges;
@@ -112,7 +114,7 @@ Track 09 closes only with recorded current evidence that:
   seed idempotency/safety, rate-limit isolation/capacity, current stats, health,
   JSON Lines logging, startup-failure disposal, and shutdown behavior remain exact;
 - the full documentation tree exists only at `.docs/`, all local links resolve, the
-  documentation gate counts 43 assessment IDs, eight accepted ADRs, and ten tracks,
+  documentation gate counts 43 assessment IDs, nine accepted ADRs, and ten tracks,
   and fresh-reader claims match current code/evidence;
 - every automation script passes its shell/static contract and emits a readable
   terminal receipt in both success and injected-failure paths;
@@ -120,7 +122,7 @@ Track 09 closes only with recorded current evidence that:
   non-root/one-worker, graceful stop, logs, and recursive cleanup pass without an
   orphan image/container/volume or hidden skip;
 - `scripts/verify-track-09.sh` passes from the reviewed committed source, every
-  inherited Track 01–06/08 gate it imports remains green, and cleanup is verified;
+  inherited Track 01–07/08 gate remains green, and cleanup is verified;
   and
 - the exact merged `main` commit passes the final Track 09 gate with a clean worktree.
 

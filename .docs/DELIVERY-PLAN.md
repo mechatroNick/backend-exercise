@@ -53,7 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | 06 | Complete |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Pre-revival completion; final refresh pending |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | In progress — final refresh |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -355,7 +355,7 @@ Turn the working solution into a concise, reproducible senior-level submission w
 
 Finish the repository as a fresh-reader-friendly assessment without changing the
 accepted HTTP, persistence, security, statistics, or one-worker contracts. Its
-pre-revival clean-source/Docker evidence remains historical; the pending final refresh
+pre-revival clean-source/Docker evidence remains historical; the active final refresh
 must inherit the passing Track 08 integration of completed Track 07.
 
 ### Included

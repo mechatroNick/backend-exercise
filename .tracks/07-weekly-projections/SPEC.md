@@ -87,7 +87,7 @@ current-statistics contracts, or adding a public history surface.
 ## Downstream integration boundary
 
 Track 08 has now consumed this dependency and passed its clean-source/Docker integration
-at `d6c08e0`. Track 09's pre-revival control plane still describes the former skip/
-absence state and requires its own final downstream reopening, report-bundle refresh,
-branch validation, merge, and merged-main receipt. This Track 07 report does not claim
-that pending Track 09 result.
+at `d6c08e0`. Track 09's historical receipt preserves the former skip/absence state,
+while its active control plane is reopened for the report-bundle refresh, branch
+validation, merge, and merged-main receipt. This Track 07 report does not claim that
+still-pending final Track 09 result.
