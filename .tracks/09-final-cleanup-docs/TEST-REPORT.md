@@ -1,6 +1,46 @@
-# Track 09 final test report — historical pre-revival receipt
+# Track 09 final test report
 
-- Status: Historical/superseded — current Track 07/08 integration refresh pending
+- Status: Ready to merge — current clean-source branch gate passed
+- Date: 2026-08-11
+- Current clean branch evidence HEAD: `69db96ea3022814629f974881af808b9fde76df6`
+- Public receipt capture source HEAD: `a9cccc29caff0d21e78835052d2174cc186b1069`
+- Current scope: completed Track 07, current Track 08 integration, refreshed
+  tamper-evident receipts, modernization standards, exact inherited verification,
+  Docker delivery, final-clone cleanliness, and cleanup.
+
+## Current branch result
+
+`bash scripts/verify-track-09.sh` passed from clean committed branch HEAD `69db96e`.
+The run used no development seam or Docker skip and returned `FINAL PASS`,
+`CLEANUP: PASS`, and `RESULT: PASS`. It proved:
+
+- 867 tests plus 3 subtests with `DeprecationWarning`, `PendingDeprecationWarning`,
+  and Starlette deprecations treated as errors;
+- 3,932 statements and 910 branches at 100% coverage;
+- no application/test-helper standard-library dataclass and no demonstrated
+  deprecated project API;
+- Ruff, strict application mypy, locked Pyright, dependency, migration lifecycle,
+  drift, documentation, report-integrity, security, and hygiene gates;
+- exact Tracks 01–07 through Track 08, including real Uvicorn behavior and the full
+  Track 07 projection lifecycle; and
+- ordered Docker build/post-build/migrate-only/non-root/one-worker/health/JSON Lines/
+  SIGTERM/removal evidence plus verified recursive cleanup.
+
+The current `.testing_report/` manifest contains exactly ten safe public receipts.
+Track 07 now records `bash scripts/verify-track-07.sh`, `RESULT: PASS`, and `EXIT: 0`;
+the obsolete owner-skip receipt is absent. The strict default verifier proved every
+bundle file is committed in `HEAD`, byte-matches the worktree, hashes correctly, has
+valid ancestor provenance, and contains no protected paths, tokens, or private logs.
+
+## Remaining closure boundary
+
+T09-REQ-11 is not yet complete. Independent closure review, the non-fast-forward
+merge to `main`, the exact clean merged-main Track 09 rerun, and the authorized push
+must still succeed. No merge or push is claimed by this branch receipt.
+
+## Historical pre-revival receipt
+
+- Status: Historical/superseded — preserved for the pre-revival scope
 - Date: 2026-08-09
 - Clean implementation evidence HEAD: `c92dc353a84aa06cd6496e83543d3828910be746`
 - Clean branch closure evidence HEAD: `62780a77431e3f64db9df9f29af133fb736562c0`
@@ -81,9 +121,10 @@ terminal output retained only safe selectors, counts, versions, and cleanup resu
 | `a4992d5` | Made upstream path-migration provenance byte/mode exact and fail closed. |
 | `c92dc35` | Kept provenance fixtures compatible with documentation-path hygiene. |
 
-## External action boundary
+## Historical external action boundary
 
-T09-REQ-11 is complete: the independently reviewed branch closure was committed,
-merged with a merge commit to `main`, and the exact final gate passed on the clean
-merged commit. External push, archive, publication, deployment, submission, or
-release remains owner-only and was not performed.
+For the historical version 1.0 scope, T09-REQ-11 was complete: its independently
+reviewed branch closure was committed, merged with a merge commit to `main`, and its
+exact final gate passed on that clean merged commit. This statement does not close the
+current version 1.1 Track 07 integration refresh. External archive, publication,
+deployment, submission, or release remained owner-only and was not performed.

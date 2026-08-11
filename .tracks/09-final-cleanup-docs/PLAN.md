@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing records: ADR-006, ADR-008, ADR-009, and completed Tracks 00–08
-- Status: In progress
-- Active item: T09-10 — current Track 07/08 integration and public-receipt refresh
+- Status: Ready to merge
+- Active item: T09-11 — independent review, merge, merged-main rerun, and push
 
 ## Dependency and intent gate
 
@@ -26,8 +26,8 @@ is authorized.
 | T09-07 | Rewrite root README and update `.docs`/track indexes with SDD Mermaid first, current requirement/limitation/test-report guidance, and Tracks 00–09 status. | Smith | T09-03, T09-06 | Complete | Reader guide committed at `5e8fe42`; documentation gate passed with 43 requirements, eight ADRs, ten tracks, exact links, and newline hygiene. |
 | T09-08 | Run focused and complete deterministic, branch-coverage, type, warning, migration, runtime, security, dependency, documentation, inherited-harness, Docker, and cleanup validation. | Primary | T09-04, T09-05, T09-06, T09-07 | Complete | Clean committed branch HEAD `c92dc35` passed `bash scripts/verify-track-08.sh` and `bash scripts/verify-track-09.sh`: 743 tests plus 3 subtests, 2,953 statements / 618 branches at 100%, real runtime, Docker, and verified cleanup. |
 | T09-09 | Independent closure review; publish TEST-REPORT/HISTORY/status, merge branch to main, and rerun the exact final gate on merged main. | Primary + Mason | T09-08 | Complete | Closure wave received independent PASS review; merge commit `ce16aa1` was created on `main`; the exact Track 09 gate passed on that clean merged commit with inherited Track 08, Docker, final-clone cleanliness, and cleanup PASS. |
-| T09-10 | Reconcile completed Track 07 and current Track 08 into the Track 09 contracts, automation, reader docs, and tamper-evident public receipt bundle. | Primary + Smith + Mason | Current Track 08 closure | In progress | Replace the historical owner-skip receipt with exact Track 07 PASS evidence; update Track 09 source/report contracts and current reader/control-plane claims; retain historical facts explicitly; run docs/static/report-bundle review. |
-| T09-11 | Run the exact clean-source Track 09 gate, publish the current report, merge this dedicated branch to `main`, rerun the exact gate on merged `main`, capture the final public receipts, commit them, and push verified changes. | Primary + Mason | T09-10 | Pending | Requires clean committed source, exact Track 08 (therefore exact Tracks 01–07), warning/type/coverage/migration/runtime/Docker/cleanup evidence, current report bundle, independent closure review, merge receipt, post-merge rerun, and successful push. |
+| T09-10 | Reconcile completed Track 07 and current Track 08 into the Track 09 contracts, automation, reader docs, and tamper-evident public receipt bundle. | Primary + Smith + Mason | Current Track 08 closure | Complete | Commit `69db96e` replaced the historical owner-skip receipt with exact Track 07 PASS evidence, strengthened Track 09 source/report contracts, and refreshed all ten safe public receipts. The default committed-bundle verifier and its 18 contract tests passed. |
+| T09-11 | Run the exact clean-source Track 09 gate, publish the current report, merge this dedicated branch to `main`, rerun the exact gate on merged `main`, capture the final public receipts, commit them, and push verified changes. | Primary + Mason | T09-10 | In progress | Clean committed branch HEAD `69db96e` passed the exact Track 09 gate, including 867 tests plus 3 subtests, 3,932 statements / 910 branches at 100%, migrations, exact Tracks 01–07 through Track 08, real runtime, Docker, final-clone cleanliness, and cleanup. Independent review, merge, merged-main rerun, and push remain. |
 
 ## Ordered validation ledger
 

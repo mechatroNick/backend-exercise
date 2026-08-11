@@ -626,8 +626,9 @@ The ADRs are authoritative when this overview is intentionally concise. Any impl
 ## 21. Track 09 modernization and current status
 
 Track 09's pre-revival implementation and clean-source gates are preserved as
-historical evidence. Its final downstream verification is now reopened after the
-passing Track 08 integration because those earlier gates asserted Track 07 absence.
+historical evidence. Its final downstream verification was reopened after the
+passing Track 08 integration because those earlier gates asserted Track 07 absence;
+the refreshed clean committed branch gate now passes and is Ready to merge.
 It replaces internal and test-helper dataclasses with
 explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
 cross-field event/statistics invariants, keyword construction, cursor payloads, and
@@ -643,6 +644,8 @@ dependency uses a public response adapter only where Schemathesis needs a compat
 contract validation continues to assess the unchanged public API.
 
 All nine ADRs are accepted. The earlier Track 09 documentation, Docker, clean-source
-branch, merge, and exact post-merge evidence passed for the then-current scope. Consult
+branch, merge, and exact post-merge evidence passed for the then-current scope; the
+current clean branch also passes exact Tracks 01–07, Track 08, Docker, and cleanup.
+Consult
 [Track 09's final report](../.tracks/09-final-cleanup-docs/TEST-REPORT.md) for the
 recorded closure evidence.
