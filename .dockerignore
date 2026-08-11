@@ -37,5 +37,6 @@ build/
 dist/
 *.egg-info/
 README.md
+# Runtime image allowlist: exclude every script, then re-include only the entrypoint.
 scripts/*
 !scripts/docker-entrypoint.sh

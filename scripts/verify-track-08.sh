@@ -66,6 +66,8 @@ captured_processes=()
 capture_process_tree() {
     local parent="$1"
     local child
+    # Capture descendants before TERM so the receipt can prove that this exact
+    # pre-signal process tree, rather than only the supervisor PID, was reaped.
     for child in $(descendants "${parent}"); do
         captured_processes+=("${child}")
         capture_process_tree "${child}"
@@ -171,6 +173,8 @@ cleanup() {
         cleanup_failed=1
     fi
     verification_report_cleanup "${status}" 'verified server, container, image, volume, and private workspace removal'
+    # Preserve a gate failure even when cleanup also fails; cleanup becomes the
+    # terminal status only after an otherwise successful verification run.
     if [[ "${original_status}" -ne 0 ]]; then
         verification_report_finish "${original_status}" "${status}"
         exit "${original_status}"
@@ -192,6 +196,8 @@ run_private() {
     local name="$1"
     shift
     local receipt="${workspace}/receipts/${name}.log"
+    # Full command output can include ephemeral paths or test material. Keep it in
+    # the 0700 disposable workspace and emit only this allowlisted safe summary.
     if "$@" >"${receipt}" 2>&1; then
         case "${name}" in
             lock-check) safe_message 'receipt: command=uv lock --check; exit=0' ;;
@@ -363,6 +369,8 @@ assert_path_only_docs_migration() {
     local committed_plan="${comparison_root}/committed-plan.md"
     local historic_tree
     local committed_tree
+    # This is a deliberately narrow provenance exception: only the historical
+    # documentation-directory prefix may relocate; every other byte and file mode must match.
     mkdir -p -- "${comparison_root}"
     git -C "${repository}" merge-base --is-ancestor "${report_commit}" "${plan_commit}" \
         || fail "upstream plan and report provenance are not ordered: ${plan}"

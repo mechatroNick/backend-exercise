@@ -18,6 +18,8 @@ COPY alembic ./alembic
 COPY alembic.ini ./
 RUN uv sync --locked --no-dev
 
+# The refresher/rate/snapshot state is process-local; this image therefore
+# enforces the Track 08 one-worker runtime invariant.
 FROM python:3.12.12-slim-bookworm AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
@@ -37,6 +39,8 @@ COPY --from=builder --chown=app:app /opt/venv /opt/venv
 COPY --chown=app:app app ./app
 COPY --chown=app:app alembic ./alembic
 COPY --chown=app:app alembic.ini ./
+# .dockerignore admits only this runtime entrypoint from scripts/, preventing test
+# harnesses and private verification tooling from entering the production image.
 COPY --chown=app:app scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
 USER app
@@ -50,4 +54,5 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
 STOPSIGNAL SIGTERM
 
 ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+# Keep the process topology aligned with APP_WORKER_COUNT: exactly one Uvicorn worker.
 CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-access-log", "--log-level", "critical"]

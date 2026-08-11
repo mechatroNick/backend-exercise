@@ -2,6 +2,10 @@
 
 Revision ID: 0003_weekly_stats_projections
 Revises: 0002_bookmark_stats_window_dirty
+
+The dirty-marker alteration uses Alembic's SQLite-safe batch reconstruction:
+existing rows are copied into the recreated table, while server defaults make
+both newly introduced completion counters valid for every preserved row.
 """
 
 from collections.abc import Sequence
@@ -39,6 +43,9 @@ def _monday_check(column: str) -> str:
 
 
 def upgrade() -> None:
+    """Add projection state while preserving existing SQLite dirty-marker rows."""
+    # SQLite cannot apply these constraint-bearing column changes in place;
+    # batch recreation copies the existing relation before adding safe defaults.
     with op.batch_alter_table("bookmark_stats_window_dirty", recreate="always") as batch:
         batch.add_column(
             sa.Column(
@@ -232,6 +239,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Remove projection state and reconstruct the pre-0003 dirty-marker schema safely."""
     op.drop_table("bookmark_stats_projection_state")
     op.drop_index(
         "ix_stats_point_effective_user_window_revision",
@@ -240,6 +248,8 @@ def downgrade() -> None:
     op.drop_table("bookmark_stats_window_point")
     op.drop_index("ix_stats_working_window_end_user", table_name="bookmark_stats_window_working")
     op.drop_table("bookmark_stats_window_working")
+    # Reconstructing through batch mode preserves dirty-marker rows while dropping
+    # only the two 0003 completion columns and their dependent constraints.
     with op.batch_alter_table("bookmark_stats_window_dirty", recreate="always") as batch:
         batch.drop_constraint("ck_stats_dirty_projection_completion_generation", type_="check")
         batch.drop_constraint("ck_stats_dirty_current_completion_generation", type_="check")

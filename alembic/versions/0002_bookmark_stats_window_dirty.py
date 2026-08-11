@@ -1,4 +1,9 @@
-"""Create durable per-user statistics dirty markers."""
+"""Create the reversible durable per-user statistics dirty-marker table.
+
+This initial table creation/removal is deliberately separate from the later
+SQLite batch reconstruction so the 0002 downgrade restores the exact 0001
+schema boundary without needing to transform pre-existing dirty-marker rows.
+"""
 
 from collections.abc import Sequence
 
@@ -13,6 +18,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    """Create the empty dirty-marker relation with its durable ownership constraints."""
     op.create_table(
         "bookmark_stats_window_dirty",
         sa.Column("user_id", sa.Integer(), nullable=False),
@@ -59,6 +65,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    """Remove only the 0002 relation after its indexes, returning to 0001 exactly."""
     op.drop_index(
         "ix_stats_dirty_last_marked_user_window",
         table_name="bookmark_stats_window_dirty",
