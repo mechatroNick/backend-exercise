@@ -35,6 +35,8 @@ class DirtyReason(StrEnum):
 
 
 class BookmarkStatsWindowDirty(SQLModel, table=True):
+    """Durable per-user/week invalidation with separate current and projection completion."""
+
     __tablename__ = "bookmark_stats_window_dirty"  # pyright: ignore[reportAssignmentType] -- SQLModel metaclass
     __table_args__ = (
         PrimaryKeyConstraint("user_id", "window_start", name="pk_stats_dirty_user_window"),
@@ -119,6 +121,8 @@ def utc_monday(value: datetime) -> datetime:
 
 
 class DirtyMarker(FrozenInternalModel):
+    """One observed dirty generation that remains pending until both consumers complete it."""
+
     user_id: int
     window_start: datetime
     generation: int
@@ -130,6 +134,8 @@ class DirtyMarker(FrozenInternalModel):
 
 
 class DirtyBacklog(FrozenInternalModel):
+    """Identifier-free durable-work count and age for readiness evaluation."""
+
     count: int
     oldest_marked_at: datetime | None
 
@@ -199,6 +205,7 @@ class BookmarkStatsDirtyRepository:
         reason: DirtyReason,
         marked_at: datetime,
     ) -> None:
+        """Atomically create or advance work inside the caller's canonical mutation transaction."""
         _positive(user_id, "user_id")
         if not isinstance(reason, DirtyReason):
             raise TypeError("reason must be a DirtyReason")
@@ -218,6 +225,7 @@ class BookmarkStatsDirtyRepository:
         )
 
     def observe(self, limit: int = 100) -> tuple[DirtyMarker, ...]:
+        """Return one oldest-first bounded page without acknowledging or completing it."""
         _positive(limit, "limit")
         if limit > 100:
             raise ValueError("limit must be at most 100")
@@ -246,6 +254,7 @@ class BookmarkStatsDirtyRepository:
         return tuple(_positive(row[0], "persisted user_id") for row in rows)
 
     def backlog(self) -> DirtyBacklog:
+        """Return identifier-free durable backlog facts without changing transaction state."""
         row = (
             self._session.execute(
                 text(

@@ -105,6 +105,8 @@ def _payload(value: bytes) -> bytes:
 
 
 class WorkingProjectionRecord(FrozenInternalModel):
+    """Replaceable developing aggregate for one private user/window projection."""
+
     user_id: int
     window: WeeklyWindow
     payload: bytes
@@ -115,6 +117,8 @@ class WorkingProjectionRecord(FrozenInternalModel):
 
 
 class NewProjectionPoint(FrozenInternalModel):
+    """Append-only developed point or correction with an immediate-predecessor link."""
+
     user_id: int
     window: WeeklyWindow
     revision: int
@@ -129,6 +133,8 @@ class NewProjectionPoint(FrozenInternalModel):
 
 
 class ProjectionPointRecord(NewProjectionPoint):
+    """Persisted developed point carrying its immutable database identifier."""
+
     id: int
 
 
@@ -563,12 +569,14 @@ class WeeklyProjectionRepository:
         state: ProjectionStateRecord,
         calculation_version: str,
     ) -> None:
+        """Fail closed: hashes and persisted projections are incomparable across versions."""
         if state.calculation_version != calculation_version:
             raise ProjectionCalculationVersionMismatchError(
                 "stored projection calculation version differs from runtime"
             )
 
     def get_working(self, user_id: int, window: WeeklyWindow) -> WorkingProjectionRecord | None:
+        """Return the replaceable developing row for one user/window, if present."""
         _positive(user_id, "user_id")
         validated_window = WeeklyWindow.from_bounds(window.start, window.end)
         row = (
@@ -686,6 +694,7 @@ class WeeklyProjectionRepository:
         return state
 
     def replace_working(self, record: WorkingProjectionRecord) -> None:
+        """Upsert the sole developing row; working projections deliberately have no history."""
         _validate_working(record)
         self._session.execute(
             text(
@@ -707,6 +716,7 @@ class WeeklyProjectionRepository:
     def observe_overdue(
         self, now: datetime, limit: int = _MAX_OBSERVATION_LIMIT
     ) -> tuple[WorkingProjectionRecord, ...]:
+        """Return a bounded oldest-first page of developing rows eligible for finalization."""
         if isinstance(limit, bool) or not isinstance(limit, int):
             raise TypeError("limit must be an integer")
         if not 1 <= limit <= _MAX_OBSERVATION_LIMIT:
@@ -723,6 +733,7 @@ class WeeklyProjectionRepository:
         return tuple(_working(dict(row)) for row in rows)
 
     def effective_point(self, user_id: int, window: WeeklyWindow) -> ProjectionPointRecord | None:
+        """Return the highest revision, the private effective developed point for a window."""
         _positive(user_id, "user_id")
         validated_window = WeeklyWindow.from_bounds(window.start, window.end)
         row = (
@@ -746,6 +757,7 @@ class WeeklyProjectionRepository:
         return None if row is None else _point(dict(row))
 
     def append_point(self, point: NewProjectionPoint) -> ProjectionPointRecord:
+        """Append an immutable root or correction that immediately supersedes its predecessor."""
         _validate_point(point)
         current = self.effective_point(point.user_id, point.window)
         if point.revision == 1:

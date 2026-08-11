@@ -44,6 +44,8 @@ _SafeValue = bool | int | float | str
 
 
 class _ThreadFactory(Protocol):
+    """Inject the one named non-daemon worker constructor for deterministic lifecycle tests."""
+
     def __call__(
         self,
         *,
@@ -69,6 +71,8 @@ class ProjectionLifecycleStatus(StrEnum):
 
 
 class _ProjectionCycleResult(FrozenInternalModel):
+    """Identifier-free projection facts propagated to readiness and lifecycle logging."""
+
     status: ProjectionLifecycleStatus
     successful: bool
     pending_count: int = 0
@@ -425,7 +429,7 @@ class StatsRefresher:
         return success
 
     def _run_projection_phase(self) -> _ProjectionCycleResult:
-        """Best-effort private projection work after the current session has closed."""
+        """Run projection transactions after current work closes its session."""
         if not self._projection_enabled:
             return _ProjectionCycleResult(
                 status=ProjectionLifecycleStatus.DISABLED,
@@ -545,6 +549,7 @@ class StatsRefresher:
 
     @staticmethod
     def _projection_status(snapshot: ProjectionReadinessSnapshot) -> ProjectionLifecycleStatus:
+        """Map durable state to readiness status, treating a version mismatch as failure."""
         if snapshot.state is None:
             return ProjectionLifecycleStatus.ABSENT
         if not snapshot.calculation_version_compatible:
@@ -554,6 +559,7 @@ class StatsRefresher:
     def _record_projection_cycle(
         self, result: _ProjectionCycleResult, started_at: datetime
     ) -> None:
+        """Atomically retain projection readiness facts, then emit bounded transition telemetry."""
         with self._state_lock:
             previous_status = self._projection_baseline_status
             prior_failures = self._projection_consecutive_failures
@@ -695,6 +701,7 @@ class StatsRefresher:
         user_id: int,
         markers: tuple[DirtyMarker, ...],
     ) -> bool:
+        """Publish current stats before committing guarded current completion for this user."""
         expected_epoch = self._store.epoch(user_id)
         stats = BookmarkStatsReader(session, self._top_tags_limit).read(user_id)
         generated_at = self._now()
@@ -734,6 +741,7 @@ class StatsRefresher:
         return True
 
     def _run(self) -> None:
+        """Own immediate reconciliation, interruptible cadence, and deferred cleanup."""
         try:
             initial_success = self.run_cycle(full=True)
             with self._state_lock:
@@ -828,6 +836,7 @@ class StatsRefresher:
         error: Exception | None,
         context: dict[str, _SafeValue],
     ) -> None:
+        """Log one sanitized final-owner current-cycle failure without adapter exception text."""
         safe_error = _RefresherBoundaryError("statistics refresh cycle failed").with_traceback(
             None if error is None else error.__traceback__
         )
