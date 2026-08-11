@@ -1,5 +1,17 @@
 # Track 09 history
 
+## 2026-08-11 — Merged-main gate passed; push pending
+
+- The independent closure review returned PASS for committed branch HEAD `d458943`.
+- The dedicated branch was merged to `main` with non-fast-forward merge commit
+  `6e92980a12b2ad1a93d6708f1272bd6fab7a5247`.
+- `bash scripts/verify-track-09.sh` passed on that clean merged commit: standards,
+  warning-fatal 867-test/3-subtest regression, 3,932 statements and 910 branches at
+  100%, migrations, docs/report integrity, exact Tracks 01–08, real runtime, Docker,
+  final-clone cleanliness, and recursive cleanup all returned PASS.
+- Track 09 is Ready to push. The external push is not claimed and remains the only
+  open T09-11 action.
+
 ## 2026-08-11 — Current clean-source branch gate passed
 
 - Commit `69db96e` refreshed all ten tamper-evident public receipts, replaced the

@@ -628,7 +628,8 @@ The ADRs are authoritative when this overview is intentionally concise. Any impl
 Track 09's pre-revival implementation and clean-source gates are preserved as
 historical evidence. Its final downstream verification was reopened after the
 passing Track 08 integration because those earlier gates asserted Track 07 absence;
-the refreshed clean committed branch gate now passes and is Ready to merge.
+the refreshed clean committed branch gate, independent review, non-fast-forward merge,
+and exact clean merged-main rerun now pass. Track 09 is Ready to push.
 It replaces internal and test-helper dataclasses with
 explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
 cross-field event/statistics invariants, keyword construction, cursor payloads, and

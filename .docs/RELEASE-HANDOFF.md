@@ -13,8 +13,9 @@ no public weekly/history API is added.
 The prior Track 08 clean-source receipt remains historical evidence for the pre-revival
 scope. Track 08 is now **Complete**: the fresh receipt covers the exact Track 07 harness,
 private projection migrations/runtime, unchanged public API, Docker, hygiene, and
-verified cleanup. Track 09's current report-bundle/clean-branch gate passes; independent
-review, merge, the exact merged-main rerun, and push remain.
+verified cleanup. Track 09's current report-bundle/clean-branch gate, independent
+review, non-fast-forward merge, and exact merged-main rerun pass; only the explicitly
+approved external push remains.
 
 Known local limits remain deliberate: SQLite, one Uvicorn worker, in-process rate
 limiting and queue/cache/refresher state, private-only weekly history, and no public

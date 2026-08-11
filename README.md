@@ -116,7 +116,9 @@ coverage over 3,932 statements and 910 branches, migrations, and six real-proces
 projection phases. Track 08's clean-source/Docker integration receipt passed those same
 full counts after invoking exact Tracks 01–07. Track 09's current clean committed branch
 gate now passes 867 tests plus 3 subtests, 3,932 statements and 910 branches at 100%,
-exact inherited runtime/Docker evidence, and verified cleanup; it is Ready to merge.
+exact inherited runtime/Docker evidence, and verified cleanup. Independent review,
+the non-fast-forward merge, and the exact clean merged-main rerun also passed; Track 09
+is Ready to push.
 A dirty/non-clean source is a **failure**; explicit development
 seams and an unavailable Docker daemon are nonzero **incomplete** results, never pass.
 
@@ -161,8 +163,8 @@ Use `migrate-only` as the final image argument to run Alembic and exit. The cont
 contract is non-root, one worker, `/data` volume, `/health/live` health check, JSON Lines
 lifecycle logs, and cooperative `SIGTERM` handling. Track 08's refreshed ordered build,
 runtime, and cleanup receipt passes, and the current clean-source Track 09 branch gate
-has inherited and passed that exact Docker evidence. Only review, merge, merged-main
-rerun, and push remain.
+has inherited and passed that exact Docker evidence. Independent review, merge, and
+the merged-main rerun passed; only the explicitly approved push remains.
 
 ## Architecture and security
 
@@ -192,7 +194,7 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 06 | Complete — event-driven current snapshots, health, and observability. |
 | 07 | Complete — private weekly projections, corrections, readiness, and executable evidence. |
 | 08 | Complete — clean-source/Docker integration passed with completed Track 07. |
-| 09 | Ready to merge — current clean-source branch gate passed; merged-main rerun pending. |
+| 09 | Ready to push — branch review, merge, and exact merged-main gate passed. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,
