@@ -17,9 +17,13 @@ _MAX_PASSWORD_LENGTH = 128
 class PasswordHashPort(Protocol):
     """The narrow pwdlib capability needed by application services."""
 
-    def hash(self, password: str, *, salt: bytes | None = None) -> str: ...
+    def hash(self, password: str, *, salt: bytes | None = None) -> str:
+        """Derive one encoded password hash from normalized password material."""
+        ...
 
-    def verify(self, password: str, hash: str) -> bool: ...
+    def verify(self, password: str, hash: str) -> bool:
+        """Return whether normalized password material matches an encoded hash."""
+        ...
 
 
 class PasswordHashFailure(RuntimeError):

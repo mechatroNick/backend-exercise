@@ -26,4 +26,5 @@ class SystemClock:
     """The production clock backed by the system's UTC time source."""
 
     def now(self) -> datetime:
+        """Return the current UTC instant for production adapters."""
         return datetime.now(UTC)

@@ -114,6 +114,7 @@ class BookmarkCursorCodec:
         boundary: CursorBoundary,
         now: datetime,
     ) -> str:
+        """Issue an opaque signed cursor bound to its owner, filters, page size, and TTL."""
         issued_at = int(normalize_utc(now).timestamp())
         payload = {
             "ca": _timestamp(boundary.created_at),
@@ -140,6 +141,7 @@ class BookmarkCursorCodec:
         query: BookmarkQuery,
         now: datetime,
     ) -> CursorBoundary:
+        """Recover a bound keyset boundary or expose one indistinguishable invalid-cursor error."""
         try:
             if (
                 not isinstance(value, str)

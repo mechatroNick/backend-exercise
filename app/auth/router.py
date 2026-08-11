@@ -65,6 +65,7 @@ _ERROR_EXAMPLES = {
 
 
 def _error_response(example: str) -> dict[str, Any]:
+    """Build one explicit OpenAPI error response shared by the auth transport boundary."""
     return {
         "model": ErrorEnvelope,
         "content": {"application/json": {"examples": {example: _ERROR_EXAMPLES[example]}}},
@@ -72,6 +73,7 @@ def _error_response(example: str) -> dict[str, Any]:
 
 
 def _rate_limit_response() -> dict[str, Any]:
+    """Declare rate-limit response headers with the response schema they qualify."""
     response = _error_response("rate_limited")
     response["headers"] = {
         "Retry-After": {
