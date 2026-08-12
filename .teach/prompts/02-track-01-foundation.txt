@@ -1,0 +1,107 @@
+TRACK 01 — FOUNDATION, CONFIGURATION, MIGRATIONS, AND SQLITE CONSTRAINTS
+
+Purpose: explain the reliable base every later feature trusts. Read with
+`.tracks/01-foundation/SPEC.md`, `app/main.py`, `app/core/config.py`, `app/core/clock.py`,
+`app/db/`, `app/db/models.py`, and `alembic/`.
+
+ARCHITECTURE VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector technical schematic, 2K wide 16:9, pure-white background. The runtime lane should read as a controlled stack, not a generic cloud:
+terminal above factory, factory above router, router to service, service to one short
+session, session to SQLite. Use a small closed door on the import card to emphasize
+inert imports. Render settings as a shield with three short output cables, but hide any
+actual values. In the database cluster, make users/bookmarks/tags substantial blue cards
+and the join table a narrow bridge; use crow-foot-like relationship ends sparingly and
+make foreign-key locks visually obvious. Include small white chips for unique, check,
+index, and UTC policy; do not invent fields beyond the short labels. On the migration
+lane, depict ordered revision sheets with increasing small version tabs; Alembic engine
+must sit outside runtime lifespan so the separation is unmistakable. Test probes should
+look like compact magnifying-glass tools touching their exact guarantee, not floating
+checkmarks.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 layered technical schematic. Use a slim top
+band for developer/toolchain input, a dominant middle runtime lane, and a separate
+bottom schema-evolution lane. Make the create-app factory a deep-purple rounded
+rectangle with a small gear icon; Settings a brick-red shield-shaped card; lifecycle a
+rose bracket surrounding runtime objects; clock an orange circular clock; router,
+service, session, and SQLite a left-to-right chain of increasingly large rounded cards.
+Inside SQLite, render four compact royal-blue table cards with visible relationship
+lines, then attach small white constraint tags on their outer edges. Draw foreign-key
+enforcement as a red toggle placed on every incoming blue connection. In the lower lane,
+show versioned Alembic papers flowing through an orange migration engine to a blue
+database cylinder; place crossed-out create_all as a red dashed card below the engine.
+Use thick solid arrows for runtime calls, blue solid arrows for data access, dashed
+rose arrows for lifecycle ownership, and red barred arrows for invalid operations.
+All labels are short; integrated annotations explain what each node guarantees.
+
+Flat 2D vector technical schematic on a pure white background explaining the local
+FastAPI foundation for a Bookmarks API. Educational medium-high density; purple HTTP
+boundary, orange execution, blue SQLite data, red configuration/security, rose
+lifecycle/logging. Wide 16:9 landscape with a top-down runtime path and separate
+bottom migration path.
+
+At top left, show a developer terminal “Python 3.12 + uv lock” entering a purple
+“create_app factory” card, explicitly not a global app object. Beside it, a red
+“Settings” card supplies safe configuration and secrets only at startup. From the
+factory, a rose “lifespan” bracket owns startup/shutdown, and an orange “UTC clock
+port” is injected into services. Add a small note “imports do not create engines or
+migrate”.
+
+In the middle, draw purple “FastAPI router” → orange “service layer” → blue “short
+SQLModel session” → large royal-blue “SQLite”. Within SQLite, show compact tables
+“users”, “bookmarks”, “tags”, and “bookmark_tags”; users own bookmarks and bookmarks
+connect to canonical tags through the composite link table. Add constraint badges:
+unique email/username/tag, length checks, foreign keys, indexes, UTC timestamps. Put a
+red lock at every connection “foreign keys ON”.
+
+Along the bottom, draw the deliberately separate schema lane: “Alembic revision” →
+“upgrade head” → “SQLite schema”. Place a crossed-out alternative “create_all”. Add
+small test probes for migration, constraint, timestamp, and config behavior. Teach:
+models describe data; migrations own evolution. EXCLUDE auto-migration at startup,
+shared thread sessions, cloud databases, code listings, 3D, gradients, and tables.
+
+CRITICAL IMPLEMENTATION VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector technical swimlane schematic, 2K wide 16:9, pure-white background. Make the four swimlane headings short, bold, and top-aligned. In the
+configuration lane, show invalid versus accepted settings as a simple fork with only the
+accepted branch continuing. In import/start, use a gray sealed box for import-time state
+and a purple open box for runtime state. In connection, make the foreign-key switch a
+visible mandatory gateway before the database cylinder, with a red invalid-row card
+repelled at the gateway. In schema/test, show migration papers stacking into the
+database, then green probes entering afterward; arrows must never run from application
+startup into migration. Draw the UTC round trip as a closed loop with clock, persisted
+value, and returned value evenly spaced. Use solid arrows for actual flow and tiny red
+diagonal strikes on forbidden cards. Make the visual explain reliability without relying
+on code syntax or a separate legend.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 swimlane diagram with four lightly tinted
+vertical columns and a strong left-to-right chronological read. Use a red Settings
+shield in column one, an inert gray import card plus purple factory in column two, a
+blue connection valve plus SQLite cylinder in column three, and a slate Alembic revision
+stack plus green test probes in column four. Use arrows that visibly cross lane borders:
+configuration validation blocks startup; factory opens lifespan; every connection passes
+the foreign-key valve; migrations build constraints before tests exercise them. Give
+the UTC clock a small orange icon and show an unbroken blue round-trip arrow from clock
+to storage to returned timestamp. Depict each forbidden behavior—startup migration,
+global session, create_all, dangling foreign key—as a pale-red card with a diagonal
+strike. Use short bold labels, no separate legend, and attach guarantee annotations to
+the applicable node rather than making a note box.
+
+Flat 2D vector invariant diagram on a pure white background. Four vertical swimlanes:
+“configuration”, “application import/start”, “database connection”, “schema/test”.
+
+Configuration lane: a red Settings object feeds “database URL”, “JWT settings”, and
+“worker settings”; an invalid production secret stops at a red validation gate.
+Import/start lane: a gray import card stays inert—no engine, migration, or service—then
+a purple factory invocation opens a rose lifespan only at server start. Connection lane:
+every blue connection passes a switch “PRAGMA foreign_keys = ON” and finite busy timeout
+before SQLite; a dangling foreign-key row returns a red integrity error. Schema lane:
+Alembic revisions create an empty database through “upgrade head”; a large crossed-out
+`create_all` shows why history cannot be bypassed.
+
+Add an orange UTC clock producing timezone-aware values that round-trip through
+storage. Place short data badges: composite primary key on `bookmark_tags`, later
+immutable `created_at`, database constraints as race-safe authority. End with green
+probes “migrations”, “foreign keys”, “indexes”, “UTC round trip”. EXCLUDE global
+mutable sessions, plain-text secrets, external infrastructure, long prose, 3D,
+gradients, and tables.

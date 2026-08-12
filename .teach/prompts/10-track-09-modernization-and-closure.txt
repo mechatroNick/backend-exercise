@@ -1,0 +1,113 @@
+TRACK 09 — MODERNIZATION, EVIDENCE REPORTS, AND CLEAN-SOURCE CLOSURE
+
+Purpose: explain the final internal refactors and why verification evidence must itself
+be inspectable and tamper-resistant. Read with `.tracks/09-final-cleanup-docs/SPEC.md`,
+`app/core/internal_models.py`, `app/core/lifecycle.py`, `scripts/verification-report.sh`,
+`scripts/verify-track-09.sh`, `scripts/verify-testing-reports.sh`, and `.testing_report/`.
+
+ARCHITECTURE VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector engineering-closure schematic, 2K wide 16:9, pure-white background. In modernize stage, show gray old value cards becoming one blue typed-model
+card through a clear arrow, but do not depict an unsafe blanket rewrite. The lifecycle
+chips are five small rose pills ordered vertically, flowing through a rose JSON-lines
+filter before any terminal output. Documentation move is a slate folder arrow to `.docs`;
+README is a single first-stop card, not a duplicate doc tree. In verification stage, the
+disposable clone is a blue sealed workspace box so exact source isolation is visible;
+each orange gate gets a small icon—lock, migration paper, test tube, API tree, container,
+link check, broom. In evidence stage, arrange ten receipt cards in an orderly two-column
+stack around a blue manifest, each with a tiny fingerprint circle. The orange verifier
+lens has red rejection rays downward and one green confirmation path right. Keep
+owner-only external actions in a low-contrast gray strip separated from completion.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 three-stage closure pipeline. Split the
+landscape into left “modernize”, center “verify exact source”, right “preserve evidence”.
+Left: a set of gray internal value cards becomes one large royal-blue Pydantic v2 card
+with small strict/frozen/mutable/serialization badges; five rose lifecycle event chips
+flow into a rose JSON-lines log boundary; slate docs folder moves to `.docs`; root README
+appears as a reader entry card. Center: a slate committed-source card enters a blue
+disposable-clone box, then travels through orange gate modules for lock/toolchain,
+migration, tests, OpenAPI/runtime, Docker, docs, hygiene, inherited harnesses. Every
+module emits a tiny report strip “SCRIPT / GATE / SUMMARY / CLEANUP / RESULT”. Right:
+ten green text-receipt cards stack into a blue manifest ledger with SHA-256 and ancestry
+links; an orange report-verifier lens checks them. Use solid arrows for exact execution,
+dashed arrows for metadata, red exits for fail/tamper/incomplete, no route to pass from
+any red exit. Keep external owner-only actions in a thin gray bottom strip.
+
+Flat 2D vector engineering-closure schematic on a pure white background. Wide 16:9
+landscape, three stages: “modernize internals”, “run exact verification”, “preserve
+auditable evidence”. Use blue for typed internal state, rose for lifecycle/logging,
+orange for verifiers, green for receipts, red for integrity failure, slate for docs.
+
+Left stage: show several old generic value-object cards flowing into one blue “Pydantic
+v2 internal models” card. Short badges say “strict validation”, “frozen or mutable by
+intent”, “serialization preserved”, “concurrency behavior preserved”. Beside it, five
+rose lifecycle event cards use exact short names: starting, startup failed, started,
+stopping, stopped; arrows enter a JSON-lines safe logging boundary without changing
+emitted values. A slate documentation folder moves to `.docs` and one root README card
+becomes the reader’s first stop. Show a small magnifying glass for Pyright/type checks
+and a red crossed-out “deprecated API” card only when warning-backed evidence exists.
+
+Middle stage: an orange clean-source verifier takes a committed source snapshot, makes a
+disposable clone, then runs lock/toolchain, migrations, tests, OpenAPI/runtime, Docker,
+documentation, hygiene, and exact inherited track harnesses. Every script prints the
+same compact terminal receipt fields “SCRIPT”, “GATE”, “SUMMARY”, “CLEANUP”, “RESULT”.
+Show failure and incomplete exits in red, never converted to green skip.
+
+Right stage: ten green text receipts enter a blue manifest with “source HEAD” and
+“SHA-256”; an orange report verifier checks expected inventory, committed bytes,
+ancestry, hashes, safe content, and Track 07’s actual completed disposition. A large
+green label says “evidence is current only when rerun from clean committed source”.
+Bottom strip: owner-only external actions “push, archive, submit, deploy”. EXCLUDE
+claims that external push/submission occurred, secrets/private logs, public weekly
+history, code tables, 3D, gradients, and photorealism.
+
+CRITICAL IMPLEMENTATION VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector verification-integrity schematic, 2K wide 16:9, pure-white background. Make terminal-state logic visually unambiguous. The central verifier is an
+orange machine with one left inlet and three right exits: green PASS only after every gate,
+red FAIL, amber INCOMPLETE. Each gate has a small rose cleanup hook dangling below; show
+a cleanup failure red arrow crossing above a green body-success arrow to demonstrate
+override precedence. The receipt bundle should be an exact ten-card set with visible
+number badges 00 through 09 and one blue manifest sheet; arrows from cards lead to small
+fingerprint seals then upward to a Git ancestry chain. Tamper probes are red test needles
+touching the relevant card/manifest edge, each forcing rejection. Public-safe summary and
+private disposable logs sit in two bottom compartments separated by a red privacy line.
+Use short shape labels only and no pseudo-terminal screenshots, code, or long textual
+status claims.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 verification-integrity state machine. Center
+the largest orange “Track 09 verifier” module; connect from slate clean committed source
+to blue disposable clone to orange exact Track 08 then Track 09 gate sequence, ending at
+green candidate receipt bundle. Draw a small cleanup hook under every gate. Use thick
+solid arrows for success order, red fail arrows to a single “FAIL” terminal, amber
+missing-prerequisite arrows to “INCOMPLETE”, and a prominent red arrow showing cleanup
+failure overrides body success. To the right, show exactly ten green numbered receipt
+cards plus a blue manifest table-like ledger without rendered table grid; each card
+connects to a fingerprint seal and Git ancestry chain. Below them, place four red tamper
+probes: altered receipt, untracked file, stale Track 07 skip, unsafe content; all feed
+red rejection. A narrow bottom split shows public safe terminal summary versus private
+disposable runtime logs. Use short labels, integrated annotations, no fabricated pass,
+network push, secret strings, screenshots, 3D, gradients, or prose panels.
+
+Flat 2D vector verification-integrity state machine on pure white. Center a large
+orange box “Track 09 verifier” with a strict left-to-right path.
+
+Start with slate “clean committed source” → blue “disposable clone” → orange “exact
+inherited Track 08” → orange “Track 09 quality/docs/runtime/Docker gates” → green
+“candidate receipt bundle”. Under every gate, attach a small cleanup hook. Any command
+failure goes to red “FAIL”; missing Docker daemon or required environment goes to amber
+“INCOMPLETE”; cleanup failure overrides an otherwise successful body and also becomes
+red “FAIL”. No arrow from fail/incomplete reaches final pass.
+
+On the right, inspect the bundle: exactly ten numbered track receipts plus a manifest.
+Each receipt carries command, PASS, exit zero, and capture source. SHA-256 lines point
+to immutable committed bytes, while a Git ancestry chain proves capture source is an
+ancestor of current source. Red tamper probes show rejected cases: altered receipt,
+untracked file, stale Track 07 skipped receipt, unsafe token/path pattern, wrong
+inventory. At bottom, draw a narrow public/private split: terminal summaries are safe;
+private runtime logs remain disposable and never join the public bundle.
+
+Add final green gates “no dataclass remnants”, “supported APIs”, “typed adapters”,
+“OpenAPI unchanged”, “100% statement + branch evidence only when actually run”. This
+is a closure mechanism, not new product behavior. EXCLUDE fabricated pass marks,
+network push, secret strings, screenshots, tables, 3D, and gradients.

@@ -1,0 +1,97 @@
+TRACK 04 — SEARCH, PAGINATION, AND CANONICAL CURRENT RAW-SQL STATISTICS
+
+Purpose: explain deterministic query semantics and the isolated raw-SQL statistics
+reader. Read with `.tracks/04-search-stats/SPEC.md`, `app/bookmarks/repository.py`,
+`app/bookmarks/pagination.py`, and `app/bookmarks/stats/raw_sql.py`.
+
+ARCHITECTURE VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector query architecture schematic, 2K wide 16:9, pure-white background. Use a clean horizontal divider between the two lanes, but make the shared
+SQLite cylinder overlap the divider so canonical data is visibly common. In search, place
+filter pills in a compact fan around the orange builder; calendar pills should show tiny
+midnight markers, and pagination pills should show bounded slider icons. The query card
+is a blue document with the owner badge physically pinned to it; tags load as a small
+separate blue bundle then rejoin the list response. In analytics, the teal raw-SQL island
+has a subtle moat/purple outline to communicate intentional isolation, not danger; put
+three teal result cards in a row for totals, top tags, monthly. Use one response envelope
+per lane with matching user-scope badge. Make crossed-out N+1 and broad raw SQL cards
+small red peripherals. All arrows should point clearly from route to data to response;
+no bidirectional arrows that imply writes or cache behavior.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 split-lane query architecture. Give the upper
+search lane and lower analytics lane equal width, sharing one large central-right
+royal-blue SQLite cylinder. On the left of both lanes, place a brick-red user-scope
+badge directly after a purple route card. In the top lane, show filter inputs as five
+small rounded pills feeding an orange filter-builder rectangle, then a blue owner-scoped
+query card, a small tag-loader card, and a slate list-response envelope. Make stable
+ordering and page bounds visible as attached white tags. In the lower lane, show a teal
+raw-SQL reader as a distinct island with a thin purple border, three teal aggregation
+cards, then a slate stats envelope. Use dark solid arrows for request flow, thin blue
+arrows for data reads, teal arrows for aggregate outputs, and dashed red arrows to
+crossed-out N+1/raw-SQL-everywhere anti-pattern cards. Short labels only; explain why
+the raw SQL island is narrow using a tiny integrated annotation, not a legend.
+
+Flat 2D vector technical schematic on a pure white background showing two protected read
+paths: bookmark search and current statistics. Wide 16:9 landscape split into upper
+search lane and lower analytics lane. Purple HTTP, red auth scope, orange query logic,
+royal-blue SQLite, teal analytics, slate responses.
+
+Upper lane: authenticated user enters `GET bookmarks`. A red user-id badge attaches to
+orange “filter builder” surrounded by input chips “normalized tag”, “title contains”,
+“created date”, “updated date”, “page + size”. Calendar chips flow through UTC interval
+rule “inclusive day = before next midnight”, never fake end-of-day time. One blue
+owner-scoped query reaches SQLite, eager-loads tags, and returns slate list response
+with items and total. Show stable ordering `created_at DESC, id DESC`, default 20,
+maximum 100, and a crossed-out N+1 loop.
+
+Lower lane: `GET stats` passes the same red user boundary, then deliberately enters a
+teal “canonical raw SQL reader” isolated from ordinary ORM CRUD. Named parameters enter
+SQLite; one slate response contains “total bookmarks”, “total tags”, “top tags”, “per
+month”. Use aggregation icons for joins, grouping, ordering, and a caption “all current
+state, user scoped”. Both lanes draw from identical canonical tables. EXCLUDE public
+weekly history, raw SQL spread through CRUD, client-side aggregation, local-time date
+ambiguity, cloud analytics, 3D, gradients, and text tables.
+
+CRITICAL IMPLEMENTATION VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector query-correctness schematic, 2K wide 16:9, pure-white background. The left microscope panel must have a clear before/after calendar
+transformation: one date tile splits into lower and upper midnight boundary cards, then
+joins predicate chips at a large orange AND diamond. Put the stable ordering cards as a
+layered deck with `id` tie-break visibly underneath created_at, and use a parallel count
+card instead of implying count from page size. In the right panel, use three distinct
+teal mini-machines with count, tag, and calendar icons; all must connect through one
+blue user-bound database arrow with repeated named-parameter tags. Make public `count`
+a visible slate output chip. The green fixture scale sits below results and should look
+like a hand-checking instrument. Put every red anti-pattern in a thin outer margin so
+the invariant flow stays readable. Keep caption text under six words and omit literal
+SQL/code blocks.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 two-panel correctness microscope. Left panel
+is a pale-blue calendar/query panel: one calendar tile transforms into two midnight
+boundary cards connected by an orange interval arrow; five predicate chips converge
+into an orange AND junction; a stacked blue result deck shows the two-key order; a
+parallel gray count card rejoins the slate response. Show escaped literal wildcard
+characters as small protected input glyphs, never as long SQL. Right panel is pale-teal:
+one blue database cylinder feeds three teal aggregate cards with visible grouping/count
+icons, then a public-response card. Attach named-parameter tags to every database arrow
+and a small green comparison scale to the result. Use red diagonal strikes over
+end-of-day guesswork, interpolation, unbounded pages, and client aggregation. All
+connections are explicit, all annotations under six words, no standalone notes panel.
+
+Flat 2D vector query-correctness schematic on pure white, wide 16:9, two magnified
+panels “date + pagination” and “statistics SQL”.
+
+Left panel: calendar date becomes half-open UTC interval midnight inclusive to next
+midnight exclusive. It joins one orange conjunction: user id AND normalized tag AND
+literal title fragment AND created/updated predicates. Show literal `%`, `_`, and `\`
+escaping before LIKE matching. Sorted bookmark stack uses `created_at DESC` then `id
+DESC`; a page window chooses stable items while parallel same-predicate count yields
+total. Cross out “23:59:59.999999 guesswork” and “unbounded page”.
+
+Right panel: teal raw-SQL box sends named user-bound parameters into three compact
+aggregations: distinct bookmark/tag totals, top tags grouped/count ordered by count then
+name with bound limit, and UTC `YYYY-MM` monthly creation groups. The public result label
+is `count`. A green test scale compares hand-calculated fixtures with output. Bottom
+edge chips: empty result, date boundary, timestamp tie, multi-tag count, other user
+excluded, N+1 guarded. Exclude SQL text dumps, later snapshot behavior, 3D, gradients,
+and tables.

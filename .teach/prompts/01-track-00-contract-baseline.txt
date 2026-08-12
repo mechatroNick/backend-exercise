@@ -1,0 +1,110 @@
+TRACK 00 — CONTRACT BASELINE AND DELIVERY DISCIPLINE
+
+Purpose: establish the map before implementation. Ground this in `.docs/ASSESSMENT.md`,
+`.docs/SOLUTION-DESIGN.md`, `.docs/DELIVERY-PLAN.md`, and
+`.tracks/00-contract-baseline/SPEC.md`.
+
+ARCHITECTURE VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector technical schematic, 2K wide 16:9, pure-white background. Use three broad pale-tinted regions with no hard border: left “authority
+inputs”, center “decision control”, right “delivery evidence”. The assessment document is
+a charcoal paper card with a small bookmark icon; the requirement board is a broad blue
+panel holding four tiny grouped chips, never a table. The ADR card should look like a
+purple signed decision sheet, and the plan like a slate route map. Give track cards a
+consistent pill-like shape, numbered only 00 through 09, with the mandatory quality
+checkpoint visually taller than its neighbors. Make required arrows dark and direct,
+while later-extension arrows are thinner until the quality gate turns green. Ensure the
+bottom non-goal strip is visually subordinate and reads as a boundary, not an extra
+delivery stage. An informed viewer should immediately see requirement traceability,
+dependency ordering, and proof feedback before reading any small annotation.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 learning diagram. Front-load the title
+“Contract baseline” as a small bold heading, then use a left-to-right pipeline with
+five numbered stages. Use solid rounded rectangles for durable documents, a hexagon for
+the decision gate, a folder shape for evidence, and a thin gray strip for non-goals.
+Use charcoal for external inputs, royal blue for specifications, deep purple for
+decisions, slate for plans, muted orange for active delivery, and forest green only for
+verified evidence. Every node has a bold label of one to three words plus a very short
+gray annotation. Keep the requirements board as the largest central-left shape, the
+track railway as the largest central-right shape, and the evidence folder visually
+smaller but strongly connected back to the requirement board. Use thick solid arrows
+for required dependency/order, thin dashed arrows for feedback, and red blocked arrows
+for prohibited shortcuts. Integrate all explanations directly beside nodes; do not add
+a legend, notes panel, or separate title card.
+
+Flat 2D vector technical schematic on a pure white background explaining how a
+spec-driven Bookmarks API challenge becomes a delivered system. Muted professional
+colors, education-first, medium-high information density, no 3D effects, gradients,
+or photorealism. Wide 16:9 landscape, left-to-right delivery pipeline.
+
+At far left, a charcoal document card labeled “Assessment” feeds a large royal-blue
+requirements board labeled “43 requirements”. Split the board into four compact groups:
+“core API”, “data”, “security”, and “quality”. Above it, put a brick-red decision gate
+“owner clarification”; below it, a red stop sign “no silent assumptions”. From the
+requirements board, thick arrows flow to three coordinated source-of-truth cards:
+blue “Solution Design” with annotation “boundaries”, purple “ADR decisions” with
+annotation “why”, and slate “Delivery Plan” with annotation “order + evidence”.
+
+To the right, show ten sequential track cards connected like a railway: “00 baseline”,
+“01 foundation”, “02 auth”, “03 CRUD”, “04 queries”, “05 quality”, “06 snapshots”,
+“07 weekly”, “08 hardening”, “09 closure”. Tracks 00–05 are a solid blue core lane;
+06–07 are a magenta extension lane; 08–09 are a slate handoff lane. Put a visible
+checkpoint after Track 05 labeled “mandatory gate first”; extensions may begin only
+after it. At far right, show a green evidence folder “repeatable proof”, not a trophy.
+A thin feedback arrow returns to the requirements board labeled “traceability”. Along
+the bottom, a narrow gray boundary strip states “no public history”, “no broker”, “one
+worker”, “local SQLite”. Add numbered learning markers ① extract requirements,
+② record decisions, ③ sequence dependencies, ④ implement, ⑤ verify.
+
+Show documentation as an engineering control plane, not decorative prose. EXCLUDE text
+tables, paragraphs, generic agile imagery, cloud services, watermarks, and any claim
+that planned work equals tested work.
+
+CRITICAL IMPLEMENTATION VIEW — IMAGE-GENERATION PROMPT
+
+RENDERING BRIEF: Flat 2D vector technical decision schematic, 2K wide 16:9, pure-white background. Use the authority ladder as a visual hierarchy: the owner card is widest
+and darkest, each lower authority is slightly smaller, and each has a tiny source icon.
+Keep locked contracts clustered on the left of the proposal as red shield badges; keep
+local choices clustered on the right as amber wrench badges so their difference is
+visible before labels are read. The material-change detour should arc upward through a
+red review diamond then return to the proposal only after a purple ADR card; the
+reversible-choice arrow is short and straight. In the lower evidence chain, make every
+artifact a connected physical object—tag, document, test tube, terminal, receipt—with
+the result receipt only green after the terminal icon. Make “not proof” a small red stamp
+on the rejected gray plan, not a separate narrative. Preserve generous white space around
+the central proposal and use no more than two annotation lines per cluster.
+
+VISUAL DETAIL: Generate a 2K wide 16:9 decision-control diagram. Put the “Change
+proposal” card in the exact center and make it the largest pale-orange rounded
+rectangle. Place the authority ladder vertically above it as five decreasing-height
+cards: owner clarification, assessment PDF, accepted ADR, assessment interpretation,
+track plan. Use brick-red for locked boundaries, amber for allowed local latitude,
+deep purple for review/process gates, royal blue for durable artifacts, and forest
+green only for evidence that actually ran. Use solid downward arrows for precedence,
+a thick red detour arrow for material changes, a short green arrow for reversible local
+choices, and a five-link horizontal chain below the center for requirement-to-report
+traceability. Render the verifier as an orange machine with an input slot and a green
+receipt slot; render “plan” as a folded gray paper diverted into a red reject icon.
+Each component has a short bold label and at most a five-word annotation. No detached
+legend, no prose blocks, no diagram title larger than the central proposal.
+
+Flat 2D vector decision schematic on a pure white background showing the controls that
+prevented feature drift. Monochrome with blue data cards, purple process arrows, red
+safety gates, and green evidence stamps. Wide 16:9 landscape centered on a large
+“Change proposal” card.
+
+Above the proposal, stack an authority ladder from highest to lowest: red “Owner
+clarification”, charcoal “Assessment PDF”, purple “Accepted ADR”, blue “Assessment
+interpretation”, slate “Track plan”. Thick downward arrows indicate precedence. Attach
+four red locked-contract badges to the proposal: “10 public operations”, “owner-scoped
+bookmarks”, “current stats canonical”, “one in-process worker”. Attach four amber
+decision-latitude badges: “internal names”, “fixtures”, “bounded defaults”, “module
+layout”. A red route “material change” must travel to “ADR + owner review”; a green
+route “reversible local choice” can enter implementation.
+
+Below, draw the evidence chain: requirement ID → SPEC → implementation/test →
+executable verifier → TEST-REPORT. Make the verifier an orange machine emitting a
+green “actual result” receipt only after commands run. A gray paper “plan” is rejected
+with “not proof”. Include small boundary chips: “ORM by default”, “raw SQL only for
+stats”, “Alembic owns schema”, “extensions cannot weaken core”. This is governance,
+not runtime; exclude code blocks, secrets, tables, 3D, gradients, and decorative icons.
