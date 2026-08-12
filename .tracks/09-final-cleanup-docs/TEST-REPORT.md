@@ -1,6 +1,6 @@
 # Track 09 final test report
 
-- Status: Ready to push — branch review, merge, and clean merged-main gate passed
+- Status: Complete — branch review, merge, clean merged-main gate, and publication condition passed
 - Date: 2026-08-11
 - Current clean branch evidence HEAD: `69db96ea3022814629f974881af808b9fde76df6`
 - Reviewed branch closure HEAD: `d45894333c1cbd655fb3775f8338e98ba8885825`
@@ -39,9 +39,10 @@ valid ancestor provenance, and contains no protected paths, tokens, or private l
 Independent closure review passed, the branch was merged to `main` with non-fast-forward
 merge `6e92980`, and `bash scripts/verify-track-09.sh` passed again on that clean merged
 commit with the same warning-fatal 867-test/3-subtest and 100% coverage result, exact
-inherited runtime/Docker evidence, final-clone cleanliness, and cleanup. T09-REQ-11 is
-not yet complete because the explicitly approved external push remains. No push is
-claimed by this receipt.
+inherited runtime/Docker evidence, final-clone cleanliness, and cleanup. At the time
+this receipt was captured, it did not claim an external push. On 2026-08-12, the
+configured `origin/main` was observed at merged commit `0f7c5eb`; T09-REQ-11 is now
+complete.
 
 ## Historical pre-revival receipt
 

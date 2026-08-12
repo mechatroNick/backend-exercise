@@ -14,8 +14,8 @@ The prior Track 08 clean-source receipt remains historical evidence for the pre-
 scope. Track 08 is now **Complete**: the fresh receipt covers the exact Track 07 harness,
 private projection migrations/runtime, unchanged public API, Docker, hygiene, and
 verified cleanup. Track 09's current report-bundle/clean-branch gate, independent
-review, non-fast-forward merge, and exact merged-main rerun pass; only the explicitly
-approved external push remains.
+review, non-fast-forward merge, and exact merged-main rerun pass. The configured
+`origin/main` now contains the merged mainline, completing Track 09.
 
 Known local limits remain deliberate: SQLite, one Uvicorn worker, in-process rate
 limiting and queue/cache/refresher state, private-only weekly history, and no public
@@ -30,4 +30,6 @@ The repository owner must independently:
 3. Choose the final commit/ref.
 4. Decide whether to push, archive, share, deploy, or submit.
 
-No push, archive, share, deployment, submission, or private-correspondence action was performed by this documentation work.
+This documentation work did not itself perform archive, sharing, deployment, submission,
+or private-correspondence actions. The configured `origin/main` was later observed at
+the merged mainline; that publication satisfies Track 09's final external condition.

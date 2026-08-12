@@ -53,7 +53,7 @@ No track is considered complete based only on code presence. Completion requires
 | 06 | Loosely coupled invalidations, durable dirty recovery, current snapshots, health, and logs | 05 | Complete |
 | 07 | Weekly developing/developed points and append-only correction projections | 06 | Complete |
 | 08 | Full regression, documentation evidence, walkthrough readiness, and all bonuses | 01–07 | Complete |
-| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Ready to push |
+| 09 | Cleanup, `.docs` migration, typed internal models/lifecycle events, and standalone final reports | 08 | Complete |
 
 ## 4. Track 00 — Contract and architecture baseline
 
@@ -382,7 +382,7 @@ must inherit the passing Track 08 integration of completed Track 07.
   reports, with Track 08 inheriting the exact Track 07 verifier;
 - a dirty/non-clean source fails; explicit development seams and unavailable Docker are
   nonzero incomplete, never a pass or skip; the clean branch and merged-main gates pass,
-  while the explicitly approved external push remains pending.
+  and the configured `origin/main` now contains the merged mainline.
 
 ### Proposed commit
 

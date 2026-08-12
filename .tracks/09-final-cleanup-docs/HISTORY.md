@@ -1,5 +1,13 @@
 # Track 09 history
 
+## 2026-08-12 — Publication condition observed
+
+- The configured remote-tracking ref `origin/main` was observed at the current merged
+  `main` commit `0f7c5eb`, after the verified Track 09 merge and merged-main gate.
+- This satisfies the external publication condition that earlier receipts deliberately
+  left unclaimed. Track 09 is now Complete; the older no-push statements remain
+  truthful for their capture times.
+
 ## 2026-08-11 — Merged-main gate passed; push pending
 
 - The independent closure review returned PASS for committed branch HEAD `d458943`.

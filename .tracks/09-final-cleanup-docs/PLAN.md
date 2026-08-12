@@ -2,8 +2,8 @@
 
 - Specification: [SPEC.md](SPEC.md), version 1.1
 - Governing records: ADR-006, ADR-008, ADR-009, and completed Tracks 00–08
-- Status: Ready to push
-- Active item: T09-11 — push the verified branch and merged main
+- Status: Complete
+- Active item: None — all Track 09 closure work is complete
 
 ## Dependency and intent gate
 
@@ -27,7 +27,7 @@ is authorized.
 | T09-08 | Run focused and complete deterministic, branch-coverage, type, warning, migration, runtime, security, dependency, documentation, inherited-harness, Docker, and cleanup validation. | Primary | T09-04, T09-05, T09-06, T09-07 | Complete | Clean committed branch HEAD `c92dc35` passed `bash scripts/verify-track-08.sh` and `bash scripts/verify-track-09.sh`: 743 tests plus 3 subtests, 2,953 statements / 618 branches at 100%, real runtime, Docker, and verified cleanup. |
 | T09-09 | Independent closure review; publish TEST-REPORT/HISTORY/status, merge branch to main, and rerun the exact final gate on merged main. | Primary + Mason | T09-08 | Complete | Closure wave received independent PASS review; merge commit `ce16aa1` was created on `main`; the exact Track 09 gate passed on that clean merged commit with inherited Track 08, Docker, final-clone cleanliness, and cleanup PASS. |
 | T09-10 | Reconcile completed Track 07 and current Track 08 into the Track 09 contracts, automation, reader docs, and tamper-evident public receipt bundle. | Primary + Smith + Mason | Current Track 08 closure | Complete | Commit `69db96e` replaced the historical owner-skip receipt with exact Track 07 PASS evidence, strengthened Track 09 source/report contracts, and refreshed all ten safe public receipts. The default committed-bundle verifier and its 18 contract tests passed. |
-| T09-11 | Run the exact clean-source Track 09 gate, publish the current report, merge this dedicated branch to `main`, rerun the exact gate on merged `main`, capture the final public receipts, commit them, and push verified changes. | Primary + Mason | T09-10 | In progress | Independent review passed; branch closure HEAD `d458943` passed the exact gate; non-fast-forward merge `6e92980` was created on `main`; and the exact gate passed again on that clean merged commit with 867 tests plus 3 subtests, 3,932 statements / 910 branches at 100%, exact Tracks 01–08, runtime, Docker, final-clone cleanliness, and cleanup. Only the explicitly approved external push remains. |
+| T09-11 | Run the exact clean-source Track 09 gate, publish the current report, merge this dedicated branch to `main`, rerun the exact gate on merged `main`, capture the final public receipts, commit them, and push verified changes. | Primary + Mason | T09-10 | Complete | Independent review passed; branch closure HEAD `d458943` passed the exact gate; non-fast-forward merge `6e92980` passed the exact gate again with 867 tests plus 3 subtests and 3,932 statements / 910 branches at 100%. On 2026-08-12, the configured `origin/main` was observed at merged commit `0f7c5eb`, completing the external publication condition. |
 
 ## Ordered validation ledger
 

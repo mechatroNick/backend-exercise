@@ -90,4 +90,5 @@ Track 08 has now consumed this dependency and passed its clean-source/Docker int
 at `d6c08e0`. Track 09's historical receipt preserves the former skip/absence state,
 while its active control plane now records a passing report-bundle and clean branch
 validation. Track 09's independent review, non-fast-forward merge, and exact merged-main
-rerun also passed. This Track 07 report does not claim the still-pending external push.
+rerun also passed. This Track 07 report does not claim an external push itself; the
+current Track 09 record separately observes the configured origin at merged main.

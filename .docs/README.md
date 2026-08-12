@@ -56,9 +56,10 @@ assessment. Durable execution state and architecture decisions live under
 
 Track 07 is **Complete** under ADR-009 with private weekly projections, an executable
 harness, and closure evidence. Track 08 is **Complete** with fresh clean-source/Docker
-integration. Track 09 preserves its pre-revival history and is **Ready to push** after
-independent review, its non-fast-forward merge, and exact clean merged-main verification
-all passed. External release actions remain owner-only and were not performed.
+integration. Track 09 preserves its pre-revival history and is **Complete** after
+independent review, its non-fast-forward merge, exact clean merged-main verification,
+and observation of the configured `origin/main` at the merged mainline. Archive,
+sharing, deployment, and submission remain owner-only actions.
 
 ## Authority
 

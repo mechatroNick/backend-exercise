@@ -22,8 +22,8 @@ text. They deliberately distinguish delivered local-assessment behavior from exc
 production infrastructure without referring the model to repository files.
 
 The curriculum describes implementation and verification boundaries; it does not change
-the durable track status. Tracks 00–08 are complete, while Track 09 remains **Ready to
-push** until the repository owner performs the explicitly excluded external action.
+the durable track status. Tracks 00–09 are complete; the configured origin now contains
+the merged mainline. Archive, sharing, deployment, and submission remain owner actions.
 The non-runtime prompts and images are intentionally excluded from the Docker build
 context, so they do not enlarge or alter the application image.
 

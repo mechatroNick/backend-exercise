@@ -629,7 +629,8 @@ Track 09's pre-revival implementation and clean-source gates are preserved as
 historical evidence. Its final downstream verification was reopened after the
 passing Track 08 integration because those earlier gates asserted Track 07 absence;
 the refreshed clean committed branch gate, independent review, non-fast-forward merge,
-and exact clean merged-main rerun now pass. Track 09 is Ready to push.
+and exact clean merged-main rerun now pass. The configured `origin/main` contains the
+merged mainline, so Track 09 is Complete.
 It replaces internal and test-helper dataclasses with
 explicit strict Pydantic v2 models, preserving frozen versus deliberately mutable state,
 cross-field event/statistics invariants, keyword construction, cursor payloads, and

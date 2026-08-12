@@ -117,8 +117,8 @@ projection phases. Track 08's clean-source/Docker integration receipt passed tho
 full counts after invoking exact Tracks 01–07. Track 09's current clean committed branch
 gate now passes 867 tests plus 3 subtests, 3,932 statements and 910 branches at 100%,
 exact inherited runtime/Docker evidence, and verified cleanup. Independent review,
-the non-fast-forward merge, and the exact clean merged-main rerun also passed; Track 09
-is Ready to push.
+the non-fast-forward merge, and the exact clean merged-main rerun also passed. The
+configured `origin/main` now contains the merged mainline, so Track 09 is Complete.
 A dirty/non-clean source is a **failure**; explicit development
 seams and an unavailable Docker daemon are nonzero **incomplete** results, never pass.
 
@@ -194,10 +194,11 @@ metaclass typing boundaries are documented rather than hidden with broad suppres
 | 06 | Complete — event-driven current snapshots, health, and observability. |
 | 07 | Complete — private weekly projections, corrections, readiness, and executable evidence. |
 | 08 | Complete — clean-source/Docker integration passed with completed Track 07. |
-| 09 | Ready to push — branch review, merge, and exact merged-main gate passed. |
+| 09 | Complete — branch review, merge, exact merged-main gate, and publication condition passed. |
 
 Use [.docs](.docs/README.md) for reader-facing assessment, design, delivery, walkthrough,
 and handoff material; use [.tracks](.tracks/README.md) for accepted ADRs, specifications,
 plans, histories, and evidence reports. The [release handoff](.docs/RELEASE-HANDOFF.md)
-holds completed repository evidence and the external-action boundary. External push,
-archive, sharing, deployment, and submission remain repository-owner actions.
+holds completed repository evidence and the historical external-action boundary. The
+current merged mainline is published to the configured origin; archive, sharing,
+deployment, and submission remain repository-owner actions.
