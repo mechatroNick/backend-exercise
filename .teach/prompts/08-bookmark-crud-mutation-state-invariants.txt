@@ -1,0 +1,88 @@
+# 08 — CRUD: mutation state invariants
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/03-bookmark-crud/SPEC.md, app/bookmarks/service.py, app/bookmarks/policy.py, app/bookmarks/repository.py
+INTERESTED_TOPIC=Material mutation, no-op PATCH, tag membership, timestamps, and owner concealment
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Keep current-statistics dirty/event behavior secondary. No public change history or automatic tag cleanup.
+
+## Source anchors and bounded claims
+
+- `classify_patch`, tag policy, and repository ownership predicates define mutation outcomes.
+- `created_at` stays immutable; `updated_at` changes only after material scalar/tag change.
+- Missing and another-user resource paths both become not found.
+
+## Technical style instruction
+
+Center-focused white state schematic. Orange policy state, blue rows, green material path,
+gray no-op, red forbidden ownership/cleanup, purple response, magenta post-commit hint.
+
+## Abstracted teaching intent
+
+Teach why PATCH is not merely a database write: tags become canonical membership, a
+semantic no-op makes no write, no timestamp change, and no event; material change commits
+once, advances only updated time, and publishes only afterward; all resource access carries user id in the predicate.
+
+## ASCII layout plan
+
+```text
+ Request + user id → Service → owner predicate → owned row / absent → 404
+ raw tags → canonical membership ─┐
+ patch delta ─────────────────────┼→ material? → commit → updated → event
+                                  └→ no-op → return
+```
+
+## Component inventory
+
+| Component | Shape/color/location | Label | Annotation |
+| --- | --- | --- | --- |
+| Request | purple tabs, left | Create Patch Delete | operation |
+| Scope | red badge | user id | SQL predicate |
+| Service | orange center card | Service | classify change |
+| Tag funnel | orange, above | Tags | canonical set |
+| Owned row | blue card, right | Bookmark | found |
+| Absent | purple envelope | 404 | conceal |
+| Material | green diamond/path | Material | commit once |
+| No-op | gray path | No-op | no write |
+| Metadata | blue lock/clock | created / updated | time rule |
+
+## Arrow connection table
+
+| Source → target | Direction/style | Label | Semantic basis |
+| --- | --- | --- | --- |
+| request + scope → service | solid | handle | authenticated input |
+| service → owned/absent | blue | predicate | scope in query |
+| tags → material test | solid | normalize | membership change |
+| material → commit → event | green/magenta | publish | after commit |
+| no-op → return | gray dashed | unchanged | no side effect |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Bookmarks API mutation invariants for create, patch, delete, tags, and timestamps. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Muted-orange policy, royal-blue stored rows, forest-green material path, gray no-op path, brick-red ownership guard, deep-purple response, muted-magenta event.
+
+Make every state transition inspectable. Draw a narrow precondition rail under the operation tabs: authenticated user id, owner predicate, payload validation, and canonical tag membership. The route may select the operation, but the orange service card owns all four checks. Use a red-barred lower alternative to show why “fetch then compare” outside the owner predicate is not the accepted design. A missing row and a row owned by someone else join the same purple 404 envelope; they must not create separate diagnostic branches.
+
+Show timestamp and event invariants as downstream effects, never as inputs. The blue bookmark row owns a locked `created` field and a rotating `updated` field. The green material route reaches commit first, then updated and invalidation only after successful commit. The gray no-op patch path must visibly skip all three effects and still reach a valid response. The tag funnel should show normalization before comparison: whitespace disappears, duplicates collapse, blanks stop at a red reject bar, and the canonical set becomes the only membership sent to persistence. Keep the invalidation envelope internal and tiny; do not turn it into an audit log, a public feed, or an independent source of truth.
+
+Wide 16:9 landscape centered on a large orange “Service” card. Purple operation tabs “Create”, “Patch”, “Delete” enter from left beside red badge “user id”. Right side has blue “Bookmark” row card and purple “404” envelope. Above service, orange “Tags” funnel leads to a small blue canonical tag set. Below service, large decision diamond “Material?” splits into green and gray paths.
+
+Every blue arrow from Service to Bookmark carries a small blue “user id” predicate tag. A red dashed alternative “fetch then compare” is crossed out at lower left. The blue Bookmark card has locked calendar “created” and rotating clock “updated”. The tag funnel takes raw gray chips, rejects blank, merges duplicates, and outputs canonical membership. Green Material path reaches green “Commit” stamp, then rotating updated clock, then small magenta “Invalidation” envelope. Gray No-op path returns directly to slate response and visibly bypasses commit, updated, and event. Purple 404 envelope receives the absent resource path and a dashed red cross-owner path identically.
+
+Use thick solid arrows for handle, predicate, normalize, commit. Green arrows for material effects; thin gray dashed arrow No-op to response “unchanged”; magenta arrow Commit to Invalidation “after commit”; red dashed barred arrows for insecure owner check.
+
+Use short labels on each decision edge—owner scoped, canonicalize, material, commit, unchanged, after commit—so the state-machine ordering is visible at normal presentation size. Keep the private notification separated by white space from the public HTTP response.
+
+EXCLUDE: public audit/history feed, deleted tag cleanup, literal bookmark content, token values, raw SQL CRUD, long prose, tables, code, watermarks, hex text, 3D, gradients, and photorealism.
+
+## Preflight checklist
+
+- [x] No-op and material consequences are distinct.
+- [x] Owner concealment and immutable created time are preserved.

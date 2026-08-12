@@ -1,0 +1,78 @@
+# BKM — Private weekly projection event-time architecture
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/07-weekly-projections/SPEC.md, .tracks/07-weekly-projections/PLAN.md, .tracks/ADR/ADR-005-windowed-statistics-data-points.md, .tracks/ADR/ADR-009-track-07-weekly-projection-revival.md
+INTERESTED_TOPIC=Private weekly projection event-time architecture
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; preserve private no-public-history boundary and one worker.
+
+## Source anchors and bounded claims
+
+Track 07 consumes durable dirty markers for UTC Monday-to-Monday half-open event-time windows based on immutable created_at. It keeps working, developed, and state data private; developing points are replaceable and developed points append-only. Current all-current stats and the sole refresher stay unchanged; no public weekly/history operation exists.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Private weekly projection event-time architecture without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+immutable created_at -> UTC [Monday, next Monday) mapper -> dirty marker -> sole refresher -> private working/developed/state\nGET current stats -> snapshot or live raw SQL, with no weekly API connection
+```
+
+## Component inventory
+
+1. Canonical bookmark state
+2. immutable created_at
+3. UTC Monday mapper
+4. durable dirty marker
+5. bookmark-stats-refresher
+6. projection selector
+7. private weekly working
+8. private developed points
+9. private projection state
+10. developing replace
+11. developed append-only
+12. public current stats fallback
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| created_at | mapper | immutable event time |
+| mapper | dirty marker | UTC half-open window |
+| marker | refresher | durable work |
+| refresher | private tables | completion |
+| working | developed | week closes |
+| current route | snapshot/SQL | independent serving |
+| weekly tables | public | no connection |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Private weekly projection event-time architecture. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue durable rows, muted-orange projection work, forest-green completed state, deep-purple internal flow, brick-red private-boundary guards, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is an orange bookmark-stats-refresher inside a pale-slate private-persistence boundary.
+
+The upper pipeline begins with canonical bookmark state and a locked clock immutable created_at, passing through a UTC Monday Window Mapper labeled [Monday, next Monday) and event time from created_at. A dashed occurrence-time route is visibly not the selector. The map produces durable bookmark_stats_window_dirty work at (user_id, window_start) with generation. A thin purple wake-up hint may enter, but the strong blue marker arrow is durable authority. The sole lifecycle-owned non-daemon bookmark-stats-refresher has one instance, own cycle session, and no overlap, then writes three distinct private components inside a slate no public endpoint region: Weekly Working with developing replace loop, Weekly Developed Points with append-only lock, and Projection State with generation/completion. Week close transfers a working point to a developed point. Durable restart reconciliation returns from marker to the same refresher. The lower public lane shows GET /api/bookmarks/stats completely separate: fresh current snapshot or canonical parameterized live raw SQL fallback reconverges into total_bookmarks, total_tags, top_tags[{name,count}], bookmarks_per_month[{month,count}]. A barred external browser labeled public weekly/history route: none sits outside the private boundary. Health and safe JSON Lines observe the worker without content.
+
+Make immutable created_at a locked clock feeding the UTC mapper, with [Monday, next Monday) on its arrow and occurrence time terminating before it. The durable marker is stronger than its wake-up hint into the sole refresher. Inside private persistence, Working has replace loop, Developed has append-only lock, State connects completion. Lower GET stats has no line to weekly tables and uses snapshot or live SQL; public weekly/history browser is barred. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+Add three private table headers with different icons: circular arrows for Working, a closed archive tab for Developed Points, and a keyed state chip for Projection State. The week-close gate should sit exactly between working and developed tables. Mark the public current response as all-current user scoped and leave a wide blank moat between it and weekly persistence. The mapper must use one calendar boundary line rather than a multi-week trend chart, reinforcing the event-time grain.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

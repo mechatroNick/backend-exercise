@@ -1,0 +1,134 @@
+# 03 — Foundation: runtime composition
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/01-foundation/SPEC.md, app/main.py, app/core/config.py, app/core/clock.py, app/db/engine.py
+INTERESTED_TOPIC=FastAPI factory, Settings, lifespan, short-session SQLite runtime
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check sources; show import-time inertness and Alembic separation; no cloud topology, secret values, or generated-image tables.
+
+## Source anchors and bounded claims
+
+- `app.main.create_app` and `_lifespan` compose application lifecycle.
+- `Settings` provides validated runtime configuration; `SystemClock` is injectable UTC time.
+- `app.db.engine` creates short synchronous sessions and applies SQLite connection policy.
+- Alembic, not application startup, owns schema creation. No claim is made about external deployment.
+
+## Technical style instruction
+
+Clean white technical schematic with deep purple (#7E22CE) for FastAPI integration,
+brick red (#B91C1C) for Settings validation, muted orange (#EA580C) for factory and
+processing, royal blue (#1D4ED8) for SQLite/session data, rose pink (#BE123C) for
+lifespan, and slate (#475569) for toolchain. Do not render hex codes. Use solid dark
+arrows for runtime calls, dashed rose lifecycle ownership, and barred red arrows for
+forbidden side effects. Labels are one to three words with short integrated annotations.
+
+## Abstracted teaching intent
+
+Teach that the application is deliberately inert when imported, then explicitly composed
+at runtime: locked Python tooling selects dependencies; validated settings feed the
+factory; lifespan owns service start/stop; a request uses an injected UTC clock and a
+short SQLModel session; SQLite is reached only through configured connections. Alembic
+evolves schema before runtime rather than as a hidden startup effect.
+
+## ASCII layout plan
+
+```text
+ Toolchain ──► Settings ──► Factory
+                            ╰──── Lifespan ────╮
+ Client ──► Router ──► Service + UTC ──► Session ──► SQLite
+ Revisions ──► Alembic ──► Schema ────────────────► SQLite
+                         X runtime migration
+```
+
+## Component inventory
+
+| Component | Shape/color/location | Label | Annotation |
+| --- | --- | --- | --- |
+| Toolchain | slate terminal, top-left | Python + uv | locked runtime |
+| Settings | red shield, top-center | Settings | validated inputs |
+| Factory | orange gear, top-right | create_app | app composition |
+| Lifespan | rose bracket, around runtime | Lifespan | start and stop |
+| Router | purple rounded card, left-middle | Router | HTTP boundary |
+| Service | orange card and clock, center | Service | injectable UTC |
+| Session | narrow blue card, right-middle | Session | short lived |
+| SQLite | blue cylinder, far right | SQLite | local state |
+| Alembic | papers plus orange gear, bottom | Alembic | schema owner |
+
+## Arrow connection table
+
+| Source → target | Direction/style | Label | Semantic basis |
+| --- | --- | --- | --- |
+| Toolchain → Settings | right, slate solid | lock | Python 3.12/uv selection |
+| Settings → Factory | right, red/orange solid | configure | validated composition |
+| Router → Service | right, purple solid | request | HTTP boundary |
+| Service → Session → SQLite | right, orange then blue | query | short synchronous access |
+| Factory → Lifespan | enclosing dashed rose | own | runtime lifecycle |
+| Revisions → Alembic → SQLite | bottom right solid | upgrade | migration-only schema |
+| Factory → Alembic | red barred dashed | never | no startup migration |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
+API FastAPI factory and SQLite runtime composition. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Monochromatic professional color
+scheme with deep purple integration, brick-red configuration validation, muted-orange
+processing, royal-blue data, rose lifecycle, and slate toolchain accents; expert
+technical illustration quality. No 3D effects, no gradients, no photorealism.
+
+Wide 16:9 landscape with a narrow configuration band across the top, a dominant
+left-to-right request-runtime lane through the middle, and a separate schema-evolution
+lane spanning the bottom. The orange factory and central service are the largest active
+objects; the blue SQLite cylinder anchors the far right. A rose lifecycle bracket wraps
+runtime objects but never the migration lane. Use generous whitespace and only short
+bold labels with tiny gray annotations.
+
+At top-left, a slate terminal card labeled “Python + uv” with a command-prompt icon
+connects to a brick-red shield card “Settings”, annotated “validated inputs”. A thick
+orange arrow reaches a prominent muted-orange rounded rectangle “create_app” with a gear
+icon. A rose pink bracket labeled “Lifespan” surrounds the factory’s runtime domain and
+has tiny “start” and “stop” markers. A small pale-gray sealed card beneath the factory
+reads “Import” with a closed-door icon, annotated “no engine, no migration”, showing
+that import time is intentionally inert.
+
+Across the middle lane, a charcoal client icon sends a thick deep-purple arrow to a
+purple rounded “Router” card. It sends a dark arrow labeled “request” to a large
+muted-orange “Service” rectangle containing a small orange clock icon “UTC”. The service
+connects through a narrow royal-blue “Session” card annotated “short lived” to a large
+royal-blue SQLite cylinder labeled “SQLite”. Draw a small red lock/valve on the incoming
+database connection annotated “FK on”, but show no database credentials. A thin dashed
+rose line from Lifespan touches the service/session region, communicating lifecycle
+ownership rather than request data flow.
+
+Across the bottom, show stacked slate revision papers labeled “Revisions” flowing by a
+solid arrow into an orange gear labeled “Alembic”, then into the SQLite cylinder with
+label “upgrade”. A pale-red dashed card below the factory reads “Startup Migrate” with a
+diagonal strike; a barred red dashed arrow points from factory toward it, labeled “never”.
+Place four small green test probes near the relevant objects: “Config”, “UTC”, “Session”,
+“Migration”.
+
+Along the bottom, draw a transaction-safety strip: request enters a short session, service and repository perform bounded database work, commit follows only the intended path, and the session closes before the response reaches the client. Use a thin brick-red side arrow from a failed database operation to a stable redacted error boundary, then a neutral cleanup arrow to the session-close marker. This is a local synchronous runtime composition; omit async worker pools, background queues, and cloud deployment ornaments.
+
+Make the schema path equally concrete. Put an Alembic revision file above a small version table, then a royal-blue arrow labeled upgrade head into SQLite. Draw `PRAGMA foreign_keys=ON` as a narrow connection-time guard attached to each opened connection, not as a generic database feature. A crossed-out `create_all` box sits outside the valid path. Position Settings as the sole source for typed environment configuration and the application factory as the sole composition root, so configuration, construction, request handling, and persistence are visually separable.
+
+Use thick solid arrows for Toolchain to Settings “lock”, Settings to create_app
+“configure”, Router to Service “request”, Service to Session “open”, Session to SQLite
+“SQLModel”, and Revisions to Alembic to SQLite “upgrade”. Use thin dashed rose ownership
+arrows for lifespan only.
+
+EXCLUDE: cloud infrastructure, multiple workers, shared thread
+sessions, automatic schema creation, literal secrets, code blocks, long prose, visible
+tables, zone labels, watermarks, hex codes, 3D effects, shading, gradients, and
+photorealism.
+
+## Preflight checklist
+
+- [x] Source paths and runtime claims are bounded to Track 01.
+- [x] One local process, short sessions, and Alembic-only schema ownership are explicit.
+- [x] Distilled prompt starts with style and ends with exclusions.

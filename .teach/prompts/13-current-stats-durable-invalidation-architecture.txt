@@ -1,0 +1,78 @@
+# BKM — Current stats durable invalidation architecture
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/06-event-driven-stats/SPEC.md, .tracks/06-event-driven-stats/PLAN.md, .tracks/ADR/ADR-004-event-driven-statistics-service.md
+INTERESTED_TOPIC=Current stats durable invalidation architecture
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; preserve bounded local topology and canonical live fallback.
+
+## Source anchors and bounded claims
+
+Material committed create, scalar update, tag update, or delete marks bookmark_stats_window_dirty at (user_id, window_start) in the same transaction, then emits one safe post-commit BookmarkStatsInvalidated wake-up. The bounded queue is not authority; the named bookmark-stats-refresher reconciles durable work and publishes immutable snapshots. Current stats retain canonical parameterized raw-SQL fallback.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Current stats durable invalidation architecture without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+material mutation -> same transaction -> durable dirty marker -> one post-commit event -> bounded queue -> named worker -> immutable snapshot\ndurable marker --------------------------------------------------------------> reconciliation\nGET current stats -> fresh snapshot OR canonical live raw SQL fallback
+```
+
+## Component inventory
+
+1. Material mutation
+2. same canonical transaction
+3. bookmark_stats_window_dirty
+4. BookmarkStatsInvalidated DTO
+5. bounded process-local queue
+6. reconciliation-required flag
+7. bookmark-stats-refresher
+8. per-cycle session/recompute
+9. immutable snapshot
+10. GET /api/bookmarks/stats
+11. canonical raw-SQL fallback
+12. health/JSON Lines
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| mutation | transaction | create/scalar/tag/delete |
+| transaction | dirty table | atomic mark_dirty |
+| commit | DTO | exactly one wake-up |
+| dirty table | worker | durable authority |
+| full queue | flag | request succeeds |
+| worker | snapshot | off lock then atomic publish |
+| route | snapshot/SQL | fresh else fallback |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Current stats durable invalidation architecture. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue durable state, muted-orange execution, forest-green verified snapshots, deep-purple internal flow, brick-red guard failures, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is a royal-blue durable table labeled bookmark_stats_window_dirty.
+
+At left, a Material Bookmark Mutation box lists create, scalar update, tag membership, and delete; a dashed read/no-op/rollback path ends at a crossed-out event. Inside Same Canonical Transaction, ordinary bookmark/tag state and an atomic mark_dirty upsert share one boundary. The durable table is labeled (user_id, window_start), generation, bounded reason, first_marked_at, and last_marked_at, with user FK cascade. After a commit checkpoint, exactly one BookmarkStatsInvalidated card with only safe fields user_id, UTC window_start, mutation kind, bookmark ID, occurred at, and correlation ID makes one put_nowait attempt into a bounded process-local queue. Full queue reaches reconciliation-required flag with committed request still succeeds. A much stronger blue arrow from the durable table enters the sole non-daemon bookmark-stats-refresher, showing own session, startup/periodic reconciliation, no overlap, interruptible wait, and bounded join. It recomputes canonical state, builds an immutable snapshot off lock, and atomically publishes it; SQL or publication failure retains old complete snapshot and pending work. The bottom public route GET /api/bookmarks/stats uses fresh snapshot or canonical parameterized user-scoped live raw SQL for absent, stale, disabled, or unhealthy service, converging into unchanged total_bookmarks, total_tags, top_tags[{name,count}], and bookmarks_per_month[{month,count}]. Health /health/live and /health/ready plus redacted JSON Lines observe safe generation, duration, thread_name, and service_instance_id.
+
+Use three tiers: material mutation and same canonical transaction; durable marker, one post-commit DTO/queue wake-up, and sole worker; canonical recompute, immutable snapshot, and public serving. Make bookmark_stats_window_dirty the thick authority arrow; full queue reaches reconciliation-required without touching commit. The worker shows own session/no overlap/wait/join. GET stats forks fresh snapshot or canonical parameterized user-scoped live SQL; live and ready are separate probes. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+Give the dirty-table node separate micro-ports for first mark and later increment, then label the worker batch intake reconcile durable rows. Put the queue and reconciliation flag in a small purple side pocket rather than inline with canonical state. At the snapshot branch, use one green sealed rectangle for fresh and one blue SQL scroll for live fallback. The response card must show ordered top tags and chronological months as short ordering badges, not an invented chart.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

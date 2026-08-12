@@ -1,0 +1,78 @@
+# BKM — Track 08 hardening bonus architecture
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/08-final-handoff/SPEC.md, .tracks/08-final-handoff/PLAN.md, .tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md
+INTERESTED_TOPIC=Track 08 hardening bonus architecture
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; do not expose secrets or imply distributed production topology.
+
+## Source anchors and bounded claims
+
+After mandatory evidence is green, Track 08 adds deterministic seed data, Docker verification, process-local thread-safe token buckets, and cursor mode preserving default page mode. Auth: 10 requests per 60 seconds by socket peer IP; bookmarks: 120 per 60 seconds by authenticated user. Cursor is canonical JSON, HMAC-SHA256/JWT_SECRET derived, owner/filter bound, keyset ordered, X-Next-Cursor, 900 second default TTL. One worker remains required.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Track 08 hardening bonus architecture without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+mandatory green -> seed -> migrated SQLite\nclient -> auth IP bucket / bookmark user bucket -> one-worker API -> page default OR signed cursor keyset\nDocker build -> migration/runtime -> health/SIGTERM/cleanup
+```
+
+## Component inventory
+
+1. Mandatory prerequisite
+2. deterministic seed
+3. migrated SQLite
+4. auth peer-IP bucket
+5. bookmark user bucket
+6. one-worker API
+7. page default
+8. cursor validator/HMAC
+9. keyset query/X-Next-Cursor
+10. Docker image build
+11. container runtime
+12. health/SIGTERM/cleanup
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| green prerequisite | bonuses | only after core |
+| seed | SQLite | idempotent safe |
+| auth | IP bucket | 10/60s |
+| bookmark | user bucket | 120/60s |
+| cursor | keyset | HMAC owner/filter |
+| Docker build | runtime | build before tests |
+| runtime | proof | migration/health/SIGTERM/cleanup |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Track 08 hardening bonus architecture. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue durable state, muted-orange runtime work, forest-green verified checks, deep-purple internal flow, brick-red safety boundaries, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is an orange Local One-Worker API Runtime with four bounded bonus modules.
+
+A green mandatory evidence first gate branches to deterministic seed, rate limiting, cursor pagination, and Docker verification. Seed uses an idempotent safe terminal into migrated SQLite with no fabricated fixture values. Public register/login requests enter Peer-IP Bucket 10 requests / 60 seconds using socket peer IP and ignoring forwarded headers; authenticated bookmark requests enter Authenticated-User Bucket 120 requests / 60 seconds. Both are thread-safe local token buckets with monotonic clock, bounded keys, idle TTL, LRU, and unseen-key fail closed. Rejection emits 429 rate_limited with positive Retry-After and Cache-Control: no-store, no challenge. The API shows APP_WORKER_COUNT = 1. Page Mode Default preserves items,total,page,page_size. Cursor Mode accepts pagination=cursor and optional cursor; a page XOR cursor diamond rejects combinations. Its HMAC validator has canonical JSON, HMAC-SHA256, JWT_SECRET-derived key, owner binding, filter fingerprint, issued/expiry, default TTL 900s, and fixed 422 invalid_cursor for malformed/tampered/expired/cross-user/filter mismatch. Keyset Selection shows created_at,id descending and page_size+1, then X-Next-Cursor. Docker chain is image build -> Alembic migration -> one-worker container -> health -> SIGTERM -> no orphan container/volume.
+
+Center one-worker runtime after mandatory green. Show deterministic seed to migrated SQLite, and distinct auth peer-IP versus authenticated-user token buckets. Auth is 10/60 and bookmarks 120/60; both reject to 429 rate_limited, positive Retry-After, Cache-Control no-store and fail closed. Preserve Page Mode Default beside signed Cursor Mode with page XOR cursor, HMAC owner/filter binding, keyset page_size+1, and X-Next-Cursor. Docker is build before runtime proof. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+On the rate module, show auth and bookmark bucket keys as different unlabeled silhouettes, never real addresses or identities. Put health, docs, OpenAPI, unknown routes, and internal test seams in a small neutral bypass strip to make non-limited scope concrete. On cursor mode, keep the body shape shared with page mode while only the X-Next-Cursor header leaves the keyset node. Docker cleanup ends in an empty-container outline, demonstrating cleanup rather than a registry artifact.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

@@ -1,0 +1,78 @@
+# BKM — Weekly projection correction and dual-completion invariants
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/07-weekly-projections/SPEC.md, .tracks/07-weekly-projections/PLAN.md, .tracks/ADR/ADR-005-windowed-statistics-data-points.md, .tracks/ADR/ADR-009-track-07-weekly-projection-revival.md
+INTERESTED_TOPIC=Weekly projection correction and dual-completion invariants
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; preserve append-only corrections and guarded dual completion.
+
+## Source anchors and bounded claims
+
+Developing weekly points are replaced, developed points append-only, and late changes append correction revisions linked by supersedes_id. Durable state/generation coordinates current and weekly completion; cleanup only applies to matching observed generation. No public weekly route exists.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Weekly projection correction and dual-completion invariants without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+dirty generation -> sole refresher -> developing replace -> week close -> developed append-only\nlate change -> correction revision -> supersedes_id -> prior developed point\ncurrent + weekly completion -> durable state -> matching generation cleanup
+```
+
+## Component inventory
+
+1. Dirty generation
+2. bookmark-stats-refresher
+3. developing UTC week
+4. working point
+5. close boundary
+6. developed point
+7. append-only guard
+8. late detector
+9. correction revision
+10. supersedes_id link
+11. projection state
+12. dual completion decision
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| dirty marker | refresher | durable generation |
+| refresher | working | replace |
+| close | developed | baseline |
+| late change | correction | append |
+| correction | prior | supersedes_id |
+| both consumers | state | completion |
+| state | cleanup | matching generation only |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Weekly projection correction and dual-completion invariants. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue projection rows, muted-orange correction work, forest-green completion, deep-purple developing state, brick-red invariant failures, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is a two-track purple developing and green developed invariant map.
+
+A generation-bearing bookmark_stats_window_dirty card enters the sole non-daemon bookmark-stats-refresher. It maps immutable created_at through UTC [Monday, next Monday) into a Developing Week and purple Working Point with a legal replace-on-recompute loop. An orange week-becomes-developed gate transfers the baseline to a green Developed Point protected by append-only lock; a brick-red in-place overwrite arrow is stopped. A Late Change detector bypasses the existing point and creates a distinct green Correction Revision. Its dashed arrow points back to the prior Developed Point with the exact label supersedes_id; it never deletes or replaces the baseline. In the lower third, two blue internal acknowledgements Current Consumer Complete and Weekly Consumer Complete enter Private Projection State holding generation and completion. A diamond asks all required completion for observed generation; yes leads to generation-safe cleanup, while no or concurrent newer mark leads to remain pending/reconcile. A thin wake-up signal is subordinate to the strong durable marker line. A barred public weekly/history browser is outside the private region; the current public contract may be shown only as a small unchanged badge.
+
+Use the top row as legal write modes: developing Working Point has purple replace loop, week close leads one-way to green append-only Developed Point. Late Change creates a distinct Correction Revision whose supersedes_id arrow points to prior Developed Point. Lower row requires Current and Weekly completion at matching generation before cleanup; newer generation remains pending. Private boundary blocks public weekly/history and no second worker appears. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+Use a visible baseline/revision family: the original developed point is a green card at left, the correction revision is a separate appended green card at right, and supersedes_id is a single dashed backward relationship. Do not draw a correction as a replacement overlay. At the completion circuit, show both consumer acknowledgements arriving before the decision diamond; neither arrow alone is green. The durable token remains displayed through the decision and into either cleanup or pending work.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

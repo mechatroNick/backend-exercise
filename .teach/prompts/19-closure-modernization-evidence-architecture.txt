@@ -1,0 +1,77 @@
+# BKM — Track 09 closure modernization evidence architecture
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/09-final-cleanup-docs/SPEC.md, .tracks/09-final-cleanup-docs/PLAN.md, .tracks/ADR/ADR-008-pydantic-internal-models-and-lifecycle-events.md, .tracks/ADR/ADR-009-track-07-weekly-projection-revival.md
+INTERESTED_TOPIC=Track 09 closure modernization evidence architecture
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; distinguish repository completion from owner-only external action.
+
+## Source anchors and bounded claims
+
+Track 09 preserves the exact API/current stats/one-worker/private weekly contracts while moving docs to .docs, making root README first-stop, separating FastAPI /docs, converting internal dataclasses to explicit Pydantic v2 models, using lifecycle StrEnum, improving safe report output and Docker order, and running clean-source closure evidence.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Track 09 closure modernization evidence architecture without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+preserved API/current/private contracts -> controlled modernization -> validation lattice -> clean-source gate -> evidence reader handoff\n.docs + README; Pydantic + StrEnum; type/warning/tests/Docker -> stop on drift/coverage/cleanup
+```
+
+## Component inventory
+
+1. Public API
+2. current stats fallback
+3. private Track 07
+4. .docs/README
+5. FastAPI /docs distinction
+6. Pydantic v2 models
+7. ApplicationLifecycleEvent StrEnum
+8. typed adapters
+9. verify report formatter
+10. Docker ordered lane
+11. Track 09 gate
+12. TEST-REPORT/reader handoff
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| contracts | modernization | no drift |
+| docs/README | reader | first stop |
+| models/StrEnum | validation | internal proof |
+| type/report/Docker | gate | actual evidence |
+| gate | report | clean source |
+| failure | repair | rerun |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Track 09 closure modernization evidence architecture. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue compatibility evidence, muted-orange modernization, forest-green verified behavior, deep-purple internal models, brick-red safety boundaries, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is a constrained compatibility bridge between preserved behavior and modernization.
+
+Left cards preserve Exact Public API, GET /api/bookmarks/stats fresh snapshot OR canonical parameterized live raw SQL fallback, and private Track 07 working/points/state/corrections/dual completion/one bookmark-stats-refresher/no public history. In the center, Repository Docs -> .docs connects README first-stop reader with short SDD workflow, requirements, setup, test reports, Docker, architecture, limitations, Tracks 00–09. A separate browser FastAPI /docs is explicitly HTTP endpoint not repository docs path. Pydantic v2 Internal Models replaces a faded dataclass with frozen strict extra=forbid values, mutable synchronized state, validators, and keyword construction; no public DTO substitution. ApplicationLifecycleEvent contains exactly application.starting, application.startup_failed, application.started, application.stopping, application.stopped and sends same emitted string values into extensible JSON Lines. Typed Adapters + Type Check, warning tests, standalone verify reports with identity/gates/result/cleanup/nonzero propagates, and Docker image build -> tests -> migration/start/health/SIGTERM/cleanup feed Clean-Source Track 09 Gate. Red stop rail rejects public drift, behavior loss, disclosure, coverage reduction, hidden Docker skip, orphan, historical alteration, or unrun gate. Actual TEST-REPORT + Evidence goes to README reader handoff only; an owner boundary leaves external action separate.
+
+Stack Exact Public API, current snapshot/live SQL fallback, and private Track 07 on the left of the compatibility bridge. Center separately distinguishes Repository Docs to .docs to README from FastAPI /docs. Pydantic has frozen strict and mutable synchronized subcards, while five ApplicationLifecycleEvent values enter extensible JSON Lines. Type/warning/report/Docker order feed clean-source gate; red drift/coverage/orphan/history/unrun rail returns to repair. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+Use a pair of documentation arrows: tracked docs move to .docs, while README points readers toward detailed references; neither arrow enters the HTTP /docs browser. Pydantic validators should attach to the internal model card, while lifecycle strings flow to logs without expanding public schemas. Put a tiny type-adapter plug between third-party boundaries and the type check. The Docker chain ends in a cleanup confirmation before the final gate, so formatting or type success cannot hide a lifecycle failure.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

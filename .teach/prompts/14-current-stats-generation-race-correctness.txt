@@ -1,0 +1,78 @@
+# BKM — Current stats generation race correctness
+
+## Configuration
+
+PREFIX=BKM
+INPUT_FILES=.tracks/06-event-driven-stats/SPEC.md, .tracks/06-event-driven-stats/PLAN.md, .tracks/ADR/ADR-004-event-driven-statistics-service.md
+INTERESTED_TOPIC=Current stats generation race correctness
+STYLE_GUIDE=style-technical-schematic
+CONTENT_GUIDE=content-guide-technical
+CONTENT_DENSITY=high
+CONTEXT_LENGTH=900
+RESOLUTION=2K
+RATIO=16:9
+OUTPUT_DIR=.teach/prompts
+OTHER_REQUIREMENTS=Fact-check source claims; preserve generation guards and no distributed guarantee.
+
+## Source anchors and bounded claims
+
+mark_dirty atomically increments generation. The worker observes a generation, recomputes and atomically publishes a complete immutable snapshot, then compare-and-deletes only that observed generation. A concurrent newer marker remains pending. Failed SQL/publication retains old complete snapshot and dirty work; reads fall back live.
+
+## Technical style instruction
+
+Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
+
+## Abstracted teaching intent
+
+Teach the governing invariant and evidence boundary of Current stats generation race correctness without inventing topology, public behavior, or external actions.
+
+## ASCII layout plan
+
+```
+mark g=7 -> worker observes g=7 -> recompute -> atomic snapshot -> compare-delete g=7\nconcurrent mark -> g=8 ---------------------------------> mismatch -> g=8 pending\nreader -> fresh snapshot | stale/failed/absent -> canonical live SQL
+```
+
+## Component inventory
+
+1. Mutation A g=7
+2. dirty row
+3. observed-generation token
+4. canonical recompute
+5. off-lock builder
+6. atomic swap
+7. concurrent mutation B g=8
+8. compare-and-delete
+9. pending g=8
+10. failure retain path
+11. stats reader
+12. live raw-SQL fallback
+
+## Arrow connection table
+
+| From | To | Visible label |
+| --- | --- | --- |
+| Mutation A | dirty row | atomic g=7 |
+| dirty row | worker | observe g=7 |
+| worker | swap | complete build |
+| Mutation B | row | increment g=8 |
+| swap | compare-delete | observed g=7 |
+| mismatch | pending | preserve g=8 |
+| reader | snapshot/SQL | fresh else fallback |
+
+## Distilled Image Prompt
+
+Flat 2D vector technical schematic on a clean white background displaying Current stats generation race correctness. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue durable rows, muted-orange worker operations, forest-green acknowledged state, deep-purple internal flow, brick-red stale guards, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is a royal-blue generation row visibly changing from g=7 to g=8.
+
+Mutation A atomically marks the durable (user_id, window_start) row generation 7. The sole bookmark-stats-refresher takes a blue observed generation equals 7 ticket, does canonical recompute, builds off lock, and sends only a complete immutable object through Atomic Publish. While that build is active, Concurrent Mutation B atomically increments the exact same durable row to generation 8. After publishing, Compare-and-Delete receives the worker ticket g=7 and current row g=8; a brick-red mismatch routes to g=8 remains pending and cannot delete newer work. A subdued equal-generation branch may delete exactly the observed row. SQL or publication failure routes to retained old complete snapshot plus retained pending durable work, never a partial/mixed object. A controlled barrier/manual-cycle test icon illustrates deterministic race proof without real sleeps. The lower GET /api/bookmarks/stats route accepts only a fresh snapshot; absent, stale, disabled, or unhealthy routes to canonical parameterized user-scoped live raw SQL, reconverging into unchanged Track 04 fields total_bookmarks, total_tags, top_tags[{name,count}], bookmarks_per_month[{month,count}]. Safe observability shows generation, duration, thread_name, and readiness only.
+
+Draw mutation A g=7 and concurrent mutation B g=8 as intersecting tracks separated by a controlled barrier. The worker carries observed g=7 through recompute/off-lock build/Atomic Publish. Compare-and-Delete receives observed g=7 and current g=8: mismatch leaves g=8 pending; equal permits exact delete. SQL/publication failures retain old snapshot and dirty work. Reader fallback is independent. Use thick dark arrows for contractual or durable authority, thin deep-purple arrows only for bounded wake-up or harness links, forest-green arrows only after actual complete evidence, and brick-red arrows for the named reject/retain paths. Keep every label short and adjacent to its connector. Render public contract surfaces as generic safe schemas, while tokens, identities, content, raw exception text, and private correspondence are absent. Use whitespace to separate private state from public routes and evidence from owner-only actions; do not add generic infrastructure to fill empty regions.
+
+Place a thin vertical comparison ruler through the race: observed generation on the worker side, current generation on the durable-row side. The exact-delete branch should be visibly short and conditional, while the pending branch continues to a next-cycle arrow. Show the old snapshot as a sealed lower green card with retain label, separate from new publish. A tiny reader shield proves no request sees an in-progress build, making reader atomicity distinct from dirty-marker cleanup.
+
+EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
+
+## Preflight checklist
+
+- [x] Source anchors are limited to the configured Track and ADR records
+- [x] Main visual component count is within the 8–14 medium-density target
+- [x] The final payload starts with the mandated style opener and ends with EXCLUDE
