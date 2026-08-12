@@ -1,65 +1,4 @@
-# 10 — Queries: date pagination and SQL correctness
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/04-search-stats/SPEC.md, app/bookmarks/policy.py, app/bookmarks/repository.py, app/bookmarks/stats/raw_sql.py
-INTERESTED_TOPIC=UTC date boundaries stable pages and parameterized statistics
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=This is Track 04 page pagination, not later signed cursor mode. Do not render literal SQL.
-
-## Source anchors and bounded claims
-
-- Date bounds are half-open UTC days; LIKE literals are escaped.
-- Items and total share predicates and deterministic `created_at DESC, id DESC` ordering.
-- Stats aggregates bind parameters and return public `count` fields.
-
-## Technical style instruction
-
-White two-panel correctness microscope. Pale-blue calendar/query panel, teal aggregate panel, muted-orange transformations, royal-blue database, brick-red anti-patterns, forest-green fixture scale. No SQL/code/hex text or generated image tables.
-
-## Abstracted teaching intent
-
-Teach boundaries: inclusive calendar date means before next UTC midnight; literal wildcard input must not become a wildcard; stable id tie-break makes pagination deterministic; count and page use same scope; aggregate SQL uses named parameters rather than interpolation.
-
-## ASCII layout plan
-
-```text
- Date → UTC start / next midnight → AND predicates → order → page + total
- SQLite → totals | top tags | months → count
- bad edges: end guess | interpolate | unbounded
-```
-
-## Component inventory
-
-| Component | Shape/color/location | Label | Annotation |
-| --- | --- | --- | --- |
-| Calendar | pale-blue card, left | Date | inclusive day |
-| Bounds | orange pair | UTC Bounds | half open |
-| Predicates | orange diamond | AND | owner/filter |
-| Order | blue card stack | Order | time then id |
-| Outputs | slate pair | Page / Total | same scope |
-| Database | blue cylinder | SQLite | bound input |
-| Aggregates | teal trio | Totals Tags Months | current data |
-| Fixture | green scale | Fixtures | hand checked |
-| Errors | red cards | Guess / Interpolate | rejected |
-
-## Arrow connection table
-
-| Source → target | Direction/style | Label | Semantic basis |
-| --- | --- | --- | --- |
-| Date → Bounds → AND | solid | filter | UTC day interval |
-| AND → Order → outputs | blue | list | deterministic shared scope |
-| SQLite → aggregates → count | teal | group | named parameters |
-| error cards → strike | red barred | reject | unsafe behavior |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying Bookmarks API query correctness for UTC date filtering, stable page pagination, and parameterized current statistics. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Pale-blue calendars, muted-orange transformations, royal-blue query/data, teal aggregates, forest-green fixture scale, brick-red rejected alternatives.
 
@@ -76,8 +15,3 @@ Use thick arrows Date to Bounds “filter”, Bounds to AND “scope”, AND to 
 Use direct short arrow labels—UTC bounds, one scope, time then id, page, total, named parameters, count—rather than explanatory prose. Leave visible white separation between the search-correctness panel and aggregate panel so their shared source does not obscure their distinct query invariants. Keep the final aggregate response clearly local, current, and owner-scoped.
 
 EXCLUDE: cursor tokens, snapshots, weekly history, literal SQL, local-time ambiguity, client aggregation, long labels, visible tables, code, watermarks, hex text, 3D, shading, gradients, photorealism.
-
-## Preflight checklist
-
-- [x] UTC and deterministic ordering are explicit.
-- [x] No cursor or later snapshot behavior leaks into Track 04.

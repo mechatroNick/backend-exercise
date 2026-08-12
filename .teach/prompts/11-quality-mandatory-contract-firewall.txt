@@ -1,63 +1,4 @@
-# BKM — Track 05 mandatory quality contract firewall
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/05-mandatory-quality-gate/SPEC.md, .tracks/05-mandatory-quality-gate/PLAN.md, .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md
-INTERESTED_TOPIC=Track 05 mandatory quality contract firewall
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Fact-check source claims; do not render metadata tables or claim a plan is proof.
-
-## Source anchors and bounded claims
-
-Track 05 adds no product feature and blocks Track 06 until every Tracks 01–05 core row has actual evidence. Generated OpenAPI, real runtime instances, a 79-node mandatory gate, migrated database, query/raw-SQL controls, JSON Lines safety, and a real process must agree. Planned, skipped, xfailed, deselected, masked, or unrun work is not proof.
-
-## Technical style instruction
-
-Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
-
-## Abstracted teaching intent
-
-Teach the governing invariant and evidence boundary of Track 05 mandatory quality contract firewall without inventing topology, public behavior, or external actions.
-
-## ASCII layout plan
-
-```
-source contracts -> OpenAPI and runtime -> deterministic and process proof -> mandatory firewall -> TEST-REPORT -> Track 06\nfailed or semantic evidence -> owning-track repair or ADR/SPEC review
-```
-
-## Component inventory
-
-1. Core requirement ledger
-2. generated OpenAPI and /docs
-3. runtime response sampler
-4. 79-node deterministic gate
-5. disposable migrated DB
-6. query-count/raw-SQL proof
-7. JSON Lines redaction proof
-8. real-process harness
-9. mandatory firewall
-10. TEST-REPORT
-11. Track 06 lock
-
-## Arrow connection table
-
-| From | To | Visible label |
-| --- | --- | --- |
-| core ledger | firewall | every owned core row |
-| OpenAPI | runtime sampler | published schema |
-| test lanes | firewall | no skip/xfail/deselection |
-| migration/SQL/log/process | firewall | independent proof |
-| firewall | report | actual receipt only |
-| failure | owning track | repair then rerun |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying Track 05 mandatory quality contract firewall. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use clean dark-gray arrows, royal-blue authoritative records, muted-orange active execution, forest-green only for verified artifacts, deep-purple internal flow, brick-red stop paths, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The central visual focal point is a brick-red shield labeled Track 05 Mandatory Gate. Use 8–14 concrete named components, each as a colored shape with a short source-true label; make authority, sequencing, and prohibited boundaries readable at a glance.
 
@@ -68,9 +9,3 @@ Arrange the acceptance matrix around the shield: core ledger, OpenAPI/runtime, 7
 Place four small blue evidence seals directly on the incoming contracts: traceability, schema metadata, runtime instance, and migration state. Beside the SQL loupe, show owner scope and named parameter as two separate chips. Beside the process harness, show cleanup after abnormal exit as a terminal check. The firewall must make the green path narrower than the red repair lane, communicating that missing evidence is more visible than an unsupported pass.
 
 EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
-
-## Preflight checklist
-
-- [x] Source anchors are limited to the configured Track and ADR records
-- [x] Main visual component count is within the 8–14 medium-density target
-- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

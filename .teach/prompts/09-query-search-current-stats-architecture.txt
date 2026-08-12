@@ -1,64 +1,4 @@
-# 09 — Queries: search and current-statistics architecture
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/04-search-stats/SPEC.md, app/bookmarks/repository.py, app/bookmarks/pagination.py, app/bookmarks/stats/raw_sql.py, app/bookmarks/stats/service.py
-INTERESTED_TOPIC=Owner-scoped search and canonical current statistics
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Keep raw SQL isolated to all-current statistics. Do not depict private weekly history or make cache authoritative.
-
-## Source anchors and bounded claims
-
-- Search uses owner-scoped repository predicates, filters, eager tag loading, stable pagination, and total.
-- `BookmarkStatsReader` is a narrow named-parameter raw-SQL reader for current user statistics.
-- A fresh snapshot may later accelerate stats, but canonical live raw SQL preserves body semantics.
-
-## Technical style instruction
-
-Use white two-lane schematic. Deep purple (#7E22CE) routes, brick red (#B91C1C) user scope, muted orange (#EA580C) filter processing, royal blue (#1D4ED8) repository/SQLite, teal (#0F766E) aggregates, slate (#475569) responses. No hex text. Dark request arrows, blue read arrows, teal aggregate arrows.
-
-## Abstracted teaching intent
-
-Show two protected views over one canonical data source. List/search uses shared filters and bounded page pagination. Stats intentionally crosses a narrow raw-SQL island for totals, top tags, and months. Both paths remain owner-scoped and all-current.
-
-## ASCII layout plan
-
-```text
- GET List  → user scope → filters → repository → SQLite → items + total
- GET Stats → user scope → raw SQL island ────→ SQLite → aggregates
-                         same canonical current data
-```
-
-## Component inventory
-
-| Component | Shape/color/location | Label | Annotation |
-| --- | --- | --- | --- |
-| List route | purple card, upper-left | List | protected |
-| Filter builder | orange funnel, upper-center | Filters | tag title dates page |
-| Repository | blue card | Repository | owner scoped |
-| Stats route | purple card, lower-left | Stats | protected |
-| SQL reader | teal island, lower-center | Raw SQL | named params |
-| Database | large blue cylinder, right-center | SQLite | canonical current |
-| List response | slate envelope, upper-right | Items + Total | stable page |
-| Stats response | slate envelope, lower-right | Stats | grouped counts |
-
-## Arrow connection table
-
-| Source → target | Direction/style | Label | Semantic basis |
-| --- | --- | --- | --- |
-| List → Filters → Repository | right solid | search | shared predicates |
-| Repository → SQLite → list response | blue | read | tags and total |
-| Stats → Raw SQL | teal solid | aggregate | narrow exception |
-| Raw SQL → SQLite → stats response | teal | current | named user binding |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying two owner-scoped Bookmarks API read paths: search and canonical current statistics. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Deep-purple routes, brick-red user-scope badges, muted-orange filters, royal-blue repository and SQLite, teal aggregate reader, slate response envelopes.
 
@@ -75,8 +15,3 @@ Use thick dark arrows List to Filters to Repository “search”; blue arrows Re
 Use compact labels such as owner scope, stable order, named params, current result, and fallback live read directly beside their arrows. Separate the public response envelopes from the internal snapshot/dirty mechanics with white space, ensuring the fallback does not resemble a new API surface.
 
 EXCLUDE: weekly history, client aggregation, unscoped queries, literal SQL, cloud analytics, long prose, visible tables, code, watermarks, hex text, 3D, shading, gradients, photorealism.
-
-## Preflight checklist
-
-- [x] Both paths share canonical all-current data.
-- [x] Raw SQL is a narrow statistics exception.

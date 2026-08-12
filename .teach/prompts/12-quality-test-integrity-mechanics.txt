@@ -1,64 +1,4 @@
-# BKM — Track 05 test integrity mechanics
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/05-mandatory-quality-gate/SPEC.md, .tracks/05-mandatory-quality-gate/PLAN.md, .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md
-INTERESTED_TOPIC=Track 05 test integrity mechanics
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Fact-check source claims; no skip loophole, hidden retry, or unrun pass claim.
-
-## Source anchors and bounded claims
-
-Mandatory evidence starts from collection and explicit scope, then preserves assertions, command/result provenance, cleanup, and rejection of bypasses. Deterministic proof and a real-process Bash harness complement each other; neither replaces the other.
-
-## Technical style instruction
-
-Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
-
-## Abstracted teaching intent
-
-Teach the governing invariant and evidence boundary of Track 05 test integrity mechanics without inventing topology, public behavior, or external actions.
-
-## ASCII layout plan
-
-```
-manifest -> collector -> deterministic test lanes -> assertion recorder -> integrity checks -> actual receipt\nprocess harness --------------------------------------------------------^\nskip/xfail/deselect/mask/stale -> reject -> repair and rerun
-```
-
-## Component inventory
-
-1. Requirement/evidence manifest
-2. test collector
-3. unit/integration lane
-4. OpenAPI runtime lane
-5. query-count lane
-6. migration lane
-7. JSON Lines lane
-8. assertion recorder
-9. integrity comb
-10. Bash process harness
-11. TEST-REPORT
-
-## Arrow connection table
-
-| From | To | Visible label |
-| --- | --- | --- |
-| manifest | collector | required scope |
-| collector | lanes | collected selectors |
-| lanes | recorder | executable assertions |
-| process harness | recorder | independent actual process |
-| recorder | integrity comb | result/provenance |
-| comb | report | green only |
-| comb | repair | reject bypass |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying Track 05 test integrity mechanics. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue records, muted-orange execution, forest-green verified artifacts, deep-purple internal flow, brick-red rejection, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is an orange-and-blue verification assembly labeled Mandatory Test Integrity.
 
@@ -69,9 +9,3 @@ Fan the collector into five exact lanes: Unit + Integration, Runtime OpenAPI, Qu
 Give Runtime OpenAPI a matched pair of compact cards: green documented success and red documented error, both checked against one blue generated-schema sheet. Give JSON Lines a physical redaction sieve before the recorder, and label the process harness arrow invokes upstream gates. Put assertion-free beside a hollow checkmark, and stale/unrun beside an empty receipt sheet, so each integrity failure has a different visual cue rather than repeated warning symbols.
 
 EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
-
-## Preflight checklist
-
-- [x] Source anchors are limited to the configured Track and ADR records
-- [x] Main visual component count is within the 8–14 medium-density target
-- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

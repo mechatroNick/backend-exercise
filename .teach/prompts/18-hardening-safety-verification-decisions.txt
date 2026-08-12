@@ -1,65 +1,4 @@
-# BKM — Track 08 hardening safety verification decisions
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/08-final-handoff/SPEC.md, .tracks/08-final-handoff/PLAN.md, .tracks/ADR/ADR-006-engineering-verification-and-closure-evidence.md, .tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md
-INTERESTED_TOPIC=Track 08 hardening safety verification decisions
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Fact-check source claims; show local limits and safe failure boundaries only.
-
-## Source anchors and bounded claims
-
-Track 08 inspects actual Track 01–07 receipts including Track 07 provenance/harness, preserves public and private boundaries, uses Python 3.12 and locked clean source, isolates bonuses, and stops on missing/unrun evidence, drift, secrets, hygiene defects, or external actions. Push/submission/deployment are owner-only.
-
-## Technical style instruction
-
-Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
-
-## Abstracted teaching intent
-
-Teach the governing invariant and evidence boundary of Track 08 hardening safety verification decisions without inventing topology, public behavior, or external actions.
-
-## ASCII layout plan
-
-```
-Track 01–07 receipts + contracts -> provenance review -> clean-source gate -> isolated bonuses -> combined regression -> safe handoff\nmissing evidence / drift / secret / unrun -> stop, correct, rerun\nowner-only: push / submission / deployment
-```
-
-## Component inventory
-
-1. Track 01–07 receipts
-2. Track 07 provenance
-3. public contract
-4. private weekly boundary
-5. Python 3.12 locked source
-6. local final harness
-7. security/history/hygiene
-8. four bonus checks
-9. combined regression
-10. evidence matrix
-11. stop gate
-12. owner-only boundary
-
-## Arrow connection table
-
-| From | To | Visible label |
-| --- | --- | --- |
-| receipts | review | exact current evidence |
-| contracts | review | preserve boundary |
-| clean source | harness | Python 3.12/lock |
-| review+harness | bonuses | only after green |
-| bonuses | regression | rerun full gate |
-| stop | repair | correct |
-| report | owner | separate authority |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying Track 08 hardening safety verification decisions. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue evidence, muted-orange execution, forest-green verified receipts, deep-purple internal flow, brick-red stopping conditions, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is a brick-red-and-slate gate labeled Evidence Before Closure.
 
@@ -70,9 +9,3 @@ Put Track 01–07 receipts plus distinct Track 07 provenance/harness into Upstre
 Give the review desk a narrow provenance ruler with report, command, result, and cleanup in order. Make the clean-source container a sealed local folder, not a remote repository. At each bonus checkpoint, add one compact receipt output before it joins combined regression: seed idempotency, image/runtime lifecycle, 429 isolation, and cursor boundary. The owner fence must have no incoming green arrow; its dashed authority line begins at Safe Owner Handoff only, preserving the external-action stop.
 
 EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
-
-## Preflight checklist
-
-- [x] Source anchors are limited to the configured Track and ADR records
-- [x] Main visual component count is within the 8–14 medium-density target
-- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

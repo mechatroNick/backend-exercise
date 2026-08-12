@@ -1,65 +1,4 @@
-# BKM — Track 08 hardening bonus architecture
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/08-final-handoff/SPEC.md, .tracks/08-final-handoff/PLAN.md, .tracks/ADR/ADR-007-local-rate-limiting-and-cursor-pagination.md
-INTERESTED_TOPIC=Track 08 hardening bonus architecture
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Fact-check source claims; do not expose secrets or imply distributed production topology.
-
-## Source anchors and bounded claims
-
-After mandatory evidence is green, Track 08 adds deterministic seed data, Docker verification, process-local thread-safe token buckets, and cursor mode preserving default page mode. Auth: 10 requests per 60 seconds by socket peer IP; bookmarks: 120 per 60 seconds by authenticated user. Cursor is canonical JSON, HMAC-SHA256/JWT_SECRET derived, owner/filter bound, keyset ordered, X-Next-Cursor, 900 second default TTL. One worker remains required.
-
-## Technical style instruction
-
-Use a clean flat technical schematic with named source components, visible arrow direction, a pure white background, and muted category colors. Metadata tables and ASCII are authoring context only, never rendered illustration content.
-
-## Abstracted teaching intent
-
-Teach the governing invariant and evidence boundary of Track 08 hardening bonus architecture without inventing topology, public behavior, or external actions.
-
-## ASCII layout plan
-
-```
-mandatory green -> seed -> migrated SQLite\nclient -> auth IP bucket / bookmark user bucket -> one-worker API -> page default OR signed cursor keyset\nDocker build -> migration/runtime -> health/SIGTERM/cleanup
-```
-
-## Component inventory
-
-1. Mandatory prerequisite
-2. deterministic seed
-3. migrated SQLite
-4. auth peer-IP bucket
-5. bookmark user bucket
-6. one-worker API
-7. page default
-8. cursor validator/HMAC
-9. keyset query/X-Next-Cursor
-10. Docker image build
-11. container runtime
-12. health/SIGTERM/cleanup
-
-## Arrow connection table
-
-| From | To | Visible label |
-| --- | --- | --- |
-| green prerequisite | bonuses | only after core |
-| seed | SQLite | idempotent safe |
-| auth | IP bucket | 10/60s |
-| bookmark | user bucket | 120/60s |
-| cursor | keyset | HMAC owner/filter |
-| Docker build | runtime | build before tests |
-| runtime | proof | migration/health/SIGTERM/cleanup |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying Track 08 hardening bonus architecture. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use dark-gray arrows, royal-blue durable state, muted-orange runtime work, forest-green verified checks, deep-purple internal flow, brick-red safety boundaries, and rose-pink safe observability. Wide 16:9 landscape composition, high information density, pure white canvas, purposeful whitespace, short clean sans-serif labels, and integrated annotations only. The focal point is an orange Local One-Worker API Runtime with four bounded bonus modules.
 
@@ -70,9 +9,3 @@ Center one-worker runtime after mandatory green. Show deterministic seed to migr
 On the rate module, show auth and bookmark bucket keys as different unlabeled silhouettes, never real addresses or identities. Put health, docs, OpenAPI, unknown routes, and internal test seams in a small neutral bypass strip to make non-limited scope concrete. On cursor mode, keep the body shape shared with page mode while only the X-Next-Cursor header leaves the keyset node. Docker cleanup ends in an empty-container outline, demonstrating cleanup rather than a registry artifact.
 
 EXCLUDE: photorealism, 3D effects, gradients, shadows that look physical, graph paper, decorative illustrations, text tables, separate legends, generic invented topology, unreadable paragraphs, credentials, tokens, user content, raw logs, public weekly history, external push, submission, deployment, or any claim that an external action occurred.
-
-## Preflight checklist
-
-- [x] Source anchors are limited to the configured Track and ADR records
-- [x] Main visual component count is within the 8–14 medium-density target
-- [x] The final payload starts with the mandated style opener and ends with EXCLUDE

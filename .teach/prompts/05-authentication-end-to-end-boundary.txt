@@ -1,74 +1,4 @@
-# 05 — Authentication: end-to-end boundary
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/02-auth-errors/SPEC.md, app/auth/router.py, app/auth/service.py, app/auth/security.py, app/auth/dependencies.py, app/api/errors.py
-INTERESTED_TOPIC=Registration login JWT and bearer authentication
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Preserve Argon2 HS256 access JWT generic login failure and one error envelope; never render credentials.
-
-## Source anchors and bounded claims
-
-- `AuthService`, `AccessTokenCodec`, and `get_current_subject` separate concerns.
-- Register and login return public user fields plus an access token.
-- No refresh token, RBAC, or external identity provider is delivered.
-
-## Technical style instruction
-
-Use charcoal (#374151) client, deep purple (#7E22CE) router, muted orange (#EA580C)
-service, royal blue (#1D4ED8) users data, brick red (#B91C1C) security, rose pink
-(#BE123C) error/redaction, slate responses. Pure white background, short labels, no
-rendered hex codes. Solid success arrows, gray dashed rejected inputs, red failure arrows.
-
-## Abstracted teaching intent
-
-The secure reusable boundary canonicalizes identity, NFC-normalizes then Argon2-hashes
-passwords, makes unknown identity and wrong password indistinguishable, issues access-only
-HS256 JWTs with `sub`, `iat`, and `exp`, verifies a current subject for protected routes,
-and transports typed failures through one safe JSON error envelope.
-
-## ASCII layout plan
-
-```text
- Register → Canonical → Argon2 → Users → Public User + Token
- Login ───→ Verify ───────────→ Users → JWT
- Bearer request ──────────────→ Subject → Bookmark routes
- invalid paths ───────────────→ Error → Safe envelope
-```
-
-## Component inventory
-
-| Component | Shape/color/location | Label | Annotation |
-| --- | --- | --- | --- |
-| Client | charcoal person, left | Client | two auth requests |
-| Router | purple rounded card | Auth | HTTP boundary |
-| Identity | orange funnel, upper center | Canonical | trim lowercase |
-| Password | red shield, upper center | Argon2 | NFC hash |
-| Store | blue cylinder, right center | Users | unique identity |
-| Verify | red shield, center | Verify | generic login |
-| Token | sealed red envelope, right | Access Token | sub iat exp |
-| Subject | red/blue card, lower | Subject | current user |
-| Error | rose card, bottom | Error | safe response |
-
-## Arrow connection table
-
-| Source → target | Direction/style | Label | Semantic basis |
-| --- | --- | --- | --- |
-| Client → Auth → Canonical | right solid | register | accepted identity |
-| Canonical → Argon2 → Users | right solid | persist | safe credential storage |
-| Client → Auth → Verify | right solid | login | generic check |
-| Verify → Token | green solid | issue | access-only JWT |
-| Bearer → Subject → routes | right solid | authorize | current subject |
-| invalid inputs → Error | red converging | reject | stable envelope |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
 API registration, login, JWT, and bearer-authentication boundary. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use a professional
@@ -106,9 +36,3 @@ envelopes and a rose lockbox “Redacted Logs”.
 EXCLUDE: password values, token values, JWT payload dumps, stack traces, refresh tokens,
 RBAC, social login, long prose, visible tables, code blocks, watermarks, hex text, 3D,
 shading, gradients, and photorealism.
-
-## Preflight checklist
-
-- [x] Registration login and bearer boundaries map to current sources.
-- [x] Credentials and unsupported auth scope are excluded.
-- [x] Distilled prompt is style → composition → components → connections → exclusions.

@@ -1,11 +1,12 @@
 # Bookmarks API visual teaching curriculum
 
 This directory turns the completed coding challenge into a progressive visual
-walkthrough. The files in `prompts/` are image-generation context files, not
+walkthrough. The files in `prompts/` are self-contained image-generation prompts, not
 generated images. They follow the delivered Tracks 00–09 in order and each file
-is one standalone Generic Illustrator context file, following the skill's
-configuration → abstraction → style → layout → connection-table → distilled-prompt
-format. The files are paired by track:
+uses the final Generic Illustrator model format: a front-loaded style prime,
+spatial composition, concrete visible components, grouped arrow flows, and a final
+negative prompt. The only metadata line is `RATIO=16:9`; everything else needed to
+generate the illustration is in the prompt itself. The files are paired by track:
 
 - **Architecture view** explains the feature's place in the system and why it was
   introduced at that point in the delivery sequence.
@@ -13,23 +14,12 @@ format. The files are paired by track:
   transitions, error boundaries, or invariants that make the feature correct.
 
 Use the files in numeric order. Generate each odd-numbered architecture view before its
-following even-numbered critical-implementation view. The prompts deliberately use
-short labels:
-image models render prose unreliably, so keep the cited source documentation open for
-exact wording and contracts.
-
-Each file is deliberately split into two layers. The configuration, source anchors,
-style specification, ASCII layout, component inventory, arrow-connection table, and
-preflight checklist are authoring aids for you to inspect and adapt. **Send only the
-`Distilled Image Prompt` section to an image-generation model**: it begins with the
-front-loaded visual style prime and ends with the negative prompt, exactly as required
-by the Generic Illustrator example format. The Markdown tables in the file are not
-instructions to render a table into the image.
-
-Each prompt is grounded in `.docs/ASSESSMENT.md`, `.docs/SOLUTION-DESIGN.md`,
-`.docs/DELIVERY-PLAN.md`, the matching `.tracks/*/SPEC.md`, and the code/tests named
-within the prompt. It deliberately distinguishes delivered local-assessment behavior
-from excluded production infrastructure.
+following even-numbered critical-implementation view. Send the complete contents of a
+prompt file—starting with `RATIO=16:9`—to the image-generation model. The prompts use
+short labels because image models render prose unreliably, while keeping the bounded
+technical context, invariants, flows, and exclusions directly within the model-facing
+text. They deliberately distinguish delivered local-assessment behavior from excluded
+production infrastructure without referring the model to repository files.
 
 ## Sequence
 

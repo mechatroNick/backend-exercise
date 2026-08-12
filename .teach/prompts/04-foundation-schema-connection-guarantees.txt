@@ -1,77 +1,4 @@
-# 04 — Foundation: schema and connection guarantees
-
-## Configuration
-
-PREFIX=BKM
-INPUT_FILES=.tracks/01-foundation/SPEC.md, alembic/versions/0001_core_schema.py, app/auth/models.py, app/bookmarks/models.py, app/db/engine.py
-INTERESTED_TOPIC=Alembic-owned constrained SQLite schema and foreign-key policy
-STYLE_GUIDE=style-technical-schematic
-CONTENT_GUIDE=content-guide-technical
-CONTENT_DENSITY=high
-CONTEXT_LENGTH=900
-RESOLUTION=2K
 RATIO=16:9
-OUTPUT_DIR=.teach/prompts
-OTHER_REQUIREMENTS=Focus on constraints and relationships only; do not claim database URL or identity-syntax validation.
-
-## Source anchors and bounded claims
-
-- `0001_core_schema` establishes users, bookmarks, tags, and the composite association.
-- `app.db.engine` enables `PRAGMA foreign_keys = ON` on every connection.
-- Database DDL enforces relational/length/uniqueness/index guarantees; DTOs/services own
-  higher-level input normalization later.
-
-## Technical style instruction
-
-Use royal blue (#1D4ED8) for table cards and SQLite, forest green (#15803D) for
-constraint badges, muted orange (#EA580C) Alembic engine, slate (#475569) revisions,
-brick red (#B91C1C) rejected invalid rows. White background, clean crow-foot-like links,
-short labels, no SQL text or rendered hex values.
-
-## Abstracted teaching intent
-
-Teach that durable privacy and data correctness begin in migrations and database
-constraints: users own bookmarks; bookmarks and globally canonical tags join through a
-composite-key table; every connection has foreign keys enabled; migrations are the sole
-schema constructor. Later HTTP policy does not replace these lower guarantees.
-
-## ASCII layout plan
-
-```text
- Revisions → Alembic → SQLite cluster
-                       Users
-                         │ owns
-                      Bookmarks
-                       ╱      ╲
-               Bookmark Tags ── Tags
- FK valve ─────────────────────► cluster     Invalid FK ──X
-```
-
-## Component inventory
-
-| Component | Shape/color/location | Label | Annotation |
-| --- | --- | --- | --- |
-| Revisions | slate papers, left | Revisions | ordered history |
-| Alembic | orange gear, left-center | Alembic | schema owner |
-| FK valve | blue valve/red lock, upper-left | FK On | every connection |
-| Users | blue card, upper-center | Users | unique identity |
-| Bookmarks | largest blue card, center | Bookmarks | owner and time |
-| Link table | narrow blue bridge, below | Bookmark Tags | composite key |
-| Tags | blue card, right | Tags | unique name |
-| Constraint chips | green edge badges | Unique / Check / Index | DDL authority |
-| Invalid row | broken red card, lower-left | Invalid FK | rejected |
-
-## Arrow connection table
-
-| Source → target | Direction/style | Label | Semantic basis |
-| --- | --- | --- | --- |
-| Revisions → Alembic → cluster | right, solid | upgrade | migration history |
-| FK valve → cluster | right, blue solid | enforce | PRAGMA before use |
-| Users → Bookmarks | down, blue solid | owns | one user scope |
-| Bookmarks → Link → Tags | right/down, blue | links / labels | many-to-many |
-| Invalid row → FK valve | red rebound | reject | foreign key failure |
-
-## Distilled Image Prompt
 
 Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
 API Alembic-owned SQLite schema and connection guarantees. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Royal-blue database/table
@@ -109,9 +36,3 @@ green badges and “local SQLite” below cylinder.
 EXCLUDE: create_all, cloud database, raw CRUD SQL, user-content examples, URL or password
 validation claims, long labels, DDL/code, visible tables, detached legend, watermarks,
 hex codes, 3D effects, shading, gradients, and photorealism.
-
-## Preflight checklist
-
-- [x] Relationship direction and migration-only ownership map to source.
-- [x] Database guarantees are not overstated as application input policy.
-- [x] Final payload has style, layout, components, connections, then exclusions.
