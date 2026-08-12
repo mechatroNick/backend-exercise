@@ -18,7 +18,9 @@ _MIN_SECRET_LENGTH_BYTES = 32
 class JwtBackend(Protocol):
     """The narrow PyJWT capability used by the access-token adapter."""
 
-    def encode(self, payload: dict[str, object], key: str, algorithm: str) -> str: ...
+    def encode(self, payload: dict[str, object], key: str, algorithm: str) -> str:
+        """Sign a claim payload using the explicitly selected JWT algorithm."""
+        ...
 
     def decode(
         self,
@@ -26,7 +28,9 @@ class JwtBackend(Protocol):
         key: str,
         algorithms: list[str],
         options: dict[str, object],
-    ) -> dict[str, Any]: ...
+    ) -> dict[str, Any]:
+        """Verify and decode a token according to the supplied explicit validation options."""
+        ...
 
 
 class TokenConfigurationError(RuntimeError):

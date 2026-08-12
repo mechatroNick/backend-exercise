@@ -80,6 +80,8 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[object]):
         item.config.stash[_EXECUTED].discard(item.nodeid)
     elif report.when == "call":
         if report.passed:
+            # A passed call is only provisional: fixture teardown can still fail, so
+            # manifest completion is recorded solely after its matching teardown passes.
             item.config.stash[_CALL_PASSED].add(item.nodeid)
     elif report.when == "teardown" and item.nodeid in item.config.stash[_CALL_PASSED]:
         if report.passed:

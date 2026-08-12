@@ -95,6 +95,7 @@ class WeeklyWindow(FrozenInternalModel):
 
     @classmethod
     def from_datetime(cls, value: datetime) -> WeeklyWindow:
+        """Normalize one aware instant into its UTC Monday-to-Monday event-time window."""
         instant = _utc(value)
         start = (instant - timedelta(days=instant.weekday())).replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -103,6 +104,7 @@ class WeeklyWindow(FrozenInternalModel):
 
     @classmethod
     def from_bounds(cls, start: datetime, end: datetime) -> WeeklyWindow:
+        """Validate exact canonical bounds before accepting persisted or caller-supplied windows."""
         normalized_start = _utc(start, "window_start")
         normalized_end = _utc(end, "window_end")
         if normalized_start.weekday() != 0 or normalized_start.time().isoformat() != "00:00:00":
@@ -126,9 +128,11 @@ class WeeklyStatsReader:
 
     @property
     def calculation_version(self) -> str:
+        """Expose the aggregate identity required to compare this reader's payloads safely."""
         return calculation_version(self._top_tags_limit)
 
     def read(self, user_id: int, window: WeeklyWindow) -> BookmarkStats:
+        """Read one owner-scoped event-time aggregate from the caller-owned SQLite snapshot."""
         _positive(user_id, "user_id")
         if not isinstance(window, WeeklyWindow):
             raise TypeError("window must be a WeeklyWindow")
@@ -190,6 +194,8 @@ def content_hash(calculation_version_text: str, payload: bytes) -> str:
 
 
 class HashComparison(StrEnum):
+    """Whether two version-scoped payload identities are comparable and equal."""
+
     SAME = "same"
     CHANGED = "changed"
     VERSION_MISMATCH = "version_mismatch"

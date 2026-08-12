@@ -61,6 +61,8 @@ class ProjectionProcessOutcome(StrEnum):
 
 
 class ProjectionProcessResult(FrozenInternalModel):
+    """Identifier-free result distinguishing applied projection work from safe non-application."""
+
     outcome: ProjectionProcessOutcome
     appended_revision: int | None = None
     created_current_working: bool = False
@@ -229,6 +231,7 @@ class ProjectionProcessor:
         source_generation: int,
         now: datetime,
     ) -> int | None:
+        """Append only a root or changed compatible correction; never rewrite developed history."""
         existing = repository.effective_point(user_id, window)
         if existing is None:
             repository.append_point(
@@ -284,6 +287,7 @@ class ProjectionProcessor:
         user_id: int,
         now: datetime,
     ) -> bool:
+        """Create the current developing row only when user data survives and no row exists."""
         if not repository.user_exists(user_id):
             return False
         window = WeeklyWindow.from_datetime(now)
@@ -310,6 +314,7 @@ class ProjectionProcessor:
 
     @staticmethod
     def _rollback(session: Session) -> None:
+        """Roll back the caller-owned transaction after stale or failed projection work."""
         session.rollback()
 
 
@@ -393,6 +398,7 @@ class BaselineRunner:
 
     @staticmethod
     def _checkpoint(state: ProjectionStateRecord) -> SurvivingWindowCandidate | None:
+        """Translate the durable exclusive cursor into the next baseline-page boundary."""
         if state.checkpoint_user_id is None:
             return None
         if state.checkpoint_window is None:
@@ -410,6 +416,7 @@ class BaselineRunner:
         candidate: SurvivingWindowCandidate,
         now: datetime,
     ) -> None:
+        """Materialize one surviving baseline candidate without synthesizing absent windows."""
         window = candidate.window
         if window.start > now:
             raise ProjectionCandidateError("future surviving candidate cannot be baselined")
@@ -432,6 +439,7 @@ class BaselineRunner:
         calculation: WeeklyCalculation,
         now: datetime,
     ) -> None:
+        """Seed an immutable root only; later dirty processing owns developed corrections."""
         existing = repository.effective_point(candidate.user_id, candidate.window)
         if existing is None:
             repository.append_point(
@@ -469,6 +477,7 @@ class BaselineRunner:
         calculation: WeeklyCalculation,
         now: datetime,
     ) -> None:
+        """Replace current baseline evidence while rejecting a calculation-version transition."""
         existing = repository.get_working(candidate.user_id, candidate.window)
         if existing is not None and existing.calculation_version != calculation.calculation_version:
             raise ProjectionCalculationVersionMismatchError(

@@ -40,10 +40,14 @@ class LoggingSettings(Protocol):
     """Narrow settings required by the logging composition root."""
 
     @property
-    def app_env(self) -> str: ...
+    def app_env(self) -> str:
+        """Return the non-secret environment label emitted with every log event."""
+        ...
 
     @property
-    def log_level(self) -> str: ...
+    def log_level(self) -> str:
+        """Return the validated root severity used to configure application logging."""
+        ...
 
 
 class Redactor(Protocol):
@@ -192,6 +196,7 @@ class JsonFormatter(logging.Formatter):
         self._redactor = redactor
 
     def format(self, record: logging.LogRecord) -> str:
+        """Serialize one record as JSON Lines, falling back only to the safe minimal schema."""
         try:
             message = self._redactor(record.getMessage())
             payload: dict[str, Any] = {
@@ -232,6 +237,7 @@ class FailClosedStreamHandler(logging.StreamHandler[TextIO]):
     _bookmarks_json_handler = False
 
     def emit(self, record: logging.LogRecord) -> None:
+        """Write formatter output without allowing logging's plaintext error handler to run."""
         try:
             message = self.format(record)
             self.stream.write(message + self.terminator)
@@ -278,6 +284,8 @@ def configure_logging(
 
 
 class _ApplicationFieldsFilter(logging.Filter):
+    """Populate schema fields for framework records that bypass structured helper calls."""
+
     def __init__(self, environment: str, application: str, component: str) -> None:
         super().__init__()
         self._environment = environment
@@ -285,6 +293,7 @@ class _ApplicationFieldsFilter(logging.Filter):
         self._component = component
 
     def filter(self, record: logging.LogRecord) -> bool:
+        """Supply safe defaults while preserving explicit application-provided fields."""
         record.application = self._application
         record.service = self._application
         record.environment = self._environment

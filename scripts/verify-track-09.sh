@@ -47,6 +47,8 @@ cleanup() {
         fi
     fi
     verification_report_cleanup "${cleanup_status}" 'verified clean clone, private receipts, and disposable workspace removal'
+    # Do not let cleanup mask the gate's original failure; report cleanup failure as
+    # the exit status only when the verification itself completed successfully.
     if [[ "${original_status}" -ne 0 ]]; then
         verification_report_finish "${original_status}" "${cleanup_status}"
         exit "${original_status}"
@@ -68,6 +70,8 @@ run_private() {
     local name="$1"
     shift
     local receipt="${workspace}/receipts/${name}.log"
+    # Receipts may contain paths or test-only values, so the terminal remains a
+    # curated safe summary while detailed output lives only in the 0700 workspace.
     if "$@" >"${receipt}" 2>&1; then
         printf 'RECEIPT: %s; exit=0\n' "${name}"
     else

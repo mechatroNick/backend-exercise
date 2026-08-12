@@ -106,11 +106,19 @@ class ReadinessSnapshot(FrozenInternalModel):
 
 
 class _Refresher(Protocol):
-    def state(self) -> RefresherState: ...
+    """Minimal worker-state dependency required for readiness evaluation."""
+
+    def state(self) -> RefresherState:
+        """Return the latest worker state without exposing worker controls."""
+        ...
 
 
 class _Publisher(Protocol):
-    def state(self) -> PublisherState: ...
+    """Minimal publisher-state dependency required for readiness evaluation."""
+
+    def state(self) -> PublisherState:
+        """Return the latest invalidation-publisher state for readiness checks."""
+        ...
 
 
 DatabaseProbe = Callable[[Session], bool]
@@ -203,6 +211,7 @@ class ReadinessEvaluator:
         return self._finish(snapshot)
 
     def _read_database_state(self) -> tuple[bool, DirtyBacklog | None]:
+        """Sample database and dirty state, treating probe or cleanup failure as unavailable."""
         session: Session | None = None
         database_ok = False
         backlog: DirtyBacklog | None = None
@@ -290,6 +299,7 @@ class ReadinessEvaluator:
     def _projection_reason(
         worker: RefresherState, projection: ProjectionReadinessSnapshot
     ) -> ReadinessReason:
+        """Apply projection-specific failure precedence after core refresh health is ready."""
         if not worker.projection_enabled:
             return ReadinessReason.PROJECTION_DISABLED
         if projection.state is None:
@@ -325,6 +335,7 @@ class ReadinessEvaluator:
         success_age: int | None,
         dirty_age: int | None,
     ) -> ReadinessReason:
+        """Return the first failing refresh invariant in the stable readiness precedence order."""
         stale_after = self._settings.stats_stale_after_seconds
         if not self._valid_state(worker, publisher, backlog):
             return ReadinessReason.STATE_UNAVAILABLE
@@ -420,6 +431,7 @@ class ReadinessEvaluator:
         )
 
     def _finish(self, snapshot: ReadinessSnapshot) -> ReadinessSnapshot:
+        """Record a redacted event only when the externally observable readiness state changes."""
         transition = (snapshot.ready, snapshot.reason)
         with self._transition_lock:
             changed = transition != self._last_transition
