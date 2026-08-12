@@ -1,0 +1,52 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
+API FastAPI factory and SQLite runtime composition. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Monochromatic professional color
+scheme with deep purple integration, brick-red configuration validation, muted-orange
+processing, royal-blue data, rose lifecycle, and slate toolchain accents; expert
+technical illustration quality. No 3D effects, no gradients, no photorealism.
+
+Wide 16:9 landscape with a narrow configuration band across the top, a dominant
+left-to-right request-runtime lane through the middle, and a separate schema-evolution
+lane spanning the bottom. The orange factory and central service are the largest active
+objects; the blue SQLite cylinder anchors the far right. A rose lifecycle bracket wraps
+runtime objects but never the migration lane. Use generous whitespace and only short
+bold labels with tiny gray annotations.
+
+At top-left, a slate terminal card labeled “Python + uv” with a command-prompt icon
+connects to a brick-red shield card “Settings”, annotated “validated inputs”. A thick
+orange arrow reaches a prominent muted-orange rounded rectangle “create_app” with a gear
+icon. A rose pink bracket labeled “Lifespan” surrounds the factory’s runtime domain and
+has tiny “start” and “stop” markers. A small pale-gray sealed card beneath the factory
+reads “Import” with a closed-door icon, annotated “no engine, no migration”, showing
+that import time is intentionally inert.
+
+Across the middle lane, a charcoal client icon sends a thick deep-purple arrow to a
+purple rounded “Router” card. It sends a dark arrow labeled “request” to a large
+muted-orange “Service” rectangle containing a small orange clock icon “UTC”. The service
+connects through a narrow royal-blue “Session” card annotated “short lived” to a large
+royal-blue SQLite cylinder labeled “SQLite”. Draw a small red lock/valve on the incoming
+database connection annotated “FK on”, but show no database credentials. A thin dashed
+rose line from Lifespan touches the service/session region, communicating lifecycle
+ownership rather than request data flow.
+
+Across the bottom, show stacked slate revision papers labeled “Revisions” flowing by a
+solid arrow into an orange gear labeled “Alembic”, then into the SQLite cylinder with
+label “upgrade”. A pale-red dashed card below the factory reads “Startup Migrate” with a
+diagonal strike; a barred red dashed arrow points from factory toward it, labeled “never”.
+Place four small green test probes near the relevant objects: “Config”, “UTC”, “Session”,
+“Migration”.
+
+Along the bottom, draw a transaction-safety strip: request enters a short session, service and repository perform bounded database work, commit follows only the intended path, and the session closes before the response reaches the client. Use a thin brick-red side arrow from a failed database operation to a stable redacted error boundary, then a neutral cleanup arrow to the session-close marker. This is a local synchronous runtime composition; omit async worker pools, background queues, and cloud deployment ornaments.
+
+Make the schema path equally concrete. Put an Alembic revision file above a small version table, then a royal-blue arrow labeled upgrade head into SQLite. Draw `PRAGMA foreign_keys=ON` as a narrow connection-time guard attached to each opened connection, not as a generic database feature. A crossed-out `create_all` box sits outside the valid path. Position Settings as the sole source for typed environment configuration and the application factory as the sole composition root, so configuration, construction, request handling, and persistence are visually separable.
+
+Use thick solid arrows for Toolchain to Settings “lock”, Settings to create_app
+“configure”, Router to Service “request”, Service to Session “open”, Session to SQLite
+“SQLModel”, and Revisions to Alembic to SQLite “upgrade”. Use thin dashed rose ownership
+arrows for lifespan only.
+
+EXCLUDE: cloud infrastructure, multiple workers, shared thread
+sessions, automatic schema creation, literal secrets, code blocks, long prose, visible
+tables, zone labels, watermarks, hex codes, 3D effects, shading, gradients, and
+photorealism.

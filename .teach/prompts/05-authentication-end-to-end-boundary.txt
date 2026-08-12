@@ -1,0 +1,38 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
+API registration, login, JWT, and bearer-authentication boundary. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Use a professional
+muted palette: charcoal clients, deep-purple HTTP cards, muted-orange processing, royal
+blue data, brick-red security, rose safe-error boundary, and slate response envelopes.
+No 3D effects, gradients, or photorealism.
+
+Wide 16:9 landscape with three horizontal lanes. Registration is the upper lane, login is
+the middle lane, and protected bookmark access is the lower lane. Place one shared
+deep-purple rounded “Auth” router near the left, one royal-blue “Users” cylinder in the
+right-center, and one rose “Error” card spanning the lower edge. Use bold labels of one
+to three words and tiny gray annotations only.
+
+Upper lane: a charcoal person card “Client” reaches Auth. Auth sends a thick arrow to an
+orange funnel “Canonical” annotated “trim lowercase”; that sends a solid arrow to a
+brick-red shield “Argon2” annotated “NFC hash”, then to Users with a small green “Unique”
+chip. Users returns a slate card “Public User” and a sealed brick-red envelope “Access
+Token”. Middle lane: Client reaches the same Auth card then red shield “Verify”. Two
+pale-gray input pills “Unknown” and “Wrong” visibly converge into one identical short red
+rejection shape; successful Verify reaches orange “JWT” then the sealed Access Token.
+Show only tiny badges `sub`, `iat`, `exp` on the envelope. Lower lane: a protected request
+with a sealed envelope reaches red shield “Bearer”, then red/blue identity card “Subject”,
+then purple card “Bookmark Routes”.
+
+In a narrow lower failure lane, show deliberately converged negative paths: unknown email, incorrect password, malformed credential, expired token, and inactive user arrive at one generic authentication failure envelope. Five small muted-orange input chips collapse through a single brick-red guard into one deep-purple response box; do not display user records, password material, JWT strings, or different error wording. Place a rose timing-neutralization note beside the login service to emphasize that password verification still executes on the unknown-user path. This must read as failure normalization, not account-state discovery.
+
+Keep authorization distinct from authentication. After verified current-user dependency, branch to owner-scoped route/service work; missing or invalid credentials stop before that branch, while a valid but non-owner request reaches the owner predicate and receives its separate safe denial. Draw the response and logging boundary with generic status/error labels only. The diagram is an access-token-only local API flow: omit OAuth, refresh rotation, browser cookies, identity-provider clouds, MFA, and claims about controls outside the stated repository.
+
+Use thick solid arrows Client to Auth “register” or “login”; Canonical to Argon2 to Users
+“persist”; Verify to JWT “issue”; Bearer to Subject to Bookmark Routes “authorize”. Red
+arrows from invalid credentials, malformed bearer, tampered token, expiry, or missing
+subject converge into the rose Error card, which emits compact slate “Safe Error”
+envelopes and a rose lockbox “Redacted Logs”.
+
+EXCLUDE: password values, token values, JWT payload dumps, stack traces, refresh tokens,
+RBAC, social login, long prose, visible tables, code blocks, watermarks, hex text, 3D,
+shading, gradients, and photorealism.

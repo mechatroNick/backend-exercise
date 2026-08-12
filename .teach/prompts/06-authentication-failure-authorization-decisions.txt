@@ -1,0 +1,17 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying Bookmarks API authentication failure convergence and authorization decisions. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Brick-red security, muted-orange rollback, royal-blue database, deep-purple response envelopes, rose redaction, pale-gray input.
+
+Make error-classification precedence the central lesson. At the top, separate untrusted registration input from bearer-token input using two pale-gray rails. The registration rail passes validation and canonicalization before any insert attempt; an expected unique collision alone turns into purple 409. Put malformed data, driver failure, and unexpected persistence failure on different red branches that all terminate in a single redacted safe-500 boundary—none may share the 409 path. Show the session rollback loop as a visible orange circular arrow attached to the unexpected database branch, then a neutral close-session marker. This lets an engineer see the difference between a known domain conflict and an operational fault.
+
+For the credential rail, group the JWT checks inside the brick-red shield in a strict sequence: bearer format, decoding, HS256 algorithm, expiry, and subject lookup. Valid identity emerges only after every check and is then bound as a user-id capability for the owner-scoped repository. All invalid outcomes converge on exactly one generic 401 response shape; missing authentication must be resolved before any bookmark ownership decision. Keep unknown-user and wrong-password login inputs in the same visual convergence group and place a small dummy-verify clock beside them, showing resistance to user enumeration without showing a password or timing value.
+
+Wide 16:9 landscape with untrusted input across top, typed service/database in the large center, and HTTP results along the right. A red “Bearer” shield is lower-center; an orange “Rollback” loop is above it. Every invalid token outcome converges visibly.
+
+Gray “Input” pills flow through orange “Normalize” to blue cylinder “Insert”. A blue “Collision” card follows an orange loop to purple envelope “409” annotated “known unique”. A broken database card instead follows red arrow to rose lockbox “Redact” and purple “Safe 500”; it never looks like conflict. A sealed token reaches red “Bearer” surrounded by small checks “Format”, “HS256”, “Expiry”, “Subject”. Valid path reaches blue/red “Subject” then blue tag “user id” then slate “Repository”. Invalid checks and two gray cards “Unknown” and “Wrong” all enter the same purple “401”.
+
+Use thick solid arrows for register, verify, scope. Use orange circular arrow for clear. Use red convergence arrows for reject and unexpected.
+
+Keep error envelopes compact and visually identical for equivalent security outcomes. Show generic logging as a rose lockbox with source location and category only, then cut off any line that would expose credential, token, claim, database, or exception details. Use white space between expected conflict and unexpected fault branches so a reviewer can distinguish them without reading prose. Keep response shapes as simple purple envelopes with status chips; do not render framework internals or detailed exception messages.
+
+EXCLUDE: credentials, token values, claim dumps, stack traces, resource outcomes, refresh tokens, long prose, visible tables, code, watermarks, hex text, 3D, shading, gradients, and photorealism.

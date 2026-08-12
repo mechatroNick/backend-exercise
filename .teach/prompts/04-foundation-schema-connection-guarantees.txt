@@ -1,0 +1,38 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
+API Alembic-owned SQLite schema and connection guarantees. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Royal-blue database/table
+cards, forest-green constraint badges, muted-orange migration engine, slate revision
+papers, and brick-red rejected state; engineering-grade precision. No 3D effects,
+gradients, or photorealism.
+
+Wide 16:9 landscape. Migration history begins on the left and feeds a large relational
+cluster in the center/right. The Bookmarks card is the largest object; Users is above it,
+Tags is right of it, and a narrow association bridge sits beneath it. A foreign-key valve
+appears above the migration/data path. Keep annotations integrated near cards and make
+the invalid state visibly outside the accepted cluster.
+
+At far left, stacked slate paper cards labeled “Revisions” flow into an orange gear card
+“Alembic”, annotated “only schema owner”. Above them, a royal-blue valve card “FK On” has
+a small brick-red lock icon and annotation “every connection”. Center: a large
+royal-blue table card “Bookmarks” with small forest-green chips “Check”, “Index”, “FK”.
+Above it, a blue “Users” card with green “Unique” chip. To its lower right, a thin blue
+bridge “Bookmark Tags” with a green “Composite” chip. At far right, blue “Tags” card
+with green “Unique” chip. A muted-blue database cylinder behind the cluster provides a
+subtle persistence boundary. Lower left, a broken brick-red row card “Invalid FK” bends
+back toward the FK valve and never reaches a table.
+
+Use the lower rail to teach why referential integrity is a runtime connection concern as well as a migration concern. Place a small connection plug immediately before SQLite with a blue chip `PRAGMA foreign_keys=ON`; every repository operation passes through that plug. Contrast it with a crossed-out assumption card reading “SQLite enforces FK by default.” Show an invalid association approaching the guarded schema and stopping at a brick-red integrity bar, while the application boundary converts failure into stable safe behavior rather than exposing driver text.
+
+On the right, make migration history chronological but compact: base revision, up arrow, schema at head, down arrow, and re-up arrow. The version table is the only source of applied state. Use dotted slate arrows only for design/reference relationships and solid blue arrows for created foreign-key relationships. Never draw user-to-user, bookmark-to-foreign-user, or tag ownership links. Teach that ownership, association uniqueness, and migration reproducibility are separate constraints that cooperate; do not collapse them into decoration or invent tables outside the source anchors.
+
+Use thick solid slate/orange arrow Revisions to Alembic “upgrade”; solid blue arrow FK
+On to the relational cluster “enforce”; downward blue arrow Users to Bookmarks “owns”;
+blue arrows Bookmarks to Bookmark Tags “links” and Bookmark Tags to Tags “labels”. A red
+rebound arrow Invalid FK toward FK On says “reject”. Use clean relationship ends rather
+than a visible ER table. Include small dark-gray annotations “database authority” beside
+green badges and “local SQLite” below cylinder.
+
+EXCLUDE: create_all, cloud database, raw CRUD SQL, user-content examples, URL or password
+validation claims, long labels, DDL/code, visible tables, detached legend, watermarks,
+hex codes, 3D effects, shading, gradients, and photorealism.

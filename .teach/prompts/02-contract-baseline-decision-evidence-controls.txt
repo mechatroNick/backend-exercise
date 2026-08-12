@@ -1,0 +1,33 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying
+Bookmarks API decision and evidence controls. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Professional muted colors: brick red for
+locked boundaries, amber for local choices, royal blue for contracts, deep purple for
+ADR review, muted orange for validation, forest green for actual evidence. No 3D,
+gradients, or photorealism.
+
+Wide 16:9 landscape. A vertical authority ladder dominates the top center, a large
+pale-orange “Change” card dominates the middle, locked and reversible choices sit on
+opposite sides, and a connected evidence chain spans the bottom. The review detour arcs
+up and right; give the central proposal generous whitespace.
+
+Five descending cards at top read “Owner”, “Assessment”, “ADR”, “Interpretation”, “SPEC”.
+Center: large orange rounded “Change” card with gear icon. Left: brick-red shield chips
+“Routes”, “Identity”, “One Worker”, “Current Stats”. Right: amber wrench chips “Names”,
+“Fixtures”, “Defaults”, “Modules”. Above-right: purple diamond “ADR Review”. Bottom:
+Give the lower evidence tier a deliberate four-way comparison: a gray planned note, an orange running process, a green verified receipt with exit 0 and cleanup, and a red blocked gate with a named failed precondition. Connect only the green receipt to the next-track card. Use compact angular callouts to show that source-backed behavior decisions, such as exact error shape and public-route scope, are authoritative only through their contract and executable checks; a design note can constrain implementation but cannot manufacture a runtime result.
+
+Depict uncertainty as bounded decision lanes, not a fuzzy brainstorming cloud. For an ambiguous or incompatible change, draw a brick-red arrow to SPEC / ADR review; for a compatible implementation defect, draw a muted-orange repair arrow back to the owning track. Put deterministic tests, real-process harness execution, and final cleanup as three individually visible checks before the receipt seal. The public API boundary stays left of a safety divider; internal state and safe logs stay right. No identity, credential, token, bookmark content, raw SQL value, or stack trace should appear even as an example.
+
+connected objects “Requirement”, “SPEC”, “Code/Test”, “Verifier”, green “Report”; a
+folded slate “Plan” paper bears red “Not Proof” stamp.
+
+Solid downward arrows connect authority cards. Short red pins connect shields to Change;
+amber pins connect local choices. Thick red curved arrow Change to ADR Review “material”,
+purple return “accepted”. Thick linked arrows across bottom “prove”. Red barred arrow
+Plan to Report “not proof”.
+
+At the far right, arrange three compact source anchors as signed inputs to the verifier: immutable contract, accepted ADR, and executable test. Their arrows meet only at a local report record with a clearly visible receipt seal. Draw a final red boundary after the report that blocks any inference from local evidence to remote publication or owner action. Use enough white space that the distinction between authoritative source, implementation choice, evidence, and excluded external act can be understood in one scan.
+
+EXCLUDE: product runtime, database diagrams, long prose, visible tables, real source-code
+text, claims of unrun verification, 3D, gradients, photorealism, watermarks, hex text.

@@ -1,0 +1,35 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying the Bookmarks
+API requirements-to-evidence delivery map. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Monochromatic professional style with royal
+blue, deep purple, muted orange, muted magenta, forest green, charcoal, and brick-red
+accents; engineering-grade precision. No 3D effects, gradients, or photorealism.
+
+Wide 16:9 landscape. A left-to-right pipeline has assessment input on the left, the
+largest requirements board in left-center, a prominent ordered track railway across the
+center-right, a tall quality gate after Track 05, and an evidence folder at far right. A
+thin bottom strip spans the width for local-scope limits. Keep the core railway larger
+than extensions and use generous whitespace between control-plane documents.
+
+On the far left, a charcoal paper card labeled “Assessment” with a bookmark icon points
+to a large royal-blue rounded board labeled “43 Requirements”; show four tiny grouped
+chips “Core”, “Data”, “Security”, “Quality”. Beside it, three smaller source cards:
+blue “Design”, purple “ADRs”, slate “Plan”. Across center-right, connected compact pills
+read “00” through “05 Core”, followed by a tall muted-orange gate “Quality”; then four
+smaller magenta/slate pills “06”, “07”, “08”, “09”. At far right, a forest-green folder
+“Evidence” has a receipt icon. Along the bottom, a pale-gray strip “Local Scope” carries
+small brick-red stop chips “No Broker”, “One Worker”, “No History”.
+
+In the lower third, make the evidence lane explicitly separate intent from proof. Show a slim slate SPEC and ADR card feeding the planned-work side of a vertical divider, while a real test selector, exact exit status, and cleanup receipt occupy the verified side. Label the divider “plan is not evidence.” Put the Track 08 final-handoff harness after independent Track 01 through Track 07 verification nodes, never before them; its only valid outgoing arrow is a green “all inherited gates pass” arrow to a local release-handoff record. Beyond that record, draw a crossed-out cloud-upload icon: pushing, submission, deployment, and archive decisions are owner-authorized work outside this local map.
+
+Render traceability as compact orthogonal connectors, not a project-management timeline. A blue contract-bound line should descend from assessment to API behavior, persistence, error envelopes, and tests. A separate purple design-bound line should descend from ADRs to implementation choices such as one worker or migration-only schema. Let red stop bars intercept any connector that tries to turn an unexecuted plan, partial test, or unclean workspace into a green receipt. Keep the production API as one bounded local service; do not imply microservices, a remote queue, distributed workers, or public weekly reporting.
+
+Thick dark arrows: Assessment to Requirements “extract”; Requirements to Design, ADRs,
+Plan “govern”; Requirements through Core tracks “deliver”; Core to Quality “prove core”.
+Thick green arrow: Quality to Extensions “unlock”. Thick arrow: Extensions to Evidence
+“verify”. Thin dashed arrow: Evidence back to Requirements “trace”. Red barred arrow
+from Local Scope toward Extensions “excluded”.
+
+EXCLUDE: paragraphs, visible tables, long labels, cloud-production imagery, generic
+agile icons, public history API, broker clusters, 3D effects, shading, gradients,
+photorealism, watermarks, zone labels, and hex codes as visible text.

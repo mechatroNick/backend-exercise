@@ -1,0 +1,17 @@
+RATIO=16:9
+
+Flat 2D vector technical schematic on a clean white background displaying two owner-scoped Bookmarks API read paths: search and canonical current statistics. Monochromatic professional color scheme with subtle muted color accents, engineering-grade precision. No 3D effects, no gradients, no photorealism. Deep-purple routes, brick-red user-scope badges, muted-orange filters, royal-blue repository and SQLite, teal aggregate reader, slate response envelopes.
+
+Keep the two read models intentionally different but source-consistent. The upper lane is a search/list contract: an authenticated user id and normalized filters bind to owner-scoped repository reads, stable ordering, a page response, and a total computed under the same scope. Put every filter chip inside one orange funnel before the repository, never on the response side. The lower lane is the canonical current-statistics contract: it has its own route and parameterized raw-SQL reader, but it uses the same user scope and the same live bookmarks/tags source. Draw the teal aggregate island as a narrow, controlled escape hatch from ORM-shaped queries, not as a second analytics database.
+
+Place the operational boundary near the statistics result. A request can read a valid snapshot when current, while a dirty or unavailable snapshot state falls back to canonical live raw SQL; the returned public semantics remain current and user-scoped. Use a modest slate fallback arrow, not a flashy failover architecture. The diagram must not turn Track 07’s private weekly projections into a public history endpoint. Show N+1 and string-interpolated raw SQL as crossed-out red cards at the edge, while named parameters, one aggregate reader, and bounded query-count proof stay in the accepted teal/green path.
+
+Wide 16:9 landscape split into equal upper search lane and lower statistics lane. Both begin with purple route cards at left and terminate in slate envelopes at right. One large royal-blue SQLite cylinder overlaps the center divider, clearly serving both lanes. The teal raw-SQL island is visually distinct but controlled.
+
+Upper lane: purple “List” card receives red “user id” badge, then reaches orange “Filters” funnel surrounded by five tiny pills “Tag”, “Title”, “Created”, “Updated”, “Page”. It connects to blue “Repository” card annotated “owner scoped”, then SQLite. A small blue bundle “Tags” joins the return path before slate “Items + Total” envelope with white chips “Stable”, “20”, “100”. Lower lane: purple “Stats” card with same red user badge connects to teal rounded “Raw SQL” island with a thin purple outline and annotation “named params”. Three teal mini-cards “Totals”, “Top Tags”, “Months” connect to SQLite and merge into slate “Stats” envelope.
+
+Use thick dark arrows List to Filters to Repository “search”; blue arrows Repository to SQLite to Items “read”; thick teal arrow Stats to Raw SQL “aggregate”; teal arrows Raw SQL to SQLite to Stats “current”. Place small crossed-out red edge cards “N+1” and “Raw SQL CRUD”.
+
+Use compact labels such as owner scope, stable order, named params, current result, and fallback live read directly beside their arrows. Separate the public response envelopes from the internal snapshot/dirty mechanics with white space, ensuring the fallback does not resemble a new API surface.
+
+EXCLUDE: weekly history, client aggregation, unscoped queries, literal SQL, cloud analytics, long prose, visible tables, code, watermarks, hex text, 3D, shading, gradients, photorealism.
