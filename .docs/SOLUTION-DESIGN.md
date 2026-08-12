@@ -238,11 +238,11 @@ erDiagram
         string name UK
     }
     BOOKMARK_TAG {
-        int bookmark_id PK_FK
-        int tag_id PK_FK
+        int bookmark_id PK, FK
+        int tag_id PK, FK
     }
     STATS_DIRTY_WINDOW {
-        int user_id PK_FK
+        int user_id PK, FK
         datetime window_start PK
         int generation
         string reason
