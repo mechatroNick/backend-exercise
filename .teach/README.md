@@ -1,8 +1,8 @@
 # Bookmarks API visual teaching curriculum
 
-This directory turns the completed coding challenge into a progressive visual
-walkthrough. The files in `prompts/` are self-contained image-generation prompts, not
-generated images. They follow the delivered Tracks 00–09 in order and each file
+This directory turns the Bookmarks API challenge delivery sequence into a progressive
+visual walkthrough. The files in `prompts/` are self-contained image-generation prompts,
+not generated images. They follow Tracks 00–09 in order and each file
 uses the final Generic Illustrator model format: a front-loaded style prime,
 spatial composition, concrete visible components, grouped arrow flows, and a final
 negative prompt. The only metadata line is `RATIO=16:9`; everything else needed to
@@ -20,6 +20,12 @@ short labels because image models render prose unreliably, while keeping the bou
 technical context, invariants, flows, and exclusions directly within the model-facing
 text. They deliberately distinguish delivered local-assessment behavior from excluded
 production infrastructure without referring the model to repository files.
+
+The curriculum describes implementation and verification boundaries; it does not change
+the durable track status. Tracks 00–08 are complete, while Track 09 remains **Ready to
+push** until the repository owner performs the explicitly excluded external action.
+The non-runtime prompts and images are intentionally excluded from the Docker build
+context, so they do not enlarge or alter the application image.
 
 ## Sequence
 
